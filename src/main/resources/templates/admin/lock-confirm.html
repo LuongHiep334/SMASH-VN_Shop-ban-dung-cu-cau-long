@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="no-referrer">
+    <title th:text="${title} + ' - SmashVN'">Xác nhận khóa tài khoản - SmashVN</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+            padding: 24px;
+            background: #f4f6f9;
+            color: #1f2937;
+            font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+        .confirm-card {
+            width: min(100%, 560px);
+            padding: 36px;
+            border: 1px solid #e5e7eb;
+            border-radius: 18px;
+            background: #fff;
+            box-shadow: 0 18px 45px rgba(15, 23, 42, 0.1);
+        }
+        .eyebrow {
+            margin: 0 0 8px;
+            color: #dc2626;
+            font-size: 13px;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+        h1 { margin: 0 0 12px; font-size: clamp(24px, 5vw, 32px); }
+        .message { margin: 0 0 24px; color: #4b5563; line-height: 1.6; }
+        .employee-box {
+            margin-bottom: 24px;
+            padding: 18px;
+            border-radius: 12px;
+            background: #f8fafc;
+        }
+        .employee-box strong { display: block; margin-bottom: 6px; font-size: 18px; }
+        .employee-box span { color: #64748b; overflow-wrap: anywhere; }
+        .actions { display: flex; flex-wrap: wrap; gap: 12px; }
+        button, a {
+            min-height: 44px;
+            padding: 11px 18px;
+            border-radius: 10px;
+            font: inherit;
+            font-weight: 700;
+            text-align: center;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        button { border: 0; background: #dc2626; color: #fff; }
+        button.reject { background: #1f2937; }
+        a { border: 1px solid #d1d5db; color: #374151; background: #fff; }
+        button:focus-visible, a:focus-visible { outline: 3px solid #93c5fd; outline-offset: 2px; }
+    </style>
+</head>
+<body>
+    <main class="confirm-card">
+        <p class="eyebrow">Yêu cầu xác nhận bảo mật</p>
+        <h1 th:text="${title}">Xác nhận khóa tài khoản</h1>
+        <p class="message" th:text="${message}">Vui lòng kiểm tra trước khi tiếp tục.</p>
+
+        <div class="employee-box">
+            <strong th:text="${nv.hoTenNv}">Nhân viên</strong>
+            <span th:text="${nv.taiKhoan.username}">email@example.com</span>
+        </div>
+
+        <form th:action="${actionUrl}" method="post">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+            <input type="hidden" name="token" th:value="${token}">
+            <div class="actions">
+                <button type="submit"
+                        th:classappend="${actionType == 'reject'} ? 'reject' : ''"
+                        th:text="${actionType == 'approve'} ? 'Xác nhận khóa tài khoản' : 'Xác nhận từ chối khóa'">
+                    Xác nhận
+                </button>
+                <a th:if="${session.idNguoiDung != null}" th:href="@{/admin/all}">Quay lại Tổng quan</a>
+                <a th:unless="${session.idNguoiDung != null}" th:href="@{/admin/dang-nhap}">Đóng yêu cầu</a>
+            </div>
+        </form>
+    </main>
+</body>
+</html>

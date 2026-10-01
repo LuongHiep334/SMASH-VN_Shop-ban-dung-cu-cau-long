@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html class="no-js" lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    
+    <!-- SEO Meta Tags -->
+    <title th:text="${query != null and !query.isEmpty() ? 'Tìm kiếm bài viết: ' + query + ' - Smash VN' : 'Tin tức & Blogs cầu lông mới nhất - Smash VN'}">Tin tức & Blogs cầu lông mới nhất - Smash VN</title>
+    <meta name="description" content="Chuyên mục Tin tức & Blogs của Smash VN. Nơi cập nhật các bài viết đánh giá vợt cầu lông mới nhất, hướng dẫn kỹ thuật chơi cầu lông, cách chọn vợt và căng dây chuẩn.">
+    <meta name="keywords" content="blog cầu lông, tin tức cầu lông, đánh giá vợt cầu lông, kỹ thuật cầu lông, căng vợt">
+    <meta name="robots" content="index, follow">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" th:href="${query != null and !query.isEmpty() ? 'https://smashvn.com/blog?q=' + query : 'https://smashvn.com/blog'}">
+    
+    <!-- OpenGraph Tags -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" th:content="${query != null and !query.isEmpty() ? 'Tìm kiếm bài viết: ' + query + ' - Smash VN' : 'Tin tức & Blogs cầu lông mới nhất - Smash VN'}">
+    <meta property="og:description" content="Cập nhật tin tức, review vợt cầu lông mới nhất, hướng dẫn kỹ năng cho người mới bắt đầu tại Smash VN.">
+    <meta property="og:image" th:content="@{/images/logo/logo-1.png}">
+    <meta property="og:url" content="https://smashvn.com/blog">
+    <meta property="og:site_name" content="Smash VN">
+    
+    <link th:href="@{/images/favicon.png}" rel="shortcut icon">
+
+    <!--====== Google Font ======-->
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,600,700,800" rel="stylesheet">
+
+    <!--====== Vendor Css ======-->
+    <link rel="stylesheet" th:href="@{/css/vendor.css}">
+
+    <!--====== Utility-Spacing ======-->
+    <link rel="stylesheet" th:href="@{/css/utility.css}">
+
+    <!--====== App ======-->
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+
+    <!-- Schema.org JSON-LD -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Blog",
+      "name": "Tin tức & Blogs Cầu lông - Smash VN",
+      "url": "https://smashvn.com/blog",
+      "description": "Nơi tổng hợp các kiến thức bổ ích, đánh giá sản phẩm và hướng dẫn kỹ thuật chơi cầu lông cho mọi cấp độ.",
+      "publisher": {
+        "@type": "Organization",
+        "name": "Smash VN",
+        "logo": "https://smashvn.com/images/logo/logo-1.png"
+      }
+    }
+    </script>
+</head>
+<body class="config">
+    <div class="preloader is-active">
+        <div class="preloader__wrap">
+            <img class="preloader__img" th:src="@{/images/preloader.svg}" alt="Đang tải..." width="64" height="64">
+        </div>
+    </div>
+
+    <!--====== Main App ======-->
+    <div id="app">
+        <!--====== Main Header ======-->
+        <header class="header--style-1">
+            <div th:replace="~{layout/header :: header}"></div>
+        </header>
+
+        <!--====== App Content ======-->
+        <div class="app-content">
+            <!--====== Section 1: Breadcrumb ======-->
+            <div class="u-s-p-y-60">
+                <div class="section__content">
+                    <div class="container">
+                        <div class="breadcrumb">
+                            <div class="breadcrumb__wrap">
+                                <ul class="breadcrumb__list">
+                                    <li class="has-separator">
+                                        <a th:href="@{/}">Trang chủ</a>
+                                    </li>
+                                    <li class="is-marked">
+                                        <a th:href="@{/blog}">Tin tức / Blogs</a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!--====== Section 2: Blog Layout ======-->
+            <div class="u-s-p-b-90">
+                <div class="container">
+                    <div class="row">
+                        <!-- Sidebar widget -->
+                        <div class="col-lg-3 col-md-4 col-sm-12">
+                            <div class="blog-w-master">
+                                <!-- Search widget -->
+                                <div class="u-s-m-b-60">
+                                    <div class="blog-w">
+                                        <span class="blog-w__h">TÌM KIẾM</span>
+                                        <form class="blog-search-form" action="/blog" method="get">
+                                            <label for="post-search"></label>
+                                            <input class="input-text input-text--primary-style" type="text" id="post-search" name="q" placeholder="Tìm kiếm bài viết..." th:value="${query}">
+                                            <button class="btn btn--icon fas fa-search" type="submit"></button>
+                                        </form>
+                                    </div>
+                                </div>
+
+                                <!-- Categories widget -->
+                                <div class="u-s-m-b-60">
+                                    <div class="blog-w">
+                                        <span class="blog-w__h">DANH MỤC</span>
+                                        <ul class="blog-w__list">
+                                            <li><a th:href="@{/blog}">Tất Cả Bài Viết</a></li>
+                                            <li><a th:href="@{/blog(q='Hướng Dẫn')}">Hướng Dẫn Chọn Đồ</a></li>
+                                            <li><a th:href="@{/blog(q='Review')}">Đánh Giá Sản Phẩm</a></li>
+                                            <li><a th:href="@{/blog(q='Kỹ Thuật')}">Kỹ Thuật Thi Đấu</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+
+                                <!-- Recent posts widget -->
+                                <div class="u-s-m-b-60">
+                                    <div class="blog-w">
+                                        <span class="blog-w__h">BÀI VIẾT MỚI NHẤT</span>
+                                        <ul class="blog-w__b-l">
+                                            <li th:each="recent : ${recentBlogs}">
+                                                <div class="b-l__block">
+                                                    <div class="b-l__date">
+                                                        <span th:text="${#strings.substring(recent.publishDate, 8, 10)}">25</span>
+                                                        <span th:text="${#strings.substring(recent.publishDate, 5, 7)}">05</span>
+                                                        <span th:text="${#strings.substring(recent.publishDate, 0, 4)}">2026</span>
+                                                    </div>
+                                                    <span class="b-l__h">
+                                                        <a th:href="@{/blog/{slug}(slug=${recent.slug})}" th:text="${recent.title}">Tiêu đề bài viết</a>
+                                                    </span>
+                                                    <span class="b-l__p" th:text="${recent.summary}">Tóm tắt bài viết...</span>
+                                                </div>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+
+                                <!-- Tags widget -->
+                                <div>
+                                    <div class="blog-w">
+                                        <span class="blog-w__h">TỪ KHÓA HOT</span>
+                                        <div class="blog-t-w">
+                                            <a class="gl-tag btn--e-transparent-hover-brand-b-2" th:href="@{/blog(q='Yonex')}">Yonex</a>
+                                            <a class="gl-tag btn--e-transparent-hover-brand-b-2" th:href="@{/blog(q='Lining')}">Lining</a>
+                                            <a class="gl-tag btn--e-transparent-hover-brand-b-2" th:href="@{/blog(q='Vợt')}">Chọn Vợt</a>
+                                            <a class="gl-tag btn--e-transparent-hover-brand-b-2" th:href="@{/blog(q='Kỹ Thuật')}">Kỹ Thuật</a>
+                                            <a class="gl-tag btn--e-transparent-hover-brand-b-2" th:href="@{/blog(q='Căng Vợt')}">Căng Vợt</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Main Content listing -->
+                        <div class="col-lg-9 col-md-8 col-sm-12">
+                            <!-- Empty State -->
+                            <div th:if="${blogsPage.isEmpty()}" class="u-s-p-y-60 text-center" style="background: #fff; padding: 40px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.02);">
+                                <h3 style="color: #666; font-weight: 600;">Không tìm thấy bài viết nào phù hợp với từ khóa của bạn.</h3>
+                                <p style="color: #999; margin-top: 10px;">Thử tìm kiếm với từ khóa khác như "Yonex", "Giao Cầu", "Căng Vợt".</p>
+                                <a th:href="@{/blog}" class="btn btn--e-brand-b-2 u-s-m-t-20" style="display: inline-block; padding: 12px 28px; border-radius: 5px; font-weight: 600; text-decoration: none;">Quay Lại Danh Sách Tin Tức</a>
+                            </div>
+
+                            <!-- List loop -->
+                            <div class="bp bp--img u-s-m-b-30" th:each="blog : ${blogsPage.content}" style="background: #fff; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.02); overflow: hidden; border: 1px solid #f0f0f0;">
+                                <div class="bp__wrap">
+                                    <div class="bp__thumbnail">
+                                        <a class="aspect aspect--bg-grey aspect--1366-768 u-d-block" th:href="@{/blog/{slug}(slug=${blog.slug})}">
+                                            <img class="aspect__img" 
+                                                 th:src="${#strings.startsWith(blog.image, '/uploads/') ? blog.image : '/images/blog/' + blog.image}" 
+                                                 th:alt="${blog.title}">
+                                        </a>
+                                    </div>
+                                    <div class="bp__info-wrap" style="padding: 25px;">
+                                        <div class="bp__stat">
+                                            <span class="bp__stat-wrap">
+                                                <span class="bp__publish-date">
+                                                    <a th:href="@{/blog/{slug}(slug=${blog.slug})}">
+                                                        <span th:text="${blog.publishDate}">25 May 2026</span>
+                                                    </a>
+                                                </span>
+                                            </span>
+                                            <span class="bp__stat-wrap">
+                                                <span class="bp__author">
+                                                    Tác giả: <span th:text="${blog.author}">Admin</span>
+                                                </span>
+                                            </span>
+                                            <span class="bp__stat-wrap">
+                                                <span class="bp__comment">
+                                                    <a><i class="far fa-comments u-s-m-r-4"></i>
+                                                        <span th:text="${blog.commentsCount}">8</span> bình luận
+                                                    </a>
+                                                </span>
+                                            </span>
+                                            <span class="bp__stat-wrap">
+                                                <span class="bp__category">
+                                                    Danh mục: <span th:text="${blog.category}" style="color: #ff4500; font-weight: 600;">Learning</span>
+                                                </span>
+                                            </span>
+                                        </div>
+
+                                        <span class="bp__h1" style="font-size: 1.4rem; font-weight: 700; margin-top: 10px; margin-bottom: 12px; display: block;">
+                                            <a th:href="@{/blog/{slug}(slug=${blog.slug})}" th:text="${blog.title}" style="color: #15171c; text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='#ff4500'" onmouseout="this.style.color='#15171c'">Tiêu đề bài viết</a>
+                                        </span>
+
+                                        <div class="blog-t-w" style="margin-bottom: 15px;">
+                                            <a class="gl-tag btn--e-transparent-hover-brand-b-2" th:each="tag : ${blog.tags}" th:text="${tag}" th:href="@{/blog(q=${tag})}">Thẻ</a>
+                                        </div>
+
+                                        <p class="bp__p" th:text="${blog.summary}" style="color: #666; font-size: 0.95rem; line-height: 1.6; margin-bottom: 20px;">Tóm tắt bài viết...</p>
+
+                                        <div class="gl-l-r">
+                                            <div>
+                                                <span class="bp__read-more">
+                                                    <a th:href="@{/blog/{slug}(slug=${blog.slug})}" style="font-weight: 700; color: #ff4500; letter-spacing: 0.05em;">ĐỌC THÊM</a>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Pagination controls -->
+                            <nav class="post-center-wrap u-s-p-y-60" th:if="${totalPages > 1}">
+                                <ul class="blog-pg">
+                                    <!-- Previous Button -->
+                                    <li th:if="${currentPage > 0}">
+                                        <a th:href="@{/blog(q=${query}, page=${currentPage - 1})}">
+                                            <i class="fas fa-angle-left"></i>
+                                        </a>
+                                    </li>
+
+                                    <!-- Page Number Buttons -->
+                                    <li th:each="i : ${#numbers.sequence(0, totalPages - 1)}" th:class="${currentPage == i ? 'blog-pg--active' : ''}">
+                                        <a th:href="@{/blog(q=${query}, page=${i})}" th:text="${i + 1}">1</a>
+                                    </li>
+
+                                    <!-- Next Button -->
+                                    <li th:if="${currentPage < totalPages - 1}">
+                                        <a th:href="@{/blog(q=${query}, page=${currentPage + 1})}">
+                                            <i class="fas fa-angle-right"></i>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--====== End - App Content ======-->
+
+        <!--====== Main Footer ======-->
+        <footer th:replace="~{layout/footer :: footer}"></footer>
+
+        <!--====== Modal Section ======-->
+        <div th:replace="~{layout/modals :: all-modals}"></div>
+    </div>
+
+    <!--====== Vendor Js ======-->
+    <script th:src="@{/js/vendor.js}"></script>
+
+    <!--====== jQuery Shopnav plugin ======-->
+    <script th:src="@{/js/jquery.shopnav.js}"></script>
+
+    <!--====== App ======-->
+    <script th:src="@{/js/app.js}"></script>
+</body>
+</html>

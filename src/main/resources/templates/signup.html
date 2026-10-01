@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html class="no-js" lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link th:href="@{/images/favicon.png}" rel="shortcut icon">
+    <title>Smash Vn</title>
+
+    <!--====== Phông chữ Google ======-->
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,600,700,800" rel="stylesheet">
+
+    <!--====== CSS Nhà cung cấp ======-->
+    <link rel="stylesheet" th:href="@{/css/vendor.css}">
+
+    <!--====== Tiện ích khoảng cách ======-->
+    <link rel="stylesheet" th:href="@{/css/utility.css}">
+
+    <!--====== Ứng dụng ======-->
+    <link rel="stylesheet" th:href="@{/css/app.css(v='20260824')}">
+</head>
+<body class="config">
+    <div class="preloader is-active">
+        <div class="preloader__wrap">
+
+            <img class="preloader__img" th:src="@{/images/preloader.svg}" alt="Đang tải" width="64" height="64"></div>
+    </div>
+
+    <!--====== Ứng dụng chính ======-->
+    <div id="app">
+
+        <!--====== Tiêu đề chính ======-->
+	    <header class="header--style-1">
+		    <div th:replace="~{layout/header :: header}"></div>
+		</header>
+        <!--====== End - Main Header ======-->
+
+
+        <!--====== App Content ======-->
+        <div class="app-content">
+
+            <!--====== Section 1 ======-->
+            <div class="u-s-p-y-60">
+
+                <!--====== Section Content ======-->
+                <div class="section__content">
+                    <div class="container">
+                        <div class="breadcrumb">
+                            <div class="breadcrumb__wrap">
+                                <ul class="breadcrumb__list">
+                                    <li class="has-separator">
+
+                                        <a th:href="@{/}">Trang chủ</a></li>
+                                    <li class="is-marked">
+
+                                        <a th:href="@{/user/dang-ky}">Đăng ký</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!--====== End - Section 1 ======-->
+
+
+            <!--====== Section 2 ======-->
+            <div class="u-s-p-b-60">
+
+                <!--====== Section Intro ======-->
+                <div class="section__intro u-s-m-b-60">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <div class="section__text-wrap">
+                                    <h1 class="section__heading u-c-secondary">Tạo mới tài khoản</h1>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!--====== End - Section Intro ======-->
+
+
+                <!--====== Section Content ======-->
+                <div class="section__content">
+                    <div class="container">
+                        <div class="row row--center">
+                            <div class="col-lg-6 col-md-8 u-s-m-b-30">
+                                <div class="l-f-o">
+                                    <div class="l-f-o__pad-box">
+                                    
+                                    <h1 class="gl-h1">THÔNG TIN CÁ NHÂN</h1>
+                       
+                                            <div class="gl-s-api">
+                                            
+											    <div class="u-s-m-b-15">
+											    
+											        <a th:href="@{/oauth2/authorization/google}" class="gl-s-api__btn gl-s-api__btn--gplus" style="display: flex; justify-content: center; align-items: center; gap: 10px;">
+											            
+											            <i class="fab fa-google"></i>
+											            
+											            <span>Đăng ký bằng Google</span>
+											        
+											        </a>
+											    </div>
+											</div>
+                                            
+                                        
+										<div th:if="${loi != null}" class="form-alert form-alert--error u-s-m-b-15"
+										     id="registration-alert" role="alert" tabindex="-1">
+										    <i class="fas fa-exclamation-circle" aria-hidden="true"></i>
+										    <span th:text="${loi}"></span>
+										</div>
+										
+										<form class="l-f-o__form" th:action="@{/user/dang-ky}" method="post" novalidate>
+										    
+										    <div class="u-s-m-b-30 form-field">
+										        <label class="gl-label" for="reg-username">E-MAIL HOẶC SỐ ĐIỆN THOẠI *</label>
+										        <input class="input-text input-text--primary-style" type="text" id="reg-username" name="username"
+										               th:value="${username}" th:classappend="${usernameError != null} ? ' is-invalid' : ''"
+										               th:attr="aria-invalid=${usernameError != null ? 'true' : 'false'}"
+										               required placeholder="Nhập E-mail hoặc Số điện thoại" maxlength="100"
+										               style="border: 2px solid #ccc;" autocomplete="username"
+										               aria-describedby="username-help username-error">
+										        <span class="form-field__help" id="username-help" hidden>Dùng email đang hoạt động hoặc số điện thoại Việt Nam.</span>
+										        <span class="form-field__error" id="username-error" role="alert"
+										              th:text="${usernameError}" th:hidden="${usernameError == null}"></span>
+										    </div>
+										    
+										    <div class="u-s-m-b-30 form-field">
+										        <label class="gl-label" for="reg-password">MẬT KHẨU *</label>
+										        <div style="position:relative;display:flex;align-items:center;">
+										            <input class="input-text input-text--primary-style" type="password" id="reg-password" name="matKhau"
+										                   th:classappend="${passwordError != null} ? ' is-invalid' : ''"
+										                   th:attr="aria-invalid=${passwordError != null ? 'true' : 'false'}"
+										                   required placeholder="Nhập mật khẩu" minlength="8" maxlength="25"
+										                   style="border: 2px solid #ccc;padding-right:40px;width:100%;"
+										                   autocomplete="new-password" aria-describedby="password-requirements password-error">
+										            <button type="button" id="toggleRegPassword"
+										                    title="Giữ chuột để xem mật khẩu"
+										                    style="position:absolute;right:8px;background:none;border:none;cursor:pointer;color:#888;font-size:16px;padding:4px;line-height:1;"
+										                    aria-label="Xem mật khẩu">
+										                <i class="fas fa-eye" id="iconRegPassword"></i>
+										            </button>
+										        </div>
+										        <div class="password-requirements" id="password-requirements" hidden>
+										            <span class="password-requirements__title">Mật khẩu cần đáp ứng:</span>
+										            <ul>
+										                <li data-password-rule="length"><span aria-hidden="true">•</span> Từ 8 đến 25 ký tự</li>
+										                <li data-password-rule="uppercase"><span aria-hidden="true">•</span> Có ít nhất 1 chữ in hoa</li>
+										                <li data-password-rule="number"><span aria-hidden="true">•</span> Có ít nhất 1 chữ số</li>
+										                <li data-password-rule="noWhitespace"><span aria-hidden="true">•</span> Không chứa khoảng trắng</li>
+										            </ul>
+										        </div>
+										        <span class="form-field__error" id="password-error" role="alert"
+										              th:text="${passwordError}" th:hidden="${passwordError == null}"></span>
+										    </div>
+
+										    <div class="u-s-m-b-30 form-field">
+										        <label class="gl-label" for="reg-password-confirm">XÁC NHẬN MẬT KHẨU *</label>
+										        <div style="position:relative;display:flex;align-items:center;">
+										            <input class="input-text input-text--primary-style" type="password" id="reg-password-confirm" name="xacNhanMatKhau"
+										                   th:classappend="${confirmError != null} ? ' is-invalid' : ''"
+										                   th:attr="aria-invalid=${confirmError != null ? 'true' : 'false'}"
+										                   required placeholder="Nhập lại mật khẩu" maxlength="25"
+										                   style="border: 2px solid #ccc;padding-right:40px;width:100%;"
+										                   autocomplete="new-password" aria-describedby="confirm-error">
+										            <button type="button" id="toggleRegPasswordConfirm"
+										                    title="Giữ chuột để xem mật khẩu"
+										                    style="position:absolute;right:8px;background:none;border:none;cursor:pointer;color:#888;font-size:16px;padding:4px;line-height:1;"
+										                    aria-label="Xem mật khẩu">
+										                <i class="fas fa-eye" id="iconRegPasswordConfirm"></i>
+										            </button>
+										        </div>
+										        <span class="form-field__error" id="confirm-error" role="alert"
+										              th:text="${confirmError}" th:hidden="${confirmError == null}"></span>
+										    </div>
+										    
+										    <div class="u-s-m-b-15">
+										        <button class="btn btn--e-transparent-brand-b-2" type="submit">ĐĂNG KÝ</button>
+										    </div>
+										
+										    <a class="gl-link" th:href="@{/}">Trở về Trang chủ</a>
+										</form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!--====== End - Section Content ======-->
+            </div>
+            <!--====== End - Section 2 ======-->
+        </div>
+        <!--====== End - App Content ======-->
+
+
+        <!--====== Main Footer ======-->
+        <footer th:replace="~{layout/footer :: footer}"></footer>
+        <div th:replace="~{layout/modals :: all-modals}"></div>
+    </div>
+    <!--====== End - Main App ======-->
+
+
+    <!--====== Google Analytics: change UA-XXXXX-Y to be your site's ID ======-->
+    <script>
+        window.ga = function() {
+            ga.q.push(arguments)
+        };
+        ga.q = [];
+        ga.l = +new Date;
+        ga('create', 'UA-XXXXX-Y', 'auto');
+        ga('send', 'pageview')
+    </script>
+    <script src="https://www.google-analytics.com/analytics.js" async defer></script>
+
+    <!--====== Vendor Js ======-->
+    <script th:src="@{/js/vendor.js}"></script>
+
+    <!--====== Plugin jQuery Shopnav ======-->
+    <script th:src="@{/js/jquery.shopnav.js}"></script>
+
+    <!--====== Ứng dụng ======-->
+    <script th:src="@{/js/app.js}"></script>
+
+    <!--====== Khi không hỗ trợ JavaScript ======-->
+    <noscript>
+        <div class="app-setting">
+            <div class="container">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="app-setting__wrap">
+                            <h1 class="app-setting__h1">JavaScript đã bị tắt trên trình duyệt của bạn.</h1>
+
+                            <span class="app-setting__text">Vui lòng bật JavaScript trên trình duyệt để sử dụng đầy đủ chức năng của website.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </noscript>
+    <script th:inline="javascript">
+        document.addEventListener("DOMContentLoaded", function () {
+            const form = document.querySelector(".l-f-o__form");
+            if (!form) return;
+            const usernameInput = document.getElementById("reg-username");
+            const passwordInput = document.getElementById("reg-password");
+            const confirmInput = document.getElementById("reg-password-confirm");
+            const submitBtn = form.querySelector("button[type='submit']");
+            const usernameError = document.getElementById("username-error");
+            const passwordError = document.getElementById("password-error");
+            const confirmError = document.getElementById("confirm-error");
+            const usernameHelp = document.getElementById("username-help");
+            const passwordRequirements = document.getElementById("password-requirements");
+
+            if (!usernameInput || !passwordInput || !confirmInput || !submitBtn ||
+                    !usernameError || !passwordError || !confirmError || !usernameHelp || !passwordRequirements) {
+                return;
+            }
+
+            const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,10}$/;
+            const phoneRegex = /^(03|05|07|08|09)\d{8}$/;
+            const passwordRules = {
+                length: value => value.length >= 8 && value.length <= 25,
+                uppercase: value => /[A-Z]/.test(value),
+                number: value => /\d/.test(value),
+                noWhitespace: value => !/\s/.test(value)
+            };
+
+            function showError(input, errorElement, message) {
+                errorElement.textContent = message;
+                errorElement.hidden = false;
+                input.classList.add("is-invalid");
+                input.setAttribute("aria-invalid", "true");
+            }
+
+            function clearError(input, errorElement) {
+                errorElement.textContent = "";
+                errorElement.hidden = true;
+                input.classList.remove("is-invalid");
+                input.setAttribute("aria-invalid", "false");
+            }
+
+            function normalizePhone(value) {
+                let normalized = value.replace(/[\s.\-]/g, "");
+                if (normalized.startsWith("+84")) {
+                    normalized = "0" + normalized.substring(3);
+                } else if (normalized.startsWith("84") && normalized.length === 11) {
+                    normalized = "0" + normalized.substring(2);
+                }
+                return normalized;
+            }
+
+            function validateUsername(showMessage) {
+                const value = usernameInput.value.trim();
+                const compactValue = value.replace(/[\s.\-]/g, "");
+                const normalizedPhone = normalizePhone(value);
+                const looksLikePhone = /^\+?\d{9,15}$/.test(compactValue) || phoneRegex.test(normalizedPhone);
+
+                if (!value) {
+                    if (showMessage) showError(usernameInput, usernameError, "Email hoặc số điện thoại không được để trống!");
+                    return false;
+                }
+                if (value.length > 100) {
+                    if (showMessage) showError(usernameInput, usernameError, "Email hoặc số điện thoại không được vượt quá 100 ký tự!");
+                    return false;
+                }
+                if (looksLikePhone && !phoneRegex.test(normalizedPhone)) {
+                    if (showMessage) showError(usernameInput, usernameError, "Số điện thoại Việt Nam không hợp lệ!");
+                    return false;
+                }
+                if (!looksLikePhone && !emailRegex.test(value)) {
+                    if (showMessage) showError(usernameInput, usernameError, "Vui lòng nhập email hoặc số điện thoại hợp lệ!");
+                    return false;
+                }
+
+                clearError(usernameInput, usernameError);
+                return true;
+            }
+
+            function updatePasswordChecklist(value) {
+                Object.entries(passwordRules).forEach(([ruleName, validator]) => {
+                    const ruleElement = document.querySelector(`[data-password-rule="${ruleName}"]`);
+                    if (!ruleElement) return;
+                    const isValid = value.length > 0 && validator(value);
+                    ruleElement.classList.toggle("is-valid", isValid);
+                    const icon = ruleElement.querySelector("span");
+                    if (icon) icon.textContent = isValid ? "✓" : "•";
+                });
+            }
+
+            function showPasswordRequirements() {
+                passwordRequirements.hidden = false;
+            }
+
+            function validatePassword(showMessage) {
+                const value = passwordInput.value;
+                updatePasswordChecklist(value);
+
+                if (!value) {
+                    if (showMessage) showError(passwordInput, passwordError, "Mật khẩu không được để trống!");
+                    return false;
+                }
+                if (!passwordRules.length(value)) {
+                    if (showMessage) showError(passwordInput, passwordError, "Mật khẩu phải dài từ 8 đến 25 ký tự!");
+                    return false;
+                }
+                if (!passwordRules.uppercase(value)) {
+                    if (showMessage) showError(passwordInput, passwordError, "Mật khẩu phải có ít nhất 1 chữ in hoa!");
+                    return false;
+                }
+                if (!passwordRules.number(value)) {
+                    if (showMessage) showError(passwordInput, passwordError, "Mật khẩu phải có ít nhất 1 chữ số!");
+                    return false;
+                }
+                if (!passwordRules.noWhitespace(value)) {
+                    if (showMessage) showError(passwordInput, passwordError, "Mật khẩu không được chứa khoảng trắng!");
+                    return false;
+                }
+
+                clearError(passwordInput, passwordError);
+                return true;
+            }
+
+            function validateConfirmPassword(showMessage) {
+                const passVal = passwordInput.value;
+                const confirmVal = confirmInput.value;
+                if (!confirmVal) {
+                    if (showMessage) showError(confirmInput, confirmError, "Vui lòng nhập lại mật khẩu!");
+                    return false;
+                }
+                if (passVal !== confirmVal) {
+                    if (showMessage) showError(confirmInput, confirmError, "Mật khẩu xác nhận không trùng khớp!");
+                    return false;
+                }
+
+                clearError(confirmInput, confirmError);
+                return true;
+            }
+
+            usernameInput.addEventListener("input", function () {
+                usernameHelp.hidden = false;
+                if (!usernameError.hidden) validateUsername(true);
+            });
+            usernameInput.addEventListener("focus", function () {
+                usernameHelp.hidden = false;
+            });
+            usernameInput.addEventListener("blur", function () {
+                usernameInput.value = usernameInput.value.trim();
+                validateUsername(true);
+                usernameHelp.hidden = true;
+            });
+            passwordInput.addEventListener("input", function() {
+                showPasswordRequirements();
+                updatePasswordChecklist(passwordInput.value);
+                if (!passwordError.hidden) validatePassword(true);
+                if (confirmInput.value || !confirmError.hidden) validateConfirmPassword(true);
+            });
+            passwordInput.addEventListener("focus", showPasswordRequirements);
+            passwordInput.addEventListener("blur", function () {
+                validatePassword(true);
+            });
+            confirmInput.addEventListener("input", function () {
+                if (!confirmError.hidden) validateConfirmPassword(true);
+            });
+            confirmInput.addEventListener("blur", function () {
+                validateConfirmPassword(true);
+            });
+
+            form.addEventListener("submit", function (e) {
+                usernameInput.value = usernameInput.value.trim();
+                const isUsernameValid = validateUsername(true);
+                const isPasswordValid = validatePassword(true);
+                const isConfirmValid = validateConfirmPassword(true);
+
+                if (!isUsernameValid || !isPasswordValid || !isConfirmValid) {
+                    e.preventDefault();
+                    const firstInvalidInput = form.querySelector('[aria-invalid="true"]');
+                    if (firstInvalidInput) firstInvalidInput.focus();
+                    return;
+                }
+
+                submitBtn.disabled = true;
+                submitBtn.setAttribute("aria-busy", "true");
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang đăng ký...';
+            });
+
+            updatePasswordChecklist(passwordInput.value);
+            if (!passwordError.hidden) {
+                showPasswordRequirements();
+            }
+            const serverInvalidInput = form.querySelector('[aria-invalid="true"]');
+            const globalAlert = document.getElementById("registration-alert");
+            if (serverInvalidInput) {
+                serverInvalidInput.focus();
+            } else if (globalAlert) {
+                globalAlert.focus();
+            }
+        });
+    </script>
+    <script>
+        // Password eye — hold to show, release to hide
+        (function() {
+            function bindToggle(btnId, inpId, iconId) {
+                const btn  = document.getElementById(btnId);
+                const inp  = document.getElementById(inpId);
+                const icon = document.getElementById(iconId);
+                if (!btn) return;
+                function show(e) { if (e.type==='mousedown') e.preventDefault(); inp.type='text';     icon.className='fas fa-eye-slash'; }
+                function hide()  { inp.type='password'; icon.className='fas fa-eye'; }
+                btn.addEventListener('mousedown',  show);
+                btn.addEventListener('mouseup',    hide);
+                btn.addEventListener('mouseleave', hide);
+                btn.addEventListener('touchstart', show);
+                btn.addEventListener('touchend',   hide);
+            }
+            bindToggle('toggleRegPassword',        'reg-password',         'iconRegPassword');
+            bindToggle('toggleRegPasswordConfirm', 'reg-password-confirm', 'iconRegPasswordConfirm');
+        })();
+    </script>
+</body>
+</html>

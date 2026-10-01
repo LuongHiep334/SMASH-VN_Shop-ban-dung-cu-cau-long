@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SMASH-VN | Tài Liệu Chi Tiết Luồng Nghiệp Vụ &amp; Kiến Trúc Hệ Thống</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-primary: #0b0f19;
+            --bg-secondary: #111827;
+            --bg-card: #1f2937;
+            --bg-card-hover: #2d3748;
+            --border-color: rgba(255, 255, 255, 0.08);
+            --border-highlight: rgba(99, 102, 241, 0.3);
+            
+            --text-main: #f9fafb;
+            --text-muted: #9ca3af;
+            --text-dim: #6b7280;
+            
+            --accent-primary: #6366f1;
+            --accent-secondary: #06b6d4;
+            --accent-success: #10b981;
+            --accent-warning: #f59e0b;
+            --accent-danger: #ef4444;
+            --accent-purple: #8b5cf6;
+            
+            --gradient-primary: linear-gradient(135deg, #6366f1 0%, #06b6d4 100%);
+            --gradient-accent: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
+            --gradient-card: linear-gradient(180deg, rgba(31, 41, 55, 0.7) 0%, rgba(17, 24, 39, 0.9) 100%);
+            
+            --sidebar-width: 280px;
+            --radius-lg: 16px;
+            --radius-md: 12px;
+            --radius-sm: 8px;
+            --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-main);
+            line-height: 1.6;
+            display: flex;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #374151;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #4b5563;
+        }
+
+        /* Sidebar Nav */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+            backdrop-filter: blur(12px);
+        }
+
+        .sidebar-brand {
+            padding: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .sidebar-brand .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--gradient-primary);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: white;
+            box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4);
+        }
+
+        .sidebar-brand div {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-brand h2 {
+            font-size: 18px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .sidebar-brand span {
+            font-size: 11px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+
+        .sidebar-nav {
+            padding: 20px 16px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .nav-section-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            color: var(--text-dim);
+            font-weight: 700;
+            margin: 18px 12px 8px 12px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
+            color: var(--text-muted);
+            text-decoration: none;
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-weight: 500;
+            transition: var(--transition);
+            margin-bottom: 4px;
+        }
+
+        .nav-item i {
+            font-size: 16px;
+            width: 20px;
+            text-align: center;
+            color: var(--text-dim);
+            transition: var(--transition);
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-main);
+        }
+
+        .nav-item:hover i {
+            color: var(--accent-secondary);
+        }
+
+        .nav-item.active {
+            background: rgba(99, 102, 241, 0.15);
+            color: #818cf8;
+            font-weight: 600;
+            border: 1px solid rgba(99, 102, 241, 0.3);
+        }
+
+        .nav-item.active i {
+            color: #818cf8;
+        }
+
+        /* Main Content */
+        .main-wrapper {
+            margin-left: var(--sidebar-width);
+            flex: 1;
+            padding: 40px 48px 80px 48px;
+            max-width: 1400px;
+        }
+
+        /* Header Bar */
+        .doc-header {
+            margin-bottom: 48px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid var(--border-color);
+            position: relative;
+        }
+
+        .doc-header::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 120px;
+            height: 2px;
+            background: var(--gradient-primary);
+        }
+
+        .badge-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            color: #818cf8;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .doc-title {
+            font-size: 32px;
+            font-weight: 800;
+            letter-spacing: -1px;
+            margin-bottom: 12px;
+            line-height: 1.25;
+        }
+
+        .doc-subtitle {
+            font-size: 16px;
+            color: var(--text-muted);
+            max-width: 850px;
+        }
+
+        /* Content Sections */
+        .doc-section {
+            margin-bottom: 56px;
+            scroll-margin-top: 40px;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .section-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: var(--radius-md);
+            background: rgba(99, 102, 241, 0.12);
+            border: 1px solid rgba(99, 102, 241, 0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: var(--accent-primary);
+        }
+
+        .section-title {
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        /* Cards Grid */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .card {
+            background: var(--gradient-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 28px;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            border-color: var(--border-highlight);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-title i {
+            color: var(--accent-secondary);
+        }
+
+        .card-desc {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+        }
+
+        /* Flow Process Cards */
+        .flow-step {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .flow-step:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            top: 36px;
+            left: 17px;
+            bottom: -12px;
+            width: 2px;
+            background: var(--border-color);
+        }
+
+        .flow-num {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--bg-secondary);
+            border: 2px solid var(--accent-primary);
+            color: var(--accent-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+            flex-shrink: 0;
+            z-index: 2;
+        }
+
+        .flow-content {
+            flex: 1;
+            background: rgba(17, 24, 39, 0.6);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 16px 20px;
+        }
+
+        .flow-title {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: var(--text-main);
+        }
+
+        .flow-detail {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        /* Tables */
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            background: var(--bg-secondary);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 14px;
+        }
+
+        th {
+            background: rgba(31, 41, 55, 0.8);
+            padding: 16px 20px;
+            font-weight: 600;
+            color: var(--text-main);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        td {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-muted);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover td {
+            background: rgba(255, 255, 255, 0.02);
+            color: var(--text-main);
+        }
+
+        /* Code & Pills */
+        code {
+            font-family: 'Fira Code', monospace;
+            background: rgba(99, 102, 241, 0.12);
+            color: #a5b4fc;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            border: 1px solid rgba(99, 102, 241, 0.2);
+        }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .pill-blue { background: rgba(6, 182, 212, 0.15); color: #22d3ee; border: 1px solid rgba(6, 182, 212, 0.3); }
+        .pill-green { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+        .pill-purple { background: rgba(139, 92, 246, 0.15); color: #c084fc; border: 1px solid rgba(139, 92, 246, 0.3); }
+        .pill-orange { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+        .pill-red { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+
+        /* Highlight Boxes */
+        .callout {
+            padding: 20px 24px;
+            border-radius: var(--radius-md);
+            border-left: 4px solid var(--accent-primary);
+            background: rgba(99, 102, 241, 0.08);
+            margin: 20px 0;
+        }
+
+        .callout-title {
+            font-weight: 700;
+            color: #818cf8;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .callout-body {
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        @media (max-width: 1024px) {
+            .sidebar { width: 80px; }
+            .sidebar-brand h2, .sidebar-brand span, .nav-section-label, .nav-item span { display: none; }
+            .main-wrapper { margin-left: 80px; padding: 24px; }
+            .grid-2, .grid-3 { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <div class="logo-icon"><i class="fas fa-bolt"></i></div>
+            <div>
+                <h2>SMASH-VN</h2>
+                <span>System Docs 2026</span>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div class="nav-section-label">Tổng Quan</div>
+            <a href="#kientruc" class="nav-item active">
+                <i class="fas fa-cubes"></i>
+                <span>Kiến Trúc &amp; Stack</span>
+            </a>
+            
+            <div class="nav-section-label">Luồng Nghiệp Vụ</div>
+            <a href="#sanpham" class="nav-item">
+                <i class="fas fa-box-open"></i>
+                <span>Sản Phẩm &amp; Biến Thể</span>
+            </a>
+            <a href="#banhang-pos" class="nav-item">
+                <i class="fas fa-cash-register"></i>
+                <span>Bán Hàng POS Quầy</span>
+            </a>
+            <a href="#checkout-online" class="nav-item">
+                <i class="fas fa-shopping-cart"></i>
+                <span>Đơn Hàng &amp; Online</span>
+            </a>
+            <a href="#marketing" class="nav-item">
+                <i class="fas fa-tags"></i>
+                <span>Khuyến Mãi &amp; Voucher</span>
+            </a>
+            <a href="#security-audit" class="nav-item">
+                <i class="fas fa-shield-alt"></i>
+                <span>Bảo Mật &amp; Audit Log</span>
+            </a>
+            
+            <div class="nav-section-label">Định Hướng</div>
+            <a href="#nhapkho-lohang" class="nav-item">
+                <i class="fas fa-boxes-stacked"></i>
+                <span>Kế Hoạch Tồn Kho Lô</span>
+            </a>
+        </nav>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-wrapper">
+        
+        <!-- Header -->
+        <header class="doc-header">
+            <div class="badge-tag"><i class="fas fa-book-bookmark"></i> TÀI LIỆU NGHIỆP VỤ CHÍNH THỨC</div>
+            <h1 class="doc-title">SMASH-VN E-Commerce &amp; POS System Documentation</h1>
+            <p class="doc-subtitle">Tài liệu mô tả chi tiết kiến trúc tổng thể, luồng nghiệp vụ kinh doanh, cơ chế xử lý mã SKU, tích hợp thanh toán/vận chuyển và quy trình vận hành hệ thống cửa hàng vợt cầu lông SMASH-VN.</p>
+        </header>
+
+        <!-- 1. Kiến Trúc & Stack -->
+        <section id="kientruc" class="doc-section">
+            <div class="section-header">
+                <div class="section-icon"><i class="fas fa-layer-group"></i></div>
+                <h2 class="section-title">1. Tổng Quan Kiến Trúc &amp; Công Nghệ</h2>
+            </div>
+
+            <div class="grid-3">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title"><i class="fas fa-server"></i> Backend Core</div>
+                        <span class="pill pill-blue">Spring Boot</span>
+                    </div>
+                    <div class="card-desc">Java 17+, Spring MVC, Spring Data JPA (Hibernate Dialect SQLServer), Flyway DB Migration support.</div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title"><i class="fas fa-database"></i> Database</div>
+                        <span class="pill pill-green">MS SQL Server</span>
+                    </div>
+                    <div class="card-desc">Database <code>BadmintonShopDB1</code> với thiết kế relational chuẩn hóa, mã hóa mật khẩu BCrypt.</div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title"><i class="fas fa-desktop"></i> View Layer</div>
+                        <span class="pill pill-purple">Thymeleaf &amp; JS</span>
+                    </div>
+                    <div class="card-desc">Thymeleaf Server-side rendering, Vanilla CSS/JS tinh chỉnh tối ưu performance &amp; UX.</div>
+                </div>
+            </div>
+
+            <div class="callout" style="margin-top: 24px;">
+                <div class="callout-title"><i class="fas fa-info-circle"></i> Cơ chế Phân quyền Người Dùng (Multi-Role Authentication)</div>
+                <div class="callout-body">
+                    Hệ thống phân chia 3 vai trò chính: <code>QL</code> (Quản lý - Full quyền admin, báo cáo, thống kê, cấu hình), <code>NV</code> (Nhân viên - Thao tác bán quầy POS, xử lý đơn hàng, quản lý sản phẩm), và <code>KH</code> (Khách hàng - Mua sắm e-commerce, giỏ hàng, quản lý đơn cá nhân). Được kiểm soát chặt chẽ qua Interceptor (<code>AdminInterceptor</code>) và Session Management.
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. Sản Phẩm & Biến Thể -->
+        <section id="sanpham" class="doc-section">
+            <div class="section-header">
+                <div class="section-icon"><i class="fas fa-box-open"></i></div>
+                <h2 class="section-title">2. Nghiệp Vụ Sản Phẩm &amp; Xử Lý Mã (SKU)</h2>
+            </div>
+
+            <div class="card" style="margin-bottom: 24px;">
+                <h3 style="font-size: 18px; margin-bottom: 16px; color: #818cf8;"><i class="fas fa-sitemap"></i> Mô Hình Lưu Trữ 2 Tầng</h3>
+                <div class="grid-2">
+                    <div style="background: rgba(0,0,0,0.2); padding: 18px; border-radius: 12px; border: 1px solid var(--border-color);">
+                        <h4 style="color: var(--accent-secondary); margin-bottom: 8px;">1. Sản Phẩm Gốc (<code>SanPham</code>)</h4>
+                        <p style="font-size: 13px; color: var(--text-muted);">Lưu thông tin chung không biến đổi: Tên sản phẩm, Danh mục (<code>DanhMuc</code>), Thương hiệu/Hãng (<code>ThuongHieu</code>), Mô tả chi tiết, Trạng thái kinh doanh và Người khởi tạo (<code>NhanVien</code>).</p>
+                    </div>
+
+                    <div style="background: rgba(0,0,0,0.2); padding: 18px; border-radius: 12px; border: 1px solid var(--border-color);">
+                        <h4 style="color: var(--accent-success); margin-bottom: 8px;">2. Sản Phẩm Chi Tiết (<code>SanPhamChiTiet</code>)</h4>
+                        <p style="font-size: 13px; color: var(--text-muted);">Đại diện cho từng SKU/Phân loại cụ thể: Giá bán, Giá nhập, Số lượng tồn khả dụng, File ảnh đại diện biến thể, và Danh sách Thuộc tính động (<code>SanPhamChiTietThuocTinh</code>).</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quy tắc sinh biến thể -->
+            <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 16px;"><i class="fas fa-cogs"></i> Quy Tắc Sinh Biến Thể Tự Động Theo CategoryType</h3>
+            <div class="table-responsive" style="margin-bottom: 24px;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Loại Danh Mục</th>
+                            <th>Ma trận Ghép Tổ Hợp Biến Thể</th>
+                            <th>Bộ Thuộc Tính Động Lưu Trữ (<code>ThuocTinh</code>)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="pill pill-blue">HỘP CẦU</span></td>
+                            <td>Tự động khởi tạo <strong>1 Biến thể duy nhất</strong>.</td>
+                            <td><code>Màu sắc</code> = "Mặc định"</td>
+                        </tr>
+                        <tr>
+                            <td><span class="pill pill-purple">VỢT CẦU LÔNG</span></td>
+                            <td>Tổ hợp: <strong>Màu sắc × Trọng lượng</strong> (3U, 4U, 5U). Gắn Mức căng chung.</td>
+                            <td><code>Màu sắc</code>, <code>Trọng lượng</code>, <code>Sức căng</code></td>
+                        </tr>
+                        <tr>
+                            <td><span class="pill pill-green">GIÀY CẦU LÔNG</span></td>
+                            <td>Tổ hợp: <strong>Màu sắc × Kích thước giày</strong> (Size 36 - 46).</td>
+                            <td><code>Màu sắc</code>, <code>Kích thước</code></td>
+                        </tr>
+                        <tr>
+                            <td><span class="pill pill-orange">TRANG PHỤC</span></td>
+                            <td>Tổ hợp: <strong>Màu sắc × Size quần áo</strong> (XS, S, M, L, XL, 2XL, 3XL).</td>
+                            <td><code>Màu sắc</code>, <code>Kích thước</code></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Quy tắc SKU -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title"><i class="fas fa-barcode"></i> Cơ Chế Xử Lý Mã Sản Phẩm &amp; SKU Snapshot</div>
+                    <span class="pill pill-orange">Dynamic SKU</span>
+                </div>
+                <div class="card-desc">
+                    Do Database hiện tại không có cột <code>ma_san_pham</code> hay <code>sku</code> cố định, hệ thống áp dụng cơ chế <strong>Dynamic SKU Generation</strong> khi giao dịch và <strong>Snapshot Audit</strong> khi chốt hóa đơn:
+                </div>
+
+                <div class="callout">
+                    <div class="callout-title">Công thức sinh mã SKU hệ thống:</div>
+                    <div class="callout-body">
+                        <code>SKU = "SKU-" + id_san_pham + "-" + id_san_pham_chi_tiet</code><br>
+                        <em>Ví dụ:</em> Sản phẩm ID = 10, Biến thể ID = 42 ➔ Mã SKU hiển thị trên POS &amp; Giỏ hàng là <code>SKU-10-42</code>.
+                    </div>
+                </div>
+                <p style="font-size: 13px; color: var(--text-muted);">
+                    Khi đơn hàng được đặt/bán ra thành công, chuỗi SKU này được chốt cố định vào cột <code>sku_snapshot</code> trong bảng <code>HoaDonChiTiet</code>. Điều này đảm bảo tính vẹn toàn dữ liệu lịch sử ngay cả khi biến thể gốc bị sửa đổi về sau.
+                </p>
+            </div>
+        </section>
+
+        <!-- 3. Bán Hàng POS -->
+        <section id="banhang-pos" class="doc-section">
+            <div class="section-header">
+                <div class="section-icon"><i class="fas fa-cash-register"></i></div>
+                <h2 class="section-title">3. Luồng Bán Hàng Tại Quầy (Admin POS)</h2>
+            </div>
+
+            <div class="grid-2">
+                <div class="card">
+                    <h3 style="font-size: 16px; margin-bottom: 16px; color: var(--accent-secondary);"><i class="fas fa-list-check"></i> Các Bước Thao Tác POS</h3>
+                    
+                    <div class="flow-step">
+                        <div class="flow-num">1</div>
+                        <div class="flow-content">
+                            <div class="flow-title">Tìm kiếm &amp; Chọn Sản Phẩm</div>
+                            <div class="flow-detail">Nhân viên gõ tên/mã biến thể. Hệ thống hiển thị danh sách biến thể kèm ảnh, màu sắc, size, giá bán và số lượng tồn còn lại.</div>
+                        </div>
+                    </div>
+
+                    <div class="flow-step">
+                        <div class="flow-num">2</div>
+                        <div class="flow-content">
+                            <div class="flow-title">Kiểm Trả Khả Dụng &amp; Chọn Số Lượng</div>
+                            <div class="flow-detail">Hệ thống validate tự động: Không cho chọn vượt quá <code>soLuongTon</code> hiện tại của biến thể.</div>
+                        </div>
+                    </div>
+
+                    <div class="flow-step">
+                        <div class="flow-num">3</div>
+                        <div class="flow-content">
+                            <div class="flow-title">Áp Dụng Giảm Giá &amp; Mã Voucher</div>
+                            <div class="flow-detail">Tính toán tự động mức giảm % từ <code>DotGiamGia</code> (nếu có) + Áp dụng thêm <code>PhieuGiamGia</code> nếu đơn đạt <code>giaTriDonHangToiThieu</code>.</div>
+                        </div>
+                    </div>
+
+                    <div class="flow-step">
+                        <div class="flow-num">4</div>
+                        <div class="flow-content">
+                            <div class="flow-title">Thanh Toán &amp; In Hóa Đơn</div>
+                            <div class="flow-detail">Trừ tồn kho trực tiếp <code>soLuongTon</code>, tạo bản ghi <code>HoaDon</code> &amp; <code>HoaDonChiTiet</code>, tự động ghi vết <code>EditLog</code> và in hóa đơn (<code>pos-print.html</code>).</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3 style="font-size: 16px; margin-bottom: 16px; color: var(--accent-success);"><i class="fas fa-shield-check"></i> Ràng Buộc Kỹ Thuật (POS Service)</h3>
+                    <ul style="font-size: 13px; color: var(--text-muted); padding-left: 20px; display: flex; flex-direction: column; gap: 12px;">
+                        <li><strong>Trạng thái hóa đơn POS:</strong> Sau khi hoàn tất sẽ có trạng thái <code>DA_THANH_TOAN</code> / <code>HOAN_THANH</code> lập tức.</li>
+                        <li><strong>Audit Traceability:</strong> Ghi nhận <code>id_nhan_vien</code> người thực hiện ca bán và địa chỉ IP thiết bị POS.</li>
+                        <li><strong>Đồng bộ tồn kho:</strong> Chức năng khoá lạc quan / giao dịch <code>@Transactional</code> chống ghi đè số lượng tồn khi nhiều thiết bị POS cùng thao tác.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. Đơn Hàng & Checkout Online -->
+        <section id="checkout-online" class="doc-section">
+            <div class="section-header">
+                <div class="section-icon"><i class="fas fa-shopping-cart"></i></div>
+                <h2 class="section-title">4. Luồng Đơn Hàng &amp; Checkout Online</h2>
+            </div>
+
+            <div class="card" style="margin-bottom: 24px;">
+                <h3 style="font-size: 18px; margin-bottom: 16px; color: var(--accent-primary);"><i class="fas fa-route"></i> Quy Trình Đặt Hàng &amp; Xử Lý Đơn E-Commerce</h3>
+                
+                <div class="grid-3">
+                    <div style="background: rgba(0,0,0,0.3); padding: 16px; border-radius: 10px; border: 1px solid var(--border-color);">
+                        <h4 style="color: var(--accent-secondary); font-size: 14px; margin-bottom: 8px;">1. Giỏ Hàng (Cart)</h4>
+                        <p style="font-size: 12px; color: var(--text-muted);">
+                            - Khách đã đăng nhập: Lưu DB vào <code>GioHang</code> &amp; <code>GioHangChiTiet</code>.<br>
+                            - Khách vãng lai: Lưu vào Session Cart qua <code>GuestCartService</code>.
+                        </p>
+                    </div>
+
+                    <div style="background: rgba(0,0,0,0.3); padding: 16px; border-radius: 10px; border: 1px solid var(--border-color);">
+                        <h4 style="color: var(--accent-warning); font-size: 14px; margin-bottom: 8px;">2. Vận Chuyển &amp; Phí Ship</h4>
+                        <p style="font-size: 12px; color: var(--text-muted);">
+                            Tích hợp API <strong>Giao Hàng Nhanh (GHN)</strong> &amp; <strong>GHTK</strong>.<br>
+                            - Phí ship mặc định: Nội tỉnh (Hà Nội, Thái Nguyên) 22.000đ - 30.000đ, Ngoại tỉnh 30.000đ - 38.000đ.
+                        </p>
+                    </div>
+
+                    <div style="background: rgba(0,0,0,0.3); padding: 16px; border-radius: 10px; border: 1px solid var(--border-color);">
+                        <h4 style="color: var(--accent-success); font-size: 14px; margin-bottom: 8px;">3. Cổng Thanh Toán Auto</h4>
+                        <p style="font-size: 12px; color: var(--text-muted);">
+                            Tích hợp <strong>SePay Webhook / IPN API</strong>. Tự động kiểm tra nội dung chuyển khoản, khớp tiền và tự động duyệt đơn hàng trực tiếp không qua thao tác tay.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Vòng đời trạng thái đơn hàng -->
+            <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 16px;"><i class="fas fa-arrows-spin"></i> Vòng Đời Trạng Thái Đơn Hàng (OrderStatus)</h3>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Trạng Thái</th>
+                            <th>Mô Tả Luồng Nghiệp Vụ</th>
+                            <th>Biến Động Tồn Kho</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="pill pill-orange">CHO_XAC_NHAN</span></td>
+                            <td>Khách đặt hàng online thành công (COD hoặc chờ chuyển khoản SePay).</td>
+                            <td>Giảm tạm thời/giữ chỗ <code>soLuongTon</code> của biến thể.</td>
+                        </tr>
+                        <tr>
+                            <td><span class="pill pill-blue">DA_XAC_NHAN</span></td>
+                            <td>Admin/NV bấm xác nhận đơn hoặc SePay nhận tiền thanh toán thành công.</td>
+                            <td>Giữ nguyên tồn kho đã trừ.</td>
+                        </tr>
+                        <tr>
+                            <td><span class="pill pill-purple">DANG_GIAO</span></td>
+                            <td>Đơn hàng được bàn giao cho Đơn vị vận chuyển (GHN/GHTK) lấy hàng.</td>
+                            <td>Giữ nguyên tồn kho.</td>
+                        </tr>
+                        <tr>
+                            <td><span class="pill pill-green">DA_GIAO / HOAN_THANH</span></td>
+                            <td>Khách hàng đã nhận hàng và hoàn tất thanh toán.</td>
+                            <td>Cập nhật doanh thu &amp; chốt đơn hàng.</td>
+                        </tr>
+                        <tr>
+                            <td><span class="pill pill-red">DA_HUY</span></td>
+                            <td>Khách hủy đơn hoặc Admin hủy do không liên lạc được / hết hàng.</td>
+                            <td><strong>Tự động cộng trả lại</strong> <code>soLuongTon</code> vào biến thể.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- 5. Khuyến Mãi & Voucher -->
+        <section id="marketing" class="doc-section">
+            <div class="section-header">
+                <div class="section-icon"><i class="fas fa-tags"></i></div>
+                <h2 class="section-title">5. Khuyến Mãi &amp; Voucher Marketing</h2>
+            </div>
+
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title"><i class="fas fa-percent"></i> Đợt Giảm Giá (<code>DotGiamGia</code>)</div>
+                        <span class="pill pill-purple">Flash Sale</span>
+                    </div>
+                    <div class="card-desc">
+                        Áp dụng mức giảm % trực tiếp vào danh sách các sản phẩm được chọn trong một khoảng thời gian nhất định (<code>ngayBatDau</code> đến <code>ngayKetThuc</code>).
+                    </div>
+                    <p style="font-size: 13px; color: var(--text-muted);">
+                        Hệ thống tự động tính toán <code>dynamicStatus</code> (UPCOMING, ACTIVE, EXPIRED). Sản phẩm thuộc đợt giảm giá active sẽ tự động hiển thị tem giảm giá và tính <code>giaSauGiam</code> ở trang chủ/chi tiết.
+                    </p>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title"><i class="fas fa-ticket"></i> Phiếu Giảm Giá (<code>PhieuGiamGia</code>)</div>
+                        <span class="pill pill-green">Voucher Code</span>
+                    </div>
+                    <div class="card-desc">
+                        Mã giảm giá nhập tay tại trang checkout (ví dụ: <code>SMASH2026</code>).
+                    </div>
+                    <p style="font-size: 13px; color: var(--text-muted);">
+                        Hỗ trợ giảm theo % (có trần <code>giaTriGiamToiDa</code>) hoặc giảm số tiền cố định. Yêu cầu đơn đạt <code>giaTriDonHangToiThieu</code>. Giảm trừ <code>soLuongConLai</code> sau mỗi lần khách dùng thành công.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 6. Bảo Mật & Audit Log -->
+        <section id="security-audit" class="doc-section">
+            <div class="section-header">
+                <div class="section-icon"><i class="fas fa-shield-alt"></i></div>
+                <h2 class="section-title">6. Bảo Mật &amp; Nhật Ký Hệ Thống (EditLog)</h2>
+            </div>
+
+            <div class="card" style="margin-bottom: 24px;">
+                <h3 style="font-size: 18px; margin-bottom: 16px; color: var(--accent-secondary);"><i class="fas fa-fingerprint"></i> Cơ Chế Audit Log Toàn Diện (<code>AuditService</code>)</h3>
+                <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 20px;">
+                    Mọi thao tác quan trọng trên hệ thống đều được tự động ghi lại bản ghi vào bảng <code>EditLog</code> thông qua <code>AuditService.log()</code> với các trường dữ liệu chi tiết:
+                </p>
+
+                <div class="grid-3">
+                    <div style="background: rgba(0,0,0,0.3); padding: 14px; border-radius: 8px; border: 1px solid var(--border-color);">
+                        <code style="display: block; margin-bottom: 4px;">id_tai_khoan &amp; vaiTro</code>
+                        <span style="font-size: 12px; color: var(--text-dim);">Xác định chính xác cá nhân/hệ thống thực hiện.</span>
+                    </div>
+                    <div style="background: rgba(0,0,0,0.3); padding: 14px; border-radius: 8px; border: 1px solid var(--border-color);">
+                        <code style="display: block; margin-bottom: 4px;">tenBang &amp; idBanGhi</code>
+                        <span style="font-size: 12px; color: var(--text-dim);">Tên bảng bị tác động (HoaDon, NhanVien, DotGiamGia...).</span>
+                    </div>
+                    <div style="background: rgba(0,0,0,0.3); padding: 14px; border-radius: 8px; border: 1px solid var(--border-color);">
+                        <code style="display: block; margin-bottom: 4px;">giaTriCu &amp; giaTriMoi</code>
+                        <span style="font-size: 12px; color: var(--text-dim);">So sánh trạng thái Trước (Before) và Sau (After).</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 7. Định Hướng Nhập Kho Tồn Lô -->
+        <section id="nhapkho-lohang" class="doc-section">
+            <div class="section-header">
+                <div class="section-icon"><i class="fas fa-boxes-stacked"></i></div>
+                <h2 class="section-title">7. Kế Hoạch Định Hướng Nâng Cấp Tồn Kho Theo Lô</h2>
+            </div>
+
+            <div class="card" style="border: 1px solid var(--border-highlight);">
+                <div class="card-header">
+                    <div class="card-title" style="color: #818cf8;"><i class="fas fa-rocket"></i> Lộ Trình Chuyển Đổi Quản Lý Lô Hàng (Batch/Lot Inventory)</div>
+                    <span class="pill pill-blue">Phê chuẩn Kế hoạch</span>
+                </div>
+                
+                <div style="display: flex; flex-direction: column; gap: 16px; margin-top: 16px;">
+                    <div style="display: flex; gap: 12px; align-items: flex-start;">
+                        <i class="fas fa-ban" style="color: var(--accent-danger); font-size: 18px; margin-top: 2px;"></i>
+                        <div>
+                            <strong style="color: var(--text-main);">Khóa sửa tồn kho trực tiếp:</strong>
+                            <p style="font-size: 13px; color: var(--text-muted);">Loại bỏ toàn bộ ô gõ/sửa trực tiếp số lượng tồn trên giao diện Biến thể. Trường <code>so_luong_ton</code> tại <code>SanPhamChiTiet</code> sẽ chuyển thành <strong>Read-Only</strong> (Tổng tồn dồn khả dụng).</p>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 12px; align-items: flex-start;">
+                        <i class="fas fa-clock" style="color: var(--accent-warning); font-size: 18px; margin-top: 2px;"></i>
+                        <div>
+                            <strong style="color: var(--text-main);">Nhập hàng theo thời gian thực (Real-time Timestamp):</strong>
+                            <p style="font-size: 13px; color: var(--text-muted);">Mọi đợt nhập hàng khi bấm lưu phiếu sẽ tự động lấy thời gian máy chủ (<code>LocalDateTime.now()</code>), không cho phép sửa lùi/tiến ngày nhập.</p>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 12px; align-items: flex-start;">
+                        <i class="fas fa-database" style="color: var(--accent-success); font-size: 18px; margin-top: 2px;"></i>
+                        <div>
+                            <strong style="color: var(--text-main);">Bổ sung các bảng Database mới:</strong>
+                            <p style="font-size: 13px; color: var(--text-muted);">Thêm mới 3 bảng: <code>NhaCungCap</code>, <code>PhieuNhap</code> và <code>ChiTietPhieuNhap</code> (Lô hàng). Khi xuất bán lẻ/POS, hệ thống trừ tồn kho theo nguyên tắc <strong>FIFO (Lô nhập trước xuất trước)</strong>.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer style="margin-top: 80px; padding-top: 24px; border-top: 1px solid var(--border-color); text-align: center; color: var(--text-dim); font-size: 13px;">
+            &copy; 2026 SMASH-VN Badminton Shop System. Document generated automatically by Antigravity AI Engine.
+        </footer>
+
+    </main>
+
+    <!-- Smooth Scroll & Nav Active Script -->
+    <script>
+        document.querySelectorAll('.sidebar-nav a').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelectorAll('.sidebar-nav a').forEach(el => el.classList.remove('active'));
+                this.classList.add('active');
+                
+                const targetId = this.getAttribute('href');
+                const targetElement = document.querySelector(targetId);
+                if (targetElement) {
+                    targetElement.scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

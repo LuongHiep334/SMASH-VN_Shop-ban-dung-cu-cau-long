@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link th:href="@{/images/favicon.png}" rel="shortcut icon">
+    <title>Smash VN - Phương Thức Thanh Toán</title>
+
+    <!--====== Phông chữ Google ======-->
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,600,700,800" rel="stylesheet">
+
+    <!--====== CSS Nhà cung cấp ======-->
+    <link rel="stylesheet" th:href="@{/css/vendor.css}">
+
+    <!--====== Tiện ích khoảng cách ======-->
+    <link rel="stylesheet" th:href="@{/css/utility.css}">
+
+    <!--====== Ứng dụng ======-->
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body class="config">
+    <div class="preloader is-active">
+        <div class="preloader__wrap">
+            <img class="preloader__img" th:src="@{/images/preloader.svg}" alt="Đang tải" width="64" height="64">
+        </div>
+    </div>
+
+    <!--====== Ứng dụng chính ======-->
+    <div id="app">
+
+        <!--====== Tiêu đề chính ======-->
+        <header class="header--style-1">
+            <div th:replace="~{layout/header :: header}"></div>
+        </header>
+        <!--====== End - Main Header ======-->
+
+        <!--====== App Content ======-->
+        <div class="app-content">
+
+            <!--====== Section 1 ======-->
+            <div class="u-s-p-y-60">
+                <!--====== Section Content ======-->
+                <div class="section__content">
+                    <div class="container">
+                        <div class="breadcrumb">
+                            <div class="breadcrumb__wrap">
+                                <ul class="breadcrumb__list">
+                                    <li class="has-separator">
+                                        <a th:href="@{/}">Trang chủ</a>
+                                    </li>
+                                    <li class="is-marked">
+                                        <a th:href="@{/user/payment-option}">Tài khoản của tôi</a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!--====== End - Section 1 ======-->
+
+            <!--====== Section 2 ======-->
+            <div class="u-s-p-b-60">
+                <!--====== Section Content ======-->
+                <div class="section__content">
+                    <div class="dash">
+                        <div class="container">
+                            <div class="row">
+                                <div class="col-lg-3 col-md-12">
+                                    <!--====== Dashboard Features ======-->
+                                    <div class="dash__box dash__box--bg-white dash__box--shadow u-s-m-b-30">
+                                        <div class="dash__pad-1">
+                                            <span class="dash__text u-s-m-b-16" th:text="'Hello, ' + ${kh.hoKh} + ' ' + ${kh.tenKh}"></span>
+                                            <ul class="dash__f-list">
+                                                <li>
+                                                    <a th:href="@{/user/dashboard}">Quản lý tài khoản</a>
+                                                </li>
+                                                <li>
+                                                    <a th:href="@{/user/profile}">Thông tin cá nhân</a>
+                                                </li>
+                                                <li>
+                                                    <a th:href="@{/user/address}">Địa chỉ</a>
+                                                </li>
+                                                <li>
+                                                    <a th:href="@{/user/track-order}">Theo dõi đơn hàng</a>
+                                                </li>
+                                                <li>
+                                                    <a th:href="@{/user/my-order}">Đơn hàng</a>
+                                                </li>
+                                                <li>
+                                                    <a class="dash-active" th:href="@{/user/payment-option}">Các tùy chọn thanh toán</a>
+                                                </li>
+                                                <li>
+                                                     <a th:href="@{/user/cancellation}">Chính sách hoàn trả hàng</a>
+                                                 </li>
+                                                 <li>
+                                                     <a th:href="@{/user/notifications}">Thông báo</a>
+                                                 </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <div class="dash__box dash__box--bg-white dash__box--shadow dash__box--w">
+                                        <div class="dash__pad-1">
+                                            <ul class="dash__w-list">
+                                                <li>
+                                                    <div class="dash__w-wrap">
+                                                        <span class="dash__w-icon dash__w-icon-style-1"><i class="fas fa-cart-arrow-down"></i></span>
+                                                        <span class="dash__w-text" th:text="${orderPlaced}">4</span>
+                                                        <span class="dash__w-name">Đơn Hàng Đã Đặt</span>
+                                                    </div>
+                                                </li>
+                                                <li>
+                                                    <div class="dash__w-wrap">
+                                                        <span class="dash__w-icon dash__w-icon-style-2"><i class="fas fa-times"></i></span>
+                                                        <span class="dash__w-text" th:text="${cancelOrders}">0</span>
+                                                        <span class="dash__w-name">Đơn Hàng Đã Hủy</span>
+                                                    </div>
+                                                </li>
+                                                <li>
+                                                    <div class="dash__w-wrap">
+                                                        <span class="dash__w-icon dash__w-icon-style-3"><i class="far fa-heart"></i></span>
+                                                        <span class="dash__w-text" th:text="${wishlist}">0</span>
+                                                        <span class="dash__w-name">Yêu Thích</span>
+                                                    </div>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <!--====== End - Dashboard Features ======-->
+                                </div>
+                                <div class="col-lg-9 col-md-12">
+                                    <div class="dash__box dash__box--shadow dash__box--radius dash__box--bg-white">
+                                        <div class="dash__pad-2">
+                                            <h1 class="dash__h1 u-s-m-b-30">Các Phương Thức Thanh Toán</h1>
+                                            
+                                            <div class="payment-options-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;">
+                                                <!-- COD -->
+                                                <div class="payment-option-card" style="border: 1px solid #e2e8f0; border-radius: 16px; padding: 25px; background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); box-shadow: 0 4px 6px rgba(0,0,0,0.02); transition: all 0.3s ease; position: relative; overflow: hidden;">
+                                                    <div style="position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: #ff4500;"></div>
+                                                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
+                                                        <div style="font-size: 28px; color: #ff4500; background: rgba(255, 69, 0, 0.1); width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                                                            <i class="fas fa-hand-holding-usd"></i>
+                                                        </div>
+                                                        <span style="font-size: 11px; font-weight: 700; background: rgba(16, 185, 129, 0.1); color: #10b981; padding: 4px 10px; border-radius: 9999px;">ĐANG HOẠT ĐỘNG</span>
+                                                    </div>
+                                                    <h3 style="font-size: 18px; font-weight: 700; color: #1e293b; margin-bottom: 8px;">Thanh Toán Khi Nhận Hàng (COD)</h3>
+                                                    <p style="font-size: 13px; color: #64748b; line-height: 1.5; margin-bottom: 0;">Khách hàng nhận hàng rồi mới thanh toán tiền mặt cho nhân viên giao hàng.</p>
+                                                </div>
+
+                                                <!-- SePay -->
+                                                <div class="payment-option-card" style="border: 1px solid #e2e8f0; border-radius: 16px; padding: 25px; background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); box-shadow: 0 4px 6px rgba(0,0,0,0.02); transition: all 0.3s ease; position: relative; overflow: hidden;">
+                                                    <div style="position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: #10b981;"></div>
+                                                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
+                                                        <div style="font-size: 28px; color: #10b981; background: rgba(16, 185, 129, 0.1); width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                                                            <i class="fas fa-university"></i>
+                                                        </div>
+                                                        <span style="font-size: 11px; font-weight: 700; background: rgba(16, 185, 129, 0.1); color: #10b981; padding: 4px 10px; border-radius: 9999px;">ĐANG HOẠT ĐỘNG</span>
+                                                    </div>
+                                                    <h3 style="font-size: 18px; font-weight: 700; color: #1e293b; margin-bottom: 8px;">Chuyển khoản Ngân hàng</h3>
+                                                    <p style="font-size: 13px; color: #64748b; line-height: 1.5; margin-bottom: 0;">Chuyển khoản liên ngân hàng 24/7 siêu tốc, tự động xác nhận giao dịch qua VietQR.</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!--====== End - Section Content ======-->
+            </div>
+            <!--====== End - Section 2 ======-->
+        </div>
+        <!--====== End - App Content ======-->
+
+        <!--====== Main Footer ======-->
+        <footer>
+            <div th:replace="~{layout/footer :: footer}"></div>
+        </footer>
+    </div>
+    <!--====== End - Main App ======-->
+
+    <!--====== Google Analytics: change UA-XXXXX-Y to be your site's ID ======-->
+    <script>
+        window.ga = function() {
+            ga.q.push(arguments)
+        };
+        ga.q = [];
+        ga.l = +new Date;
+        ga('create', 'UA-XXXXX-Y', 'auto');
+        ga('send', 'pageview')
+    </script>
+    <script src="https://www.google-analytics.com/analytics.js" async defer></script>
+
+    <!--====== Vendor Js ======-->
+    <script th:src="@{/js/vendor.js}"></script>
+
+    <!--====== Plugin jQuery Shopnav ======-->
+    <script th:src="@{/js/jquery.shopnav.js}"></script>
+
+    <!--====== Ứng dụng ======-->
+    <script th:src="@{/js/app.js}"></script>
+
+    <!--====== Khi không hỗ trợ JavaScript ======-->
+    <noscript>
+        <div class="app-setting">
+            <div class="container">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="app-setting__wrap">
+                            <h1 class="app-setting__h1">Trình duyệt của bạn đã tắt JavaScript.</h1>
+                            <span class="app-setting__text">Vui lòng bật JavaScript trong cài đặt trình duyệt hoặc nâng cấp lên trình duyệt có hỗ trợ JavaScript.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </noscript>
+</body>
+</html>

@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+    <aside th:fragment="sidebar(activeTab)" class="admin-sidebar" id="adminSidebar">
+        <!-- Sidebar Brand / Header -->
+        <div class="admin-sidebar-header">
+            <a class="admin-sidebar-brand" th:href="@{/admin/all}">
+                <img th:src="@{/images/logo/logo-white.png}" alt="SMASH-VN Logo">
+                <span>SMASH-VN</span>
+            </a>
+            <button class="admin-sidebar-close" id="adminSidebarClose" type="button"
+                    title="Đóng menu" aria-label="Đóng menu quản trị" aria-controls="adminSidebar">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <!-- Navigation Links List -->
+        <div class="admin-sidebar-nav">
+
+            <!-- MANAGER ROLE MENU (activeRole == 'QL') -->
+            <th:block th:if="${session.activeRole == 'QL'}">
+                <!-- Group 1: TỔNG QUAN -->
+                <div class="admin-nav-section">
+                    <div class="admin-nav-section-title">Tổng quan</div>
+                    <a th:href="@{/admin/all}" class="admin-nav-link" th:classappend="${activeTab == 'tongquan' ? 'active' : ''}">
+                        <div class="admin-nav-link-content">
+                            <i class="fas fa-chart-pie nav-icon"></i>
+                            <span>Tổng quan</span>
+                        </div>
+                    </a>
+                    <a th:href="@{/admin/thong-ke}" class="admin-nav-link" th:classappend="${activeTab == 'thongke' ? 'active' : ''}">
+                        <div class="admin-nav-link-content">
+                            <i class="fas fa-chart-bar nav-icon"></i>
+                            <span>Thống kê</span>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Group 2: BÁN HÀNG -->
+                <div class="admin-nav-section">
+                    <div class="admin-nav-section-title">Bán hàng</div>
+                    <a th:href="@{/admin/don-hang}" class="admin-nav-link" th:classappend="${activeTab == 'donhang' ? 'active' : ''}">
+                        <div class="admin-nav-link-content">
+                            <i class="fas fa-shopping-cart nav-icon"></i>
+                            <span>Đơn hàng</span>
+                        </div>
+                    </a>
+                    <a th:href="@{/admin/pos}" class="admin-nav-link" th:classappend="${activeTab == 'pos' ? 'active' : ''}">
+                        <div class="admin-nav-link-content">
+                            <i class="fas fa-cash-register nav-icon"></i>
+                            <span>Bán hàng tại quầy</span>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Group 3: SẢN PHẨM -->
+                <div class="admin-nav-section">
+                    <div class="admin-nav-section-title">Sản phẩm</div>
+                    <a th:href="@{/admin/san-pham}" class="admin-nav-link" th:classappend="${activeTab == 'sanpham' ? 'active' : ''}">
+                        <div class="admin-nav-link-content">
+                            <i class="fas fa-box nav-icon"></i>
+                            <span>Sản phẩm</span>
+                        </div>
+                    </a>
+                    <a th:href="@{/admin/danh-muc}" class="admin-nav-link" th:classappend="${activeTab == 'danhmuc' ? 'active' : ''}">
+                        <div class="admin-nav-link-content">
+                            <i class="fas fa-folder-open nav-icon"></i>
+                            <span>Danh mục & hãng</span>
+                        </div>
+                    </a>
+                    <a th:href="@{/admin/kho-san-pham-loi}" class="admin-nav-link" th:classappend="${activeTab == 'khoSpLoi' ? 'active' : ''}">
+                        <div class="admin-nav-link-content">
+                            <i class="fas fa-triangle-exclamation nav-icon"></i>
+                            <span>Kho sản phẩm lỗi</span>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Group 4: NGƯỜI DÙNG -->
+                <div class="admin-nav-section">
+                    <div class="admin-nav-section-title">Người dùng</div>
+                    <a th:href="@{/admin/khach-hang}" class="admin-nav-link" th:classappend="${activeTab == 'khachhang' ? 'active' : ''}">
+                        <div class="admin-nav-link-content">
+                            <i class="fas fa-users nav-icon"></i>
+                            <span>Khách hàng</span>
+                        </div>
+                    </a>
+                    <a th:href="@{/admin/nhan-vien}" class="admin-nav-link" th:classappend="${activeTab == 'nhanvien' ? 'active' : ''}">
+                        <div class="admin-nav-link-content">
+                            <i class="fas fa-user-shield nav-icon"></i>
+                            <span>Nhân viên</span>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Group 5: NỘI DUNG & TƯƠNG TÁC -->
+                <div class="admin-nav-section">
+                    <div class="admin-nav-section-title">Nội dung & Tương tác</div>
+                    
+                    <!-- Submenu Parent: Bình luận & đánh giá -->
+                    <div class="admin-nav-item">
+                        <button type="button" class="admin-nav-link" data-submenu-target="submenuCommentReview"
+                           aria-controls="submenuCommentReview"
+                           th:classappend="${activeTab == 'danhgia' or activeTab == 'viphambinhluan' or activeTab == 'moderationKeywords' ? 'active' : ''}"
+                           th:aria-expanded="${activeTab == 'danhgia' or activeTab == 'viphambinhluan' or activeTab == 'moderationKeywords' ? 'true' : 'false'}">
+                            <div class="admin-nav-link-content">
+                                <i class="fas fa-comments nav-icon"></i>
+                                <span>Bình luận & đánh giá</span>
+                            </div>
+                            <i class="fas fa-chevron-right arrow-icon"></i>
+                        </button>
+                        <div class="admin-nav-submenu" id="submenuCommentReview" 
+                             th:classappend="${activeTab == 'danhgia' or activeTab == 'viphambinhluan' or activeTab == 'moderationKeywords' ? 'show' : ''}">
+                            <a th:href="@{/admin/danh-gia}" class="admin-nav-link" th:classappend="${activeTab == 'danhgia' ? 'active' : ''}">
+                                <div class="admin-nav-link-content">
+                                    <i class="fas fa-star nav-icon"></i>
+                                    <span>Đánh giá</span>
+                                </div>
+                            </a>
+                            <a th:href="@{/admin/danh-gia/vi-pham}" class="admin-nav-link" th:classappend="${activeTab == 'viphambinhluan' ? 'active' : ''}">
+                                <div class="admin-nav-link-content">
+                                    <i class="fas fa-exclamation-triangle nav-icon"></i>
+                                    <span>Bình luận vi phạm</span>
+                                </div>
+                            </a>
+                            <a th:href="@{/admin/moderation/keywords}" class="admin-nav-link" th:classappend="${activeTab == 'moderationKeywords' ? 'active' : ''}">
+                                <div class="admin-nav-link-content">
+                                    <i class="fas fa-filter nav-icon"></i>
+                                    <span>Từ khóa cấm</span>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+
+                    <a th:href="@{/admin/blog}" class="admin-nav-link" th:classappend="${activeTab == 'blog' ? 'active' : ''}">
+                        <div class="admin-nav-link-content">
+                            <i class="fas fa-newspaper nav-icon"></i>
+                            <span>Bài viết</span>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Group 6: MARKETING -->
+                <div class="admin-nav-section">
+                    <div class="admin-nav-section-title">Marketing</div>
+                    <a th:href="@{/admin/khuyen-mai}" class="admin-nav-link" th:classappend="${activeTab == 'khuyenmai' ? 'active' : ''}">
+                        <div class="admin-nav-link-content">
+                            <i class="fas fa-percent nav-icon"></i>
+                            <span>Khuyến mãi</span>
+                        </div>
+                    </a>
+                </div>
+            </th:block>
+
+            <!-- EMPLOYEE ROLE MENU (activeRole == 'NV') -->
+            <th:block th:if="${session.activeRole == 'NV'}">
+                <div class="admin-nav-section">
+                    <div class="admin-nav-section-title">Nghiệp vụ nhân viên</div>
+                    <a th:href="@{/admin/pos}" class="admin-nav-link" th:classappend="${activeTab == 'pos' ? 'active' : ''}">
+                        <div class="admin-nav-link-content">
+                            <i class="fas fa-cash-register nav-icon"></i>
+                            <span>Bán tại quầy</span>
+                        </div>
+                    </a>
+                    <a th:href="@{/admin/khach-hang}" class="admin-nav-link" th:classappend="${activeTab == 'khachhang' ? 'active' : ''}">
+                        <div class="admin-nav-link-content">
+                            <i class="fas fa-users nav-icon"></i>
+                            <span>Khách hàng</span>
+                        </div>
+                    </a>
+                    <a th:href="@{/admin/don-hang}" class="admin-nav-link" th:classappend="${activeTab == 'donhang' ? 'active' : ''}">
+                        <div class="admin-nav-link-content">
+                            <i class="fas fa-shopping-cart nav-icon"></i>
+                            <span>Đơn hàng</span>
+                        </div>
+                    </a>
+                    <a th:href="@{/admin/kho-san-pham-loi}" class="admin-nav-link" th:classappend="${activeTab == 'khoSpLoi' ? 'active' : ''}">
+                        <div class="admin-nav-link-content">
+                            <i class="fas fa-triangle-exclamation nav-icon"></i>
+                            <span>Kho sản phẩm lỗi</span>
+                        </div>
+                    </a>
+                </div>
+
+                <div class="admin-nav-section">
+                    <div class="admin-nav-section-title">Tương tác & Bài viết</div>
+                    <a th:href="@{/admin/danh-gia}" class="admin-nav-link" th:classappend="${activeTab == 'danhgia' ? 'active' : ''}">
+                        <div class="admin-nav-link-content">
+                            <i class="fas fa-star nav-icon"></i>
+                            <span>Đánh giá</span>
+                        </div>
+                    </a>
+                    <a th:href="@{/admin/danh-gia/vi-pham}" class="admin-nav-link" th:classappend="${activeTab == 'viphambinhluan' ? 'active' : ''}">
+                        <div class="admin-nav-link-content">
+                            <i class="fas fa-exclamation-triangle nav-icon"></i>
+                            <span>Bình luận</span>
+                        </div>
+                    </a>
+                    <a th:href="@{/admin/blog}" class="admin-nav-link" th:classappend="${activeTab == 'blog' ? 'active' : ''}">
+                        <div class="admin-nav-link-content">
+                            <i class="fas fa-newspaper nav-icon"></i>
+                            <span>Bài viết & blog</span>
+                        </div>
+                    </a>
+                </div>
+            </th:block>
+
+        </div>
+    </aside>
+
+    <!-- Backdrop overlay for mobile sidebar -->
+    <div class="admin-sidebar-backdrop" id="adminSidebarBackdrop"></div>
+
+</body>
+</html>

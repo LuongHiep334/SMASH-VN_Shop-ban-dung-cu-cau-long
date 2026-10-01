@@ -1,0 +1,29 @@
+// Cấu hình và trợ giúp
+@import
+  'abstracts/header-comment',
+  'abstracts/functions',
+  'abstracts/variables';
+
+// Các cơ sở
+@import
+  'base/base',
+  'base/typography',
+  'base/pre-config',
+  'base/utilities';
+
+// Các thành phần
+@import
+'components/all';
+
+// Các phần liên quan đến bố cục
+@import
+  'layout/header',
+  'layout/footer';
+
+// Các kiểu cụ thể cho trang
+@import
+  'pages/all';
+
+// Tiện ích mở rộng của nhà cung cấp
+@import
+'vendors-extensions/all';

@@ -1,0 +1,1518 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="'Sửa sản phẩm: ' + ${sp.tenSanPham} + ' - Admin SmashVN'">Sửa sản phẩm - Admin SmashVN</title>
+    
+    <!-- Bootstrap 5.3.0 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Admin Custom CSS -->
+    <link rel="stylesheet" th:href="@{/css/admin-custom.css(v='2.4')}">
+    <script th:src="@{/js/admin-layout-state.js(v='1.0')}"></script>
+    
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <!-- Load local CKEditor -->
+    <script th:src="@{/vendor/ckeditor/ckeditor.js}"></script>
+    <script th:src="@{/vendor/ckeditor/translations/vi.js}"></script>
+    <style>
+        .ck-editor__editable_inline { min-height: 200px; max-height: 400px; }
+        .ck-powered-by, .ck.ck-powered-by, [class*="ck-powered-by"] { display: none !important; visibility: hidden !important; height: 0 !important; }
+    </style>
+</head>
+<body class="admin-body">
+
+    <!-- Sidebar Layout Fragment -->
+    <div th:replace="~{admin/layout/sidebar :: sidebar('sanpham')}"></div>
+
+    <div class="admin-page">
+        <!-- Topbar Layout Fragment -->
+        <div th:replace="~{admin/layout/header :: header}"></div>
+
+        <!-- Main Content -->
+        <main class="admin-content">
+            <div class="container-fluid admin-container">
+
+                <!-- Flash Messages -->
+                <div th:if="${success != null}" class="alert alert-success alert-dismissible fade show border-start border-success border-4 rounded-3 shadow-sm mb-4" role="alert">
+                    <i class="fas fa-check-circle me-2"></i><span th:text="${success}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                <div th:if="${error != null}" class="alert alert-danger alert-dismissible fade show border-start border-danger border-4 rounded-3 shadow-sm mb-4" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i><span th:text="${error}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                <div th:if="${param.loi != null}" class="alert alert-danger alert-dismissible fade show border-start border-danger border-4 rounded-3 shadow-sm mb-4" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i><span th:text="${param.loi}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+
+                <!-- Page Header -->
+                <div class="admin-page-header">
+                    <div>
+                        <h1 class="admin-page-title">
+                            <i class="fas fa-edit text-brand me-2"></i>Sửa Sản Phẩm: <span class="text-primary" th:text="${sp.tenSanPham}"></span>
+                        </h1>
+                    </div>
+                    <div class="admin-toolbar d-flex align-items-center gap-2">
+                        <!-- Badge trạng thái hiện tại -->
+                        <span th:if="${sp.trangThai == null or sp.trangThai == 'dang_ban'}" class="admin-status admin-status-success px-3 py-2">
+                            <i class="fas fa-eye me-1"></i> Đang hiển thị
+                        </span>
+                        <span th:if="${sp.trangThai == 'ngung_kinh_doanh'}" class="admin-status admin-status-neutral px-3 py-2">
+                            <i class="fas fa-eye-slash me-1"></i> Ngưng hiển thị
+                        </span>
+
+                        <!-- Nút Xem trước -->
+                        <a href="javascript:void(0)" 
+                           th:data-url="@{/admin/san-pham/xem-truoc/{id}(id=${sp.id})}" 
+                           th:data-name="${sp.tenSanPham}" 
+                           onclick="openProductPreviewModal(this.getAttribute('data-url'), this.getAttribute('data-name'))" 
+                           class="admin-btn admin-btn-info" 
+                           title="Xem trước giao diện khách hàng (không cần mở tab mới)">
+                            <i class="fas fa-eye me-1"></i> Xem trước
+                        </a>
+
+                        <!-- Nút Ngưng hiển thị (khi đang hiển thị) -->
+                        <form th:if="${sp.trangThai == null or sp.trangThai == 'dang_ban'}" 
+                              th:action="@{/admin/san-pham/ngung-hien-thi/{id}(id=${sp.id})}" 
+                              method="POST" style="display: inline;"
+                              onsubmit="return confirmSubmitForm(this, 'Ngưng hiển thị sản phẩm?&#10;&#10;Sản phẩm sẽ không còn xuất hiện trên cửa hàng và khách hàng không thể phát sinh giao dịch mới với sản phẩm này.&#10;&#10;Các đơn hàng đã phát sinh trước đó vẫn tiếp tục được xử lý.');">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                            <input type="hidden" name="redirectUrl" th:value="@{/admin/san-pham/sua/{id}(id=${sp.id})}" />
+                            <button type="submit" class="admin-btn admin-btn-danger" title="Ngưng hiển thị sản phẩm">
+                                <i class="fas fa-eye-slash me-1"></i> Ngưng hiển thị
+                            </button>
+                        </form>
+
+                        <!-- Nút Đăng bán (khi đang ngưng hiển thị) -->
+                        <form th:if="${sp.trangThai == 'ngung_kinh_doanh'}" 
+                              th:action="@{/admin/san-pham/dang-ban/{id}(id=${sp.id})}" 
+                              method="POST" style="display: inline;"
+                              onsubmit="return confirmSubmitForm(this, 'Đăng bán sản phẩm?&#10;&#10;Sản phẩm sẽ được hiển thị trên cửa hàng và khách hàng có thể bắt đầu đặt mua.');">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                            <input type="hidden" name="redirectUrl" th:value="@{/admin/san-pham/sua/{id}(id=${sp.id})}" />
+                            <button type="submit" class="admin-btn admin-btn-success" title="Đăng bán sản phẩm ra cửa hàng">
+                                <i class="fas fa-cloud-upload-alt me-1"></i> Đăng bán
+                            </button>
+                        </form>
+
+                        <a th:href="@{/admin/san-pham}" class="admin-btn admin-btn-secondary">
+                            <i class="fas fa-arrow-left me-1"></i> Quay lại Kho Hàng
+                        </a>
+                    </div>
+                </div>
+
+                <!-- SECTION 1: THÔNG TIN SẢN PHẨM GỐC -->
+                <div class="admin-card mb-4">
+                    <div class="admin-card-header">
+                        <h5 class="admin-card-title"><i class="fas fa-info-circle text-primary me-2"></i>Thông Tin Sản Phẩm Gốc</h5>
+                    </div>
+                    <div class="admin-card-body">
+                        <form id="formEditBasicInfo" th:action="@{/admin/san-pham/sua/{id}(id=${sp.id})}" method="post" onsubmit="return validateAndConfirmEditProduct(this);">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <label class="admin-form-label">Tên Sản Phẩm <span class="text-danger">*</span></label>
+                                    <input type="text" name="tenSanPham" class="admin-form-control form-control" th:value="${sp.tenSanPham}" required oninvalid="this.setCustomValidity('Vui lòng nhập tên sản phẩm!')" oninput="this.setCustomValidity('')">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="admin-form-label">Danh Mục <span class="text-danger">*</span></label>
+                                    <select name="idDanhMuc" class="form-select admin-form-control" required oninvalid="this.setCustomValidity('Vui lòng chọn danh mục sản phẩm!')" oninput="this.setCustomValidity('')">
+                                        <option value="">-- Chọn --</option>
+                                        <option th:each="dm : ${listDanhMuc}"
+                                                th:value="${dm.id}"
+                                                th:text="${dm.tenDanhMuc}"
+                                                th:selected="${dm.id == sp.danhMuc.id}"></option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="admin-form-label">Thương Hiệu <span class="text-danger">*</span></label>
+                                    <select name="idThuongHieu" class="form-select admin-form-control" required oninvalid="this.setCustomValidity('Vui lòng chọn thương hiệu sản phẩm!')" oninput="this.setCustomValidity('')">
+                                        <option value="">-- Chọn --</option>
+                                        <option th:each="th : ${listThuongHieu}"
+                                                th:value="${th.id}"
+                                                th:text="${th.tenThuongHieu}"
+                                                th:selected="${th.id == sp.thuongHieu.id}"></option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="admin-form-label">Mô tả sản phẩm</label>
+                                <textarea name="moTa" id="moTaEdit" class="admin-form-control form-control" rows="4" th:text="${sp.moTa}" placeholder="Nhập mô tả sản phẩm..."></textarea>
+                            </div>
+                            <div class="text-end pt-2">
+                                <button type="submit" class="admin-btn admin-btn-primary">
+                                    <i class="fas fa-save me-1"></i>Lưu Thông Tin Gốc
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- SECTION 2: 2 CỘT (DANH SÁCH BIẾN THỂ & FORM THAO TÁC) -->
+                <div class="row g-4 mb-5">
+                    <!-- CỘT BÊN TRÁI: DANH SÁCH BIẾN THỂ -->
+                    <div class="col-lg-7">
+                        <div class="admin-card h-100">
+                            <div class="admin-card-header flex-wrap gap-2">
+                                <div class="d-flex align-items-center gap-2">
+                                    <h5 class="admin-card-title mb-0"><i class="fas fa-layer-group text-primary me-2"></i>Các Phân Loại Biến Thể</h5>
+                                    <span class="admin-status admin-status-info" th:text="${#lists.size(danhSachBienThe)} + ' BT'"></span>
+                                </div>
+                            </div>
+                            <div class="admin-card-body p-0">
+                                <div class="admin-table-wrapper">
+                                    <table class="admin-table">
+                                        <thead>
+                                            <tr>
+                                                <th class="text-center text-nowrap" style="width: 45px;">STT</th>
+                                                <th class="text-center text-nowrap" style="width: 65px;">Ảnh</th>
+                                                <th class="text-nowrap">Mã SKU</th>
+                                                <th class="text-nowrap">Phân Loại / Thông Số</th>
+                                                <th class="text-nowrap">Giá Bán</th>
+                                                <th class="text-nowrap">Tồn Kho</th>
+                                                <th class="text-nowrap">Trạng Thái</th>
+                                                <th class="text-center text-nowrap" style="width: 120px;">Hành Động</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr th:each="bt, iterStat : ${danhSachBienThe}"
+                                                th:classappend="${bt.trangThai == 'ngung_kinh_doanh' or bt.trangThai == 'ngung_ban'} ? 'bg-light text-muted' : ''">
+                                                <td class="text-center text-nowrap" th:text="${iterStat.count}">1</td>
+                                                <td class="text-center text-nowrap">
+                                                    <div style="width: 42px; height: 42px; margin: 0 auto; border-radius: 6px; overflow: hidden; border: 1px solid var(--admin-border); background: #fff; display: flex; align-items: center; justify-content: center;">
+                                                        <img th:src="@{${bt.hinhAnhUrl}}"
+                                                             onerror="this.onerror=null; this.src='/images/placeholder.png';"
+                                                             alt="Ảnh SP" style="max-width: 100%; max-height: 100%; object-fit: contain;">
+                                                    </div>
+                                                </td>
+                                                <td class="text-nowrap">
+                                                    <span class="badge bg-light text-dark border font-monospace" th:text="${bt.sku != null ? bt.sku : 'N/A'}">SP000001-V000001</span>
+                                                </td>
+                                                <td class="text-nowrap">
+                                                    <strong class="text-dark d-block" th:text="${bt.phanLoaiHienThi}">Mặc định</strong>
+                                                </td>
+                                                <td class="text-danger fw-bold text-nowrap"
+                                                    th:text="${#numbers.formatDecimal(bt.giaBan, 0, 'COMMA', 0, 'POINT')} + ' đ'">Giá</td>
+                                                <td class="text-nowrap">
+                                                    <span class="admin-status admin-status-neutral" th:text="${bt.soLuongTon} + ' chiếc'">10</span>
+                                                </td>
+                                                <td class="text-nowrap">
+                                                    <span th:if="${bt.trangThai == null or bt.trangThai == '' or bt.trangThai == 'dang_ban'}"
+                                                          class="admin-status admin-status-success">
+                                                        Đang bán
+                                                    </span>
+                                                    <span th:if="${bt.trangThai == 'ngung_kinh_doanh' or bt.trangThai == 'ngung_ban'}"
+                                                          class="admin-status admin-status-danger">
+                                                        Đã ẩn
+                                                    </span>
+                                                </td>
+                                                <td class="text-center text-nowrap">
+                                                    <div class="d-flex justify-content-center gap-1">
+                                                        <!-- Nút SỬA -->
+                                                        <button type="button"
+                                                                class="admin-btn admin-btn-sm admin-btn-secondary"
+                                                                th:attr="
+                                                                    data-bt-id=${bt.id},
+                                                                    data-sp-id=${sp.id},
+                                                                    data-sku=${bt.sku},
+                                                                    data-attrs-json=${bt.thuocTinhMapJson},
+                                                                    data-gia-ban=${bt.giaBan},
+                                                                    data-so-luong=${bt.soLuongTon},
+                                                                    data-mau-sac=${bt.mauSac},
+                                                                    data-trong-luong=${bt.trongLuong},
+                                                                    data-kich-thuoc=${bt.kichThuoc},
+                                                                    data-muc-cang=${bt.mucCang},
+                                                                    data-hinh-anh=${bt.hinhAnhSanPham}
+                                                                "
+                                                                onclick="moFormSuaBienThe(this)">
+                                                            <i class="fas fa-pen me-1"></i>Sửa
+                                                        </button>
+
+                                                        <!-- Nút CHI TIẾT NHẬP HÀNG -->
+                                                        <button type="button"
+                                                                class="admin-btn admin-btn-sm btn-outline-info text-info fw-bold"
+                                                                th:attr="data-bt-id=${bt.id},data-gia-ban=${bt.giaBan},data-so-luong=${bt.soLuongTon}"
+                                                                onclick="xemChiTietBienThe(this)"
+                                                                title="Xem lịch sử các đợt nhập hàng">
+                                                            <i class="fas fa-history me-1"></i>Chi Tiết
+                                                        </button>
+
+                                                        <!-- Nút NHẬP HÀNG MỚI -->
+                                                        <button type="button"
+                                                                class="admin-btn admin-btn-sm btn-outline-success text-success fw-bold"
+                                                                th:attr="data-bt-id=${bt.id}"
+                                                                onclick="moTabNhapLoChoBienThe(this)">
+                                                            <i class="fas fa-plus-circle me-1"></i>+ Nhập Hàng
+                                                        </button>
+
+                                                        <!-- Nút ẨN -->
+                                                        <a th:if="${categoryType != 'HOP_CAU' and (bt.trangThai == null or bt.trangThai == '' or bt.trangThai == 'dang_ban')}"
+                                                           th:href="@{/admin/san-pham/{idSP}/bien-the/xoa/{idBT}(idSP=${sp.id}, idBT=${bt.id})}"
+                                                           class="admin-btn admin-btn-sm admin-btn-secondary text-danger"
+                                                           onclick="return confirmActionLink(event, this, 'Ẩn phân loại này khỏi khách hàng?');">
+                                                            <i class="fas fa-eye-slash me-1"></i>Ẩn
+                                                        </a>
+                                                        <!-- Nút MỞ LẠI -->
+                                                        <a th:if="${categoryType != 'HOP_CAU' and (bt.trangThai == 'ngung_kinh_doanh' or bt.trangThai == 'ngung_ban')}"
+                                                           th:href="@{/admin/san-pham/{idSP}/bien-the/mo-ban-lai/{idBT}(idSP=${sp.id}, idBT=${bt.id})}"
+                                                           class="admin-btn admin-btn-sm admin-btn-secondary text-success"
+                                                           onclick="return confirmActionLink(event, this, 'Bạn có chắc chắn muốn mở bán lại phân loại này?');">
+                                                            <i class="fas fa-rotate-left me-1"></i>Mở
+                                                        </a>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <tr th:if="${#lists.isEmpty(danhSachBienThe)}">
+                                                <td colspan="8" class="text-center text-muted py-4">
+                                                    Chưa có phân loại nào. Hãy chọn tab "Thêm Biến Thể Mới" ở cột bên phải.
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CỘT BÊN PHẢI: KHU VỰC THAO TÁC (CHỈNH SỬA / NHẬP LÔ / THÊM MỚI BIẾN THỂ) -->
+                    <div class="col-lg-5">
+                        <div class="admin-card">
+                            <div class="admin-card-header">
+                                <ul class="nav nav-pills border-0 mb-0 gap-2" id="pills-tab" role="tablist">
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link active px-3 py-1.5 fw-bold" id="pills-edit-tab" data-bs-toggle="pill" data-bs-target="#pills-edit" type="button" role="tab">
+                                            <i class="fas fa-pen me-1"></i>Sửa Biến Thể
+                                        </button>
+                                    </li>
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link px-3 py-1.5 fw-bold text-success" id="pills-nhaplo-tab" data-bs-toggle="pill" data-bs-target="#pills-nhaplo" type="button" role="tab">
+                                            <i class="fas fa-plus-circle me-1"></i>+ Nhập Hàng
+                                        </button>
+                                    </li>
+
+                                    <li class="nav-item" role="presentation" th:if="${categoryType != 'HOP_CAU'}">
+                                        <button class="nav-link px-3 py-1.5 fw-bold" id="pills-add-tab" data-bs-toggle="pill" data-bs-target="#pills-add" type="button" role="tab">
+                                            <i class="fas fa-plus me-1"></i>Thêm Mới
+                                        </button>
+                                    </li>
+
+                                </ul>
+                            </div>
+
+                            <div class="admin-card-body">
+                                <div class="tab-content" id="pills-tabContent">
+                                    
+                                    <!-- TAB 1: FORM CHỈNH SỬA BIẾN THỂ -->
+                                    <div class="tab-pane fade show active" id="pills-edit" role="tabpanel">
+                                        <div id="sectionSuaBienTheDirect">
+                                            <!-- Combobox Chọn Đối Tượng Chỉnh Sửa -->
+                                            <div class="mb-3">
+                                                <label class="admin-form-label">
+                                                    <i class="fas fa-list-ul me-1 text-primary"></i>Đối tượng chỉnh sửa:
+                                                </label>
+                                                <select id="selectDoiTuongSua" class="form-select admin-form-control fw-semibold" onchange="xuLyChonDoiTuongSua(this.value)">
+                                                    <option value="0">-- Tất cả biến thể (Cập nhật hàng loạt Giá &amp; Kho) --</option>
+                                                    <option th:each="bt : ${danhSachBienThe}"
+                                                            th:value="${bt.id}"
+                                                            th:attr="
+                                                                data-sku=${bt.sku},
+                                                                data-gia-ban=${bt.giaBan},
+                                                                data-so-luong=${bt.soLuongTon},
+                                                                data-mau-sac=${bt.mauSac},
+                                                                data-trong-luong=${bt.trongLuong},
+                                                                data-kich-thuoc=${bt.kichThuoc},
+                                                                data-muc-cang=${bt.mucCang},
+                                                                data-hinh-anh=${bt.hinhAnhSanPham}
+                                                            "
+                                                            th:text="${bt.phanLoaiHienThi}"></option>
+                                                </select>
+                                            </div>
+
+                                            <!-- Alert Thông Báo Chế Độ Sửa -->
+                                            <div class="mb-3">
+                                                <div id="noteBulkEdit" class="alert alert-warning py-2 px-3 mb-0 border-0 rounded-3 small">
+                                                    <i class="fas fa-info-circle me-1"></i>
+                                                    <strong>Cập nhật hàng loạt:</strong> Giá và kho nhập bên dưới sẽ áp dụng cho <strong>TẤT CẢ</strong> biến thể.
+                                                </div>
+                                                <div id="noteSingleEdit" class="alert alert-info py-2 px-3 mb-0 border-0 rounded-3 small" style="display:none;">
+                                                    <i class="fas fa-edit me-1"></i>
+                                                    <strong>Sửa biến thể đơn lẻ:</strong> Thay đổi thuộc tính chi tiết cho biến thể đã chọn.
+                                                </div>
+                                            </div>
+
+                                            <form id="formSuaBienTheDirect" th:action="@{/admin/san-pham/{id}/bien-the/sua/0(id=${sp.id})}" method="post" enctype="multipart/form-data" onsubmit="return confirmSubmitForm(this, 'Bạn có chắc chắn muốn lưu thay đổi cho biến thể này không?');">
+                                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+                                                <!-- Mã SKU (Readonly) -->
+                                                <div class="mb-3" id="wrapDirectSku" style="display:none;">
+                                                    <label class="admin-form-label"><i class="fas fa-barcode me-1 text-primary"></i>Mã SKU (Tự sinh - Bất biến)</label>
+                                                    <input type="text" id="directSku" class="admin-form-control form-control bg-light font-monospace" readonly disabled placeholder="SPxxxxxx-Vxxxxxx">
+                                                </div>
+
+                                                <!-- Giá + Số lượng -->
+                                                <div class="row g-3 mb-3">
+                                                    <div class="col-6">
+                                                        <label class="admin-form-label">Giá bán <span id="lblGiaRequired">*</span></label>
+                                                        <input type="number" id="directGiaBan" name="giaBan" class="admin-form-control form-control" min="1000" step="1000" placeholder="VD: 2500000" oninvalid="this.setCustomValidity('Vui lòng nhập giá bán hợp lệ (tối thiểu 1.000 VNĐ)!')" oninput="this.setCustomValidity('')">
+                                                    </div>
+                                                    <div class="col-6">
+                                                        <label class="admin-form-label">Số lượng kho <span class="text-danger">*</span></label>
+                                                        <input type="number" id="directSoLuong" name="soLuongTon" class="admin-form-control form-control bg-light" readonly disabled>
+                                                    </div>
+
+
+                                                </div>
+
+                                                <!-- File Upload Ảnh -->
+                                                <div class="mb-3" id="wrapDirectFile">
+                                                    <label class="admin-form-label">Hình ảnh mới</label>
+                                                    <input type="file" id="directFileAnh" name="fileAnh" class="admin-form-control form-control" accept="image/jpeg, image/png, image/webp" oninvalid="this.setCustomValidity('Vui lòng chọn hình ảnh hợp lệ!')" oninput="this.setCustomValidity('')">
+                                                    <div id="directFileError" class="text-danger mt-1 small" style="display:none;"></div>
+                                                </div>
+
+                                                <!-- Preview Ảnh -->
+                                                <div class="mb-3 p-3 bg-light rounded-3 border" id="directImgRow" style="display:none;">
+                                                    <div class="d-flex align-items-center gap-3">
+                                                        <div id="directCurrentImgWrap">
+                                                            <small class="text-muted fw-semibold d-block mb-1">Ảnh hiện tại:</small>
+                                                            <img id="directCurrentImg" src="" alt="" style="width: 48px; height: 48px; object-fit: contain; border-radius: 6px; border: 1px solid var(--admin-border); background: #fff;">
+                                                        </div>
+                                                        <div id="directPreviewWrap" style="display:none;">
+                                                            <small class="text-muted fw-semibold d-block mb-1">Ảnh xem trước:</small>
+                                                            <img id="directPreviewImg" src="" alt="" style="width: 48px; height: 48px; object-fit: contain; border-radius: 6px; border: 1px solid var(--admin-border); background: #fff;">
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Các thuộc tính chi tiết (Chỉ khi chọn biến thể đơn lẻ) -->
+                                                <div class="row g-3 mb-3" id="directAttrWrap" style="display:none;">
+                                                    <div class="col-12" id="directWrapMauSac">
+                                                        <label class="admin-form-label">Màu sắc <span class="text-danger">*</span></label>
+                                                        <input type="text" id="directMauSac" name="mauSac" class="admin-form-control form-control mb-2" maxlength="50" placeholder="VD: Đỏ / Xanh / Đen" oninvalid="this.setCustomValidity('Vui lòng nhập màu sắc cho biến thể!')" oninput="this.setCustomValidity('')">
+                                                        <div class="d-flex flex-wrap gap-1">
+                                                            <button type="button" class="btn btn-sm btn-outline-secondary py-0.5 px-2 rounded-pill pill-attr" onclick="applyAttrPill(this, 'directMauSac')">Đỏ</button>
+                                                            <button type="button" class="btn btn-sm btn-outline-secondary py-0.5 px-2 rounded-pill pill-attr" onclick="applyAttrPill(this, 'directMauSac')">Xanh dương</button>
+                                                            <button type="button" class="btn btn-sm btn-outline-secondary py-0.5 px-2 rounded-pill pill-attr" onclick="applyAttrPill(this, 'directMauSac')">Xanh lá</button>
+                                                            <button type="button" class="btn btn-sm btn-outline-secondary py-0.5 px-2 rounded-pill pill-attr" onclick="applyAttrPill(this, 'directMauSac')">Đen</button>
+                                                            <button type="button" class="btn btn-sm btn-outline-secondary py-0.5 px-2 rounded-pill pill-attr" onclick="applyAttrPill(this, 'directMauSac')">Trắng</button>
+                                                            <button type="button" class="btn btn-sm btn-outline-secondary py-0.5 px-2 rounded-pill pill-attr" onclick="applyAttrPill(this, 'directMauSac')">Vàng</button>
+                                                            <button type="button" class="btn btn-sm btn-outline-secondary py-0.5 px-2 rounded-pill pill-attr" onclick="applyAttrPill(this, 'directMauSac')">Cam</button>
+                                                            <button type="button" class="btn btn-sm btn-outline-secondary py-0.5 px-2 rounded-pill pill-attr" onclick="applyAttrPill(this, 'directMauSac')">Tím</button>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Vợt: Trọng lượng -->
+                                                    <div class="col-6" id="directWrapTrongLuong" style="display:none;">
+                                                        <label class="admin-form-label">Trọng lượng <span class="text-danger">*</span></label>
+                                                        <input type="text" id="directTrongLuong" name="trongLuong" class="admin-form-control form-control mb-2" maxlength="50" placeholder="VD: 3U / 4U / 5U">
+                                                        <div class="d-flex flex-wrap gap-1">
+                                                            <button type="button" class="btn btn-sm btn-outline-secondary py-0.5 px-2 rounded-pill pill-attr" onclick="applyAttrPill(this, 'directTrongLuong')">3U</button>
+                                                            <button type="button" class="btn btn-sm btn-outline-secondary py-0.5 px-2 rounded-pill pill-attr" onclick="applyAttrPill(this, 'directTrongLuong')">4U</button>
+                                                            <button type="button" class="btn btn-sm btn-outline-secondary py-0.5 px-2 rounded-pill pill-attr" onclick="applyAttrPill(this, 'directTrongLuong')">5U</button>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Vợt: Sức căng -->
+                                                    <div class="col-6" id="directWrapMucCang" style="display:none;">
+                                                        <label class="admin-form-label">Sức căng</label>
+                                                        <input type="text" id="directMucCang" name="mucCang" class="admin-form-control form-control mb-2" maxlength="50" placeholder="VD: 20 - 28 lbs">
+                                                        <div class="d-flex flex-wrap gap-1">
+                                                            <button type="button" class="btn btn-sm btn-outline-secondary py-0.5 px-2 rounded-pill pill-attr" onclick="applyAttrPill(this, 'directMucCang')">20 - 28 lbs</button>
+                                                            <button type="button" class="btn btn-sm btn-outline-secondary py-0.5 px-2 rounded-pill pill-attr" onclick="applyAttrPill(this, 'directMucCang')">22 - 30 lbs</button>
+                                                            <button type="button" class="btn btn-sm btn-outline-secondary py-0.5 px-2 rounded-pill pill-attr" onclick="applyAttrPill(this, 'directMucCang')">24 - 32 lbs</button>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Giày / Trang phục: Kích thước -->
+                                                    <div class="col-12" id="directWrapKichThuoc" style="display:none;">
+                                                        <label class="admin-form-label" id="directLblKichThuoc">Kích thước <span class="text-danger">*</span></label>
+                                                        <input type="text" id="directKichThuoc" name="kichThuoc" class="admin-form-control form-control mb-2" maxlength="50">
+                                                        <div class="d-flex flex-wrap gap-1" id="pillsContainerKichThuoc">
+                                                            <!-- Populated dynamically via JS -->
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Thông báo Hộp cầu -->
+                                                <div class="alert alert-info border-0 rounded-3 mb-3 small" id="directHopCauNote" style="display:none;">
+                                                    <i class="fas fa-info-circle me-1"></i>
+                                                    Hộp cầu chỉ sửa giá bán và tồn kho. Màu sắc gán tự động.
+                                                </div>
+
+                                                <div class="text-end pt-2">
+                                                    <button type="submit" id="btnSubmitDirect" class="admin-btn admin-btn-primary w-100">
+                                                        <i class="fas fa-save me-1"></i>Lưu Thay Đổi Hàng Loạt
+                                                    </button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+
+                                    <!-- TAB 2: FORM NHẬP HÀNG MỚI -->
+                                    <div class="tab-pane fade" id="pills-nhaplo" role="tabpanel">
+                                        <div class="p-3 mb-3 bg-light rounded-3 border border-start border-4 border-success">
+                                            <h6 class="fw-bold text-success mb-1"><i class="fas fa-boxes me-2"></i>Nhập Thêm Hàng Mới</h6>
+                                            <p class="small text-muted mb-0">Hệ thống ghi nhận số lượng nhập hàng và cập nhật số lượng tồn kho cho biến thể đã chọn.</p>
+                                        </div>
+                                        <form id="formNhapLoTab" th:action="@{/admin/san-pham/{id}/bien-the/nhap-lo(id=${sp.id})}" method="post" onsubmit="return confirmSubmitForm(this, 'Xác nhận nhập thêm hàng mới cho biến thể đã chọn?');">
+                                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                            <div class="mb-3">
+                                                <label class="admin-form-label"><i class="fas fa-tag me-1 text-primary"></i>Chọn biến thể nhập hàng <span class="text-danger">*</span></label>
+                                                <select name="representativeSpctId" id="selectNhapLoTab" class="form-select admin-form-control fw-semibold" required oninvalid="this.setCustomValidity('Vui lòng chọn phân loại biến thể cần nhập hàng!')" oninput="this.setCustomValidity('')">
+                                                    <option value="">-- Chọn phân loại biến thể --</option>
+                                                    <option th:each="bt : ${danhSachBienThe}"
+                                                            th:value="${bt.id}"
+                                                            th:text="${bt.phanLoaiHienThi} + ' (Tồn hiện tại: ' + ${bt.soLuongTon} + ' chiếc)'"></option>
+                                                </select>
+                                            </div>
+                                            <div class="row g-3 mb-3">
+                                                <div class="col-6">
+                                                    <label class="admin-form-label">Số lượng nhập <span class="text-danger">*</span></label>
+                                                    <input type="number" name="soLuongNhap" class="admin-form-control form-control" required min="1" placeholder="VD: 20" oninvalid="this.setCustomValidity('Vui lòng nhập số lượng nhập (tối thiểu 1)!')" oninput="this.setCustomValidity('')">
+                                                </div>
+                                                <div class="col-6">
+                                                    <label class="admin-form-label">Giá nhập <span class="text-danger">*</span></label>
+                                                    <input type="number" name="giaNhap" class="admin-form-control form-control" required min="1000" step="1000" placeholder="VD: 2800000" oninvalid="this.setCustomValidity('Vui lòng nhập giá nhập hợp lệ (tối thiểu 1.000 VNĐ)!')" oninput="this.setCustomValidity('')">
+                                                </div>
+                                            </div>
+                                            <div class="text-end pt-2">
+                                                <button type="submit" class="admin-btn admin-btn-primary w-100 bg-success border-success">
+                                                    <i class="fas fa-save me-1"></i>Lưu Nhập Hàng
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+
+                                    <!-- TAB 3: FORM THÊM BIẾN THỂ MỚI -->
+                                    <div class="tab-pane fade" id="pills-add" role="tabpanel" th:if="${categoryType != 'HOP_CAU'}">
+                                        <form id="formThemBienThe"
+                                              th:action="@{/admin/san-pham/{id}/bien-the/them(id=${sp.id})}"
+                                              method="post" enctype="multipart/form-data"
+                                              onsubmit="return validateAndConfirmThemBienThe(this);">
+                                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+                                            <div class="row g-3 mb-3">
+                                                <div class="col-4">
+                                                    <label class="admin-form-label">Giá nhập</label>
+                                                    <input type="number" name="giaNhap" id="addGiaNhap" class="admin-form-control form-control" min="0" step="1000" placeholder="VD: 1800000" oninvalid="this.setCustomValidity('Giá nhập không được âm (tối thiểu 0 VNĐ)!')" oninput="this.setCustomValidity('')">
+                                                    <div id="addGiaNhapWarn" class="text-danger fw-semibold d-none" style="font-size: 0.72rem; margin-top: 2px;">
+                                                        <i class="fas fa-exclamation-triangle me-1"></i>Giá nhập > Giá bán!
+                                                    </div>
+                                                </div>
+                                                <div class="col-4">
+                                                    <label class="admin-form-label">Giá bán <span class="text-danger">*</span></label>
+                                                    <input type="number" name="giaBan" id="addGiaBan" class="admin-form-control form-control" required min="1000" step="1000" placeholder="VD: 2500000" oninvalid="this.setCustomValidity('Vui lòng nhập giá bán hợp lệ (tối thiểu 1.000 VNĐ)!')" oninput="this.setCustomValidity('')">
+                                                </div>
+                                                <div class="col-4">
+                                                    <label class="admin-form-label">Số lượng kho <span class="text-danger">*</span></label>
+                                                    <input type="number" name="soLuongTon" class="admin-form-control form-control" required min="0" placeholder="VD: 10" oninvalid="this.setCustomValidity('Vui lòng nhập số lượng tồn kho (tối thiểu 0)!')" oninput="this.setCustomValidity('')">
+                                                </div>
+                                            </div>
+
+                                            <div class="mb-3">
+                                                <label class="admin-form-label">Hình ảnh</label>
+                                                <input type="file" name="fileAnh" id="fileAnhThem" class="admin-form-control form-control" accept="image/jpeg, image/png, image/webp" oninvalid="this.setCustomValidity('Vui lòng chọn hình ảnh hợp lệ!')" oninput="this.setCustomValidity('')">
+                                                <div id="fileErrorThem" class="text-danger mt-1 small" style="display:none;"></div>
+                                                <div id="previewContainerThem" class="mt-2 p-2 bg-light rounded-3 border text-center" style="display:none;">
+                                                    <img id="previewThem" src="" alt="" style="width: 48px; height: 48px; object-fit: contain;">
+                                                </div>
+                                            </div>
+
+                                            <div class="mb-3">
+                                                <label class="admin-form-label">Màu sắc <span class="text-danger">*</span></label>
+                                                <input type="text" name="mauSac" id="addMauSac" class="admin-form-control form-control mb-2" required maxlength="50" placeholder="VD: Đỏ / Xanh / Đen" oninvalid="this.setCustomValidity('Vui lòng nhập màu sắc!')" oninput="this.setCustomValidity('')">
+                                                <div class="d-flex flex-wrap gap-1">
+                                                    <button type="button" class="btn btn-sm btn-outline-secondary py-0.5 px-2 rounded-pill pill-attr" onclick="applyAttrPill(this, 'addMauSac')">Đỏ</button>
+                                                    <button type="button" class="btn btn-sm btn-outline-secondary py-0.5 px-2 rounded-pill pill-attr" onclick="applyAttrPill(this, 'addMauSac')">Xanh dương</button>
+                                                    <button type="button" class="btn btn-sm btn-outline-secondary py-0.5 px-2 rounded-pill pill-attr" onclick="applyAttrPill(this, 'addMauSac')">Xanh lá</button>
+                                                    <button type="button" class="btn btn-sm btn-outline-secondary py-0.5 px-2 rounded-pill pill-attr" onclick="applyAttrPill(this, 'addMauSac')">Đen</button>
+                                                    <button type="button" class="btn btn-sm btn-outline-secondary py-0.5 px-2 rounded-pill pill-attr" onclick="applyAttrPill(this, 'addMauSac')">Trắng</button>
+                                                    <button type="button" class="btn btn-sm btn-outline-secondary py-0.5 px-2 rounded-pill pill-attr" onclick="applyAttrPill(this, 'addMauSac')">Vàng</button>
+                                                    <button type="button" class="btn btn-sm btn-outline-secondary py-0.5 px-2 rounded-pill pill-attr" onclick="applyAttrPill(this, 'addMauSac')">Cam</button>
+                                                    <button type="button" class="btn btn-sm btn-outline-secondary py-0.5 px-2 rounded-pill pill-attr" onclick="applyAttrPill(this, 'addMauSac')">Tím</button>
+                                                </div>
+                                            </div>
+
+                                            <div class="row g-3 mb-3">
+                                                <!-- Vợt: trọng lượng -->
+                                                <div class="col-6" th:if="${categoryType == 'VOT'}">
+                                                    <label class="admin-form-label">Trọng lượng <span class="text-danger">*</span></label>
+                                                    <input type="text" name="trongLuong" id="addTrongLuong" class="admin-form-control form-control mb-2" required maxlength="50" placeholder="VD: 3U / 4U / 5U" oninvalid="this.setCustomValidity('Vui lòng nhập trọng lượng vợt (VD: 3U, 4U, 5U)!')" oninput="this.setCustomValidity('')">
+                                                    <div class="d-flex flex-wrap gap-1">
+                                                        <button type="button" class="btn btn-sm btn-outline-secondary py-0.5 px-2 rounded-pill pill-attr" onclick="applyAttrPill(this, 'addTrongLuong')">3U</button>
+                                                        <button type="button" class="btn btn-sm btn-outline-secondary py-0.5 px-2 rounded-pill pill-attr" onclick="applyAttrPill(this, 'addTrongLuong')">4U</button>
+                                                        <button type="button" class="btn btn-sm btn-outline-secondary py-0.5 px-2 rounded-pill pill-attr" onclick="applyAttrPill(this, 'addTrongLuong')">5U</button>
+                                                    </div>
+                                                </div>
+                                                <!-- Vợt: sức căng -->
+                                                <div class="col-6" th:if="${categoryType == 'VOT'}">
+                                                    <label class="admin-form-label">Sức căng</label>
+                                                    <input type="text" name="mucCang" id="addMucCang" class="admin-form-control form-control mb-2" maxlength="50" placeholder="VD: 20 - 28 lbs">
+                                                    <div class="d-flex flex-wrap gap-1">
+                                                        <button type="button" class="btn btn-sm btn-outline-secondary py-0.5 px-2 rounded-pill pill-attr" onclick="applyAttrPill(this, 'addMucCang')">20 - 28 lbs</button>
+                                                        <button type="button" class="btn btn-sm btn-outline-secondary py-0.5 px-2 rounded-pill pill-attr" onclick="applyAttrPill(this, 'addMucCang')">22 - 30 lbs</button>
+                                                        <button type="button" class="btn btn-sm btn-outline-secondary py-0.5 px-2 rounded-pill pill-attr" onclick="applyAttrPill(this, 'addMucCang')">24 - 32 lbs</button>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Giày: size giày -->
+                                                <div class="col-12" th:if="${categoryType == 'GIAY'}">
+                                                    <label class="admin-form-label">Size giày <span class="text-danger">*</span></label>
+                                                    <input type="text" name="kichThuoc" id="addKichThuocGiay" class="admin-form-control form-control mb-2" required maxlength="50" placeholder="VD: 36, 37... 46" oninvalid="this.setCustomValidity('Vui lòng chọn hoặc nhập kích thước giày!')" oninput="this.setCustomValidity('')">
+                                                    <div class="d-flex flex-wrap gap-1">
+                                                        <button type="button" class="btn btn-sm btn-outline-secondary py-0.5 px-2 rounded-pill pill-attr" onclick="applyAttrPill(this, 'addKichThuocGiay')">38</button>
+                                                        <button type="button" class="btn btn-sm btn-outline-secondary py-0.5 px-2 rounded-pill pill-attr" onclick="applyAttrPill(this, 'addKichThuocGiay')">39</button>
+                                                        <button type="button" class="btn btn-sm btn-outline-secondary py-0.5 px-2 rounded-pill pill-attr" onclick="applyAttrPill(this, 'addKichThuocGiay')">40</button>
+                                                        <button type="button" class="btn btn-sm btn-outline-secondary py-0.5 px-2 rounded-pill pill-attr" onclick="applyAttrPill(this, 'addKichThuocGiay')">41</button>
+                                                        <button type="button" class="btn btn-sm btn-outline-secondary py-0.5 px-2 rounded-pill pill-attr" onclick="applyAttrPill(this, 'addKichThuocGiay')">42</button>
+                                                        <button type="button" class="btn btn-sm btn-outline-secondary py-0.5 px-2 rounded-pill pill-attr" onclick="applyAttrPill(this, 'addKichThuocGiay')">43</button>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Trang phục: size quần áo -->
+                                                <div class="col-12" th:if="${categoryType == 'TRANG_PHUC'}">
+                                                    <label class="admin-form-label">Size trang phục <span class="text-danger">*</span></label>
+                                                    <input type="text" name="kichThuoc" id="addKichThuocAo" class="admin-form-control form-control mb-2" required maxlength="50" placeholder="VD: S, M, L, XL..." oninvalid="this.setCustomValidity('Vui lòng chọn hoặc nhập kích thước trang phục!')" oninput="this.setCustomValidity('')">
+                                                    <div class="d-flex flex-wrap gap-1">
+                                                        <button type="button" class="btn btn-sm btn-outline-secondary py-0.5 px-2 rounded-pill pill-attr" onclick="applyAttrPill(this, 'addKichThuocAo')">S</button>
+                                                        <button type="button" class="btn btn-sm btn-outline-secondary py-0.5 px-2 rounded-pill pill-attr" onclick="applyAttrPill(this, 'addKichThuocAo')">M</button>
+                                                        <button type="button" class="btn btn-sm btn-outline-secondary py-0.5 px-2 rounded-pill pill-attr" onclick="applyAttrPill(this, 'addKichThuocAo')">L</button>
+                                                        <button type="button" class="btn btn-sm btn-outline-secondary py-0.5 px-2 rounded-pill pill-attr" onclick="applyAttrPill(this, 'addKichThuocAo')">XL</button>
+                                                        <button type="button" class="btn btn-sm btn-outline-secondary py-0.5 px-2 rounded-pill pill-attr" onclick="applyAttrPill(this, 'addKichThuocAo')">2XL</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="text-end pt-2">
+                                                <button type="submit" class="admin-btn admin-btn-primary w-100">
+                                                    <i class="fas fa-plus-circle me-1"></i>Thêm Biến Thể Mới
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+
+                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL LỊCH SỬ ĐỢT NHẬP HÀNG BIẾN THỂ -->
+    <div class="modal fade" id="modalLichSuBienThe" tabindex="-1" aria-labelledby="modalLichSuBienTheLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-info text-white py-2">
+                    <h6 class="modal-title fw-bold" id="modalLichSuBienTheLabel">
+                        <i class="fas fa-history me-2"></i>Lịch Sử Đợt Nhập Hàng<span id="modalBienTen_colon" style="display: none;">: </span><span id="modalBienTen_tenBT" class="fw-normal"></span>
+                    </h6>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-3">
+                    <!-- 4 thẻ thống kê -->
+                    <div class="row g-2 mb-3">
+                        <div class="col-6 col-md-3">
+                            <div class="p-2 bg-light rounded-3 border text-center">
+                                <small class="text-muted d-block" style="font-size:0.72rem;">Tồn kho hiện tại</small>
+                                <strong class="text-primary" id="modalBT_tonKho">--</strong>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="p-2 bg-light rounded-3 border text-center">
+                                <small class="text-muted d-block" style="font-size:0.72rem;">Giá bán</small>
+                                <strong class="text-success" id="modalBT_giaBan">--</strong>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="p-2 bg-light rounded-3 border text-center">
+                                <small class="text-muted d-block" style="font-size:0.72rem;">Giá vốn bình quân</small>
+                                <strong class="text-dark" id="modalBT_giaVon">--</strong>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="p-2 bg-light rounded-3 border text-center">
+                                <small class="text-muted d-block" style="font-size:0.72rem;">Số lần nhập</small>
+                                <strong class="text-secondary" id="modalBT_soLan">--</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-bordered align-middle mb-0">
+                            <thead class="table-light">
+                                <tr class="small text-muted text-uppercase">
+                                    <th class="text-center" style="width:40px;">#</th>
+                                    <th>Mã Phiếu</th>
+                                    <th>Ngày Nhập</th>
+                                    <th class="text-center">Số Lượng</th>
+                                    <th class="text-end">Giá Nhập</th>
+                                    <th class="text-end">Thành Tiền</th>
+                                    <th>Nhân Viên</th>
+                                </tr>
+                            </thead>
+                            <tbody id="modalBT_tbody" class="small">
+                                <tr><td colspan="7" class="text-center text-muted py-3">
+                                    <i class="fas fa-spinner fa-spin me-1"></i>Đang tải...
+                                </td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer py-2 bg-light">
+                    <button type="button" class="admin-btn admin-btn-secondary px-3" data-bs-dismiss="modal">Đóng</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL XEM CHI TIẾT PHIẾU NHẬP -->
+    <div class="modal fade" id="modalChiTietPhieuNhap" tabindex="-1" aria-labelledby="modalChiTietPhieuNhapLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-primary text-white py-2.5">
+                    <h6 class="modal-title fw-bold" id="modalChiTietPhieuNhapLabel"><i class="fas fa-file-invoice me-2"></i>Chi Tiết Phiếu Nhập <span id="modalMaPhieuNhap" class="badge bg-white text-primary ms-2"></span></h6>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-3">
+                    <div class="row g-3 mb-3 small">
+                        <div class="col-md-4">
+                            <span class="text-muted d-block">Mã phiếu nhập:</span>
+                            <strong id="modalInfoMaPN" class="text-dark">--</strong>
+                        </div>
+                        <div class="col-md-4">
+                            <span class="text-muted d-block">Ngày nhập:</span>
+                            <strong id="modalInfoNgayNhap" class="text-dark">--</strong>
+                        </div>
+                        <div class="col-md-4">
+                            <span class="text-muted d-block">Nhân viên lập phiếu:</span>
+                            <strong id="modalInfoNhanVien" class="text-dark">--</strong>
+                        </div>
+                        <div class="col-12" id="wrapModalGhiChu" style="display:none;">
+                            <span class="text-muted d-block">Ghi chú:</span>
+                            <span id="modalInfoGhiChu" class="fst-italic text-secondary">--</span>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered align-middle mb-0">
+                            <thead class="table-light">
+                                <tr class="small text-muted text-uppercase">
+                                    <th class="text-center" style="width: 40px;">STT</th>
+                                    <th>Tên Sản Phẩm / Biến Thể</th>
+                                    <th class="text-center">Số Lượng</th>
+                                    <th class="text-end">Giá Nhập</th>
+                                    <th class="text-end">Thành Tiền</th>
+                                </tr>
+                            </thead>
+                            <tbody id="modalTbodyItems" class="small">
+                                <!-- Populated dynamically via JS -->
+                            </tbody>
+                            <tfoot class="table-light fw-bold">
+                                <tr>
+                                    <td colspan="4" class="text-end text-uppercase me-2">Tổng tiền phiếu nhập:</td>
+                                    <td class="text-end text-danger fs-6" id="modalTotalAmount">0 đ</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer py-1.5 bg-light">
+                    <button type="button" class="admin-btn admin-btn-secondary px-3" data-bs-dismiss="modal">Đóng</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        const categoryType  = /*[[${categoryType}]]*/ 'OTHER';
+        const spDanhMucId  = /*[[${sp.danhMuc.id}]]*/ null;
+        const spId         = /*[[${sp.id}]]*/ null;
+        /*]]>*/
+
+        function moModalChiTietPhieuNhap(btn) {
+            const logId = btn.dataset.idLog;
+            if (!logId) return;
+
+            fetch('/admin/san-pham/phieu-nhap/' + logId)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.error) {
+                        showToast('Không thể tải chi tiết phiếu nhập: ' + data.error, 'error');
+                        return;
+                    }
+                    document.getElementById('modalMaPhieuNhap').textContent = data.maPhieuNhap || 'PN';
+                    document.getElementById('modalInfoMaPN').textContent = data.maPhieuNhap || 'N/A';
+                    document.getElementById('modalInfoNgayNhap').textContent = data.ngayNhapHienThi || 'N/A';
+                    document.getElementById('modalInfoNhanVien').textContent = data.tenNhanVien || 'N/A';
+
+                    if (data.ghiChu) {
+                        document.getElementById('wrapModalGhiChu').style.display = 'block';
+                        document.getElementById('modalInfoGhiChu').textContent = data.ghiChu;
+                    } else {
+                        document.getElementById('wrapModalGhiChu').style.display = 'none';
+                    }
+
+                    const tbody = document.getElementById('modalTbodyItems');
+                    tbody.innerHTML = '';
+
+                    let total = 0;
+                    if (data.chiTietList && data.chiTietList.length > 0) {
+                        data.chiTietList.forEach((item, idx) => {
+                            const price = item.giaNhap || 0;
+                            const subtotal = item.thanhTien || (price * (item.soLuong || 0));
+                            total += subtotal;
+
+                            const tr = document.createElement('tr');
+                            tr.innerHTML = `
+                                <td class="text-center">${idx + 1}</td>
+                                <td>
+                                    <strong class="d-block text-dark">${item.tenSanPham || ''}</strong>
+                                    <small class="text-muted">${(item.phanLoaiHienThi && item.phanLoaiHienThi !== 'Mặc định') ? item.phanLoaiHienThi : ''}</small>
+                                </td>
+                                <td class="text-center fw-semibold">${item.soLuong || 0}</td>
+                                <td class="text-end">${Number(price).toLocaleString('vi-VN')} đ</td>
+                                <td class="text-end fw-bold text-success">${Number(subtotal).toLocaleString('vi-VN')} đ</td>
+                            `;
+                            tbody.appendChild(tr);
+                        });
+                    } else {
+                        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-3">Không có sản phẩm trong phiếu này.</td></tr>';
+                    }
+
+                    document.getElementById('modalTotalAmount').textContent = Number(data.tongTien || total).toLocaleString('vi-VN') + ' đ';
+
+                    const modalEl = document.getElementById('modalChiTietPhieuNhap');
+                    const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+                    modal.show();
+                })
+                .catch(err => {
+                    console.error(err);
+                    showToast('Lỗi kết nối khi tải phiếu nhập!', 'error');
+                });
+        }
+
+
+        function moFormSuaBienThe(btn) {
+            const btId = btn.dataset.btId;
+
+            const editTabTrigger = document.getElementById('pills-edit-tab');
+            if (editTabTrigger) {
+                const tab = bootstrap.Tab.getOrCreateInstance(editTabTrigger);
+                tab.show();
+            }
+
+            const select = document.getElementById('selectDoiTuongSua');
+            select.value = btId;
+            xuLyChonDoiTuongSua(btId);
+
+            // Đồng thời load chi tiết biến thể vào tab Chi Tiết
+            taiChiTietBienThe(btId);
+
+            document.getElementById('sectionSuaBienTheDirect').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        function taiChiTietBienThe(btId) {
+            if (!btId || btId === '0') return;
+
+            // Lấy thông tin cơ bản từ select option (đã có sẵn)
+            const selectSua = document.getElementById('selectDoiTuongSua');
+            let tenBienThe = '--';
+            let giaBan = '--';
+            let tonKho = '--';
+            if (selectSua) {
+                const opts = selectSua.options;
+                for (let i = 0; i < opts.length; i++) {
+                    if (opts[i].value == btId) {
+                        tenBienThe = opts[i].text;
+                        giaBan = opts[i].dataset.giaBan ? Number(opts[i].dataset.giaBan).toLocaleString('vi-VN') + ' đ' : '--';
+                        tonKho = (opts[i].dataset.soLuong || '--') + ' chiếc';
+                        break;
+                    }
+                }
+            }
+
+            document.getElementById('chiTiet_placeholder').style.display = 'none';
+            document.getElementById('chiTiet_content').style.display = 'block';
+            document.getElementById('chiTiet_tenBienThe').textContent = tenBienThe;
+            document.getElementById('chiTiet_giaBan').textContent = giaBan;
+            document.getElementById('chiTiet_tonKho').textContent = tonKho;
+            document.getElementById('chiTiet_giaNhap').textContent = 'Đang tải...';
+            document.getElementById('chiTiet_soLanNhap').textContent = '...';
+            document.getElementById('chiTiet_tbodyLichSu').innerHTML = '<tr><td colspan="6" class="text-center text-muted py-3"><i class="fas fa-spinner fa-spin me-1"></i>Đang tải...</td></tr>';
+
+            fetch('/admin/san-pham/bien-the/' + btId + '/lich-su-nhap')
+                .then(res => res.json())
+                .then(data => {
+                    const summary = data.summary || {};
+                    const lichSu  = data.history  || [];
+
+                    // Giá vốn bình quân
+                    if (summary.giaVonBinhQuan != null) {
+                        document.getElementById('chiTiet_giaNhap').textContent = Number(summary.giaVonBinhQuan).toLocaleString('vi-VN') + ' đ';
+                    } else {
+                        document.getElementById('chiTiet_giaNhap').textContent = 'Chưa có';
+                    }
+
+                    // Số lần nhập
+                    document.getElementById('chiTiet_soLanNhap').textContent = (summary.soLanNhapHang || lichSu.length) + ' lần';
+
+                    // Cập nhật tồn kho từ data nếu có
+                    if (summary.tonKhoHienTai != null) {
+                        document.getElementById('chiTiet_tonKho').textContent = Number(summary.tonKhoHienTai).toLocaleString('vi-VN') + ' chiếc';
+                    }
+
+                    // Render bảng lịch sử
+                    const tbody = document.getElementById('chiTiet_tbodyLichSu');
+                    if (lichSu.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-3">Biến thể này chưa có lịch sử nhập hàng.</td></tr>';
+                    } else {
+                        tbody.innerHTML = lichSu.map((ls, idx) => {
+                            const gia = ls.giaNhap ? Number(ls.giaNhap).toLocaleString('vi-VN') + ' đ' : 'N/A';
+                            const tt  = ls.thanhTien ? Number(ls.thanhTien).toLocaleString('vi-VN') + ' đ'
+                                      : (ls.giaNhap && ls.soLuongNhap) ? Number(ls.giaNhap * ls.soLuongNhap).toLocaleString('vi-VN') + ' đ' : 'N/A';
+                            const maPhieu = ls.maPhieuNhap || 'PN-LEGACY';
+                            // Dùng idPhieuNhap để xem chi tiết phiếu nhập
+                            const phieuId = ls.idPhieuNhap || '';
+                            return `<tr class="small">
+                                <td class="text-center">${idx + 1}</td>
+                                <td><a href="javascript:void(0)" class="fw-bold text-decoration-none text-primary" data-id-log="${phieuId}" onclick="moModalChiTietPhieuNhap(this)">${maPhieu}</a></td>
+                                <td>${ls.ngayNhapHienThi || '--'}</td>
+                                <td class="text-center"><span class="badge bg-success">+${ls.soLuongNhap} chiếc</span></td>
+                                <td class="text-end fw-bold text-dark">${gia}</td>
+                                <td class="text-end fw-bold text-success">${tt}</td>
+                            </tr>`;
+                        }).join('');
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    document.getElementById('chiTiet_giaNhap').textContent = 'Lỗi tải dữ liệu';
+                    document.getElementById('chiTiet_tbodyLichSu').innerHTML = '<tr><td colspan="6" class="text-center text-danger py-3">Lỗi kết nối. Vui lòng thử lại.</td></tr>';
+                });
+        }
+
+        function xuLyChonDoiTuongSua(val) {
+            const btId = parseInt(val, 10);
+            const form = document.getElementById('formSuaBienTheDirect');
+            form.action = '/admin/san-pham/' + spId + '/bien-the/sua/' + btId;
+
+            const noteBulk = document.getElementById('noteBulkEdit');
+            const noteSingle = document.getElementById('noteSingleEdit');
+            const attrWrap = document.getElementById('directAttrWrap');
+            const imgRow = document.getElementById('directImgRow');
+            const wrapFile = document.getElementById('wrapDirectFile');
+            const btnSubmit = document.getElementById('btnSubmitDirect');
+
+            const wrapSku = document.getElementById('wrapDirectSku');
+            const inputSku = document.getElementById('directSku');
+
+            if (btId === 0) {
+                noteBulk.style.display = 'block';
+                noteSingle.style.display = 'none';
+                attrWrap.style.display = 'none';
+                imgRow.style.display = 'none';
+                wrapFile.style.display = 'none';
+                if (wrapSku) wrapSku.style.display = 'none';
+
+                document.getElementById('directGiaBan').value = '';
+                document.getElementById('directSoLuong').value = '';
+                document.getElementById('directGiaBan').required = false;
+                document.getElementById('directSoLuong').required = false;
+
+                btnSubmit.innerHTML = '<i class="fas fa-save me-1"></i>Lưu Thay Đổi Hàng Loạt';
+            } else {
+                noteBulk.style.display = 'none';
+                noteSingle.style.display = 'block';
+                attrWrap.style.display = (categoryType === 'HOP_CAU') ? 'none' : 'flex';
+                wrapFile.style.display = 'block';
+
+                document.getElementById('directGiaBan').required = true;
+                document.getElementById('directSoLuong').required = false;
+
+                const select = document.getElementById('selectDoiTuongSua');
+                const selectedOpt = select.options[select.selectedIndex];
+
+                const sku        = selectedOpt.dataset.sku || '';
+                const giaBan     = selectedOpt.dataset.giaBan || '';
+                const soLuong    = selectedOpt.dataset.soLuong || '';
+                const mauSac     = selectedOpt.dataset.mauSac || '';
+                const trongLuong = selectedOpt.dataset.trongLuong || '';
+                const kichThuoc  = selectedOpt.dataset.kichThuoc || '';
+                const mucCang    = selectedOpt.dataset.mucCang || '';
+                const hinhAnh    = selectedOpt.dataset.hinhAnh || '';
+                const attrsJson  = selectedOpt.dataset.attrsJson || '{}';
+
+                if (wrapSku && inputSku) {
+                    inputSku.value = sku || 'N/A';
+                    wrapSku.style.display = 'block';
+                }
+
+                document.getElementById('directGiaBan').value = giaBan;
+                document.getElementById('directSoLuong').value = soLuong;
+
+                let attrsMap = {};
+                try { attrsMap = JSON.parse(attrsJson); } catch(e) {}
+
+                if (!attrsMap['Màu sắc'] && mauSac) attrsMap['Màu sắc'] = mauSac;
+                if (!attrsMap['Kích thước'] && kichThuoc) attrsMap['Kích thước'] = kichThuoc;
+                if (!attrsMap['Trọng lượng'] && trongLuong) attrsMap['Trọng lượng'] = trongLuong;
+                if (!attrsMap['Sức căng'] && mucCang) attrsMap['Sức căng'] = mucCang;
+
+                document.querySelectorAll('.direct-attr-input').forEach(input => {
+                    const attrName = input.dataset.attrName || '';
+                    let val = attrsMap[attrName] || '';
+                    if (!val && attrName) {
+                        const foundKey = Object.keys(attrsMap).find(k => k.toLowerCase() === attrName.toLowerCase());
+                        if (foundKey) val = attrsMap[foundKey];
+                    }
+                    if (attrName.toLowerCase().includes('màu') && categoryType !== 'HOP_CAU' && val) {
+                        val = val.replace(/,\s*Mặc\s*định/gi, '').trim();
+                    }
+                    input.value = val || '';
+                });
+
+                if (document.getElementById('directMauSac')) {
+                    let cleanMau = mauSac;
+                    if (categoryType !== 'HOP_CAU' && cleanMau) cleanMau = cleanMau.replace(/,\s*Mặc\s*định/gi, '').trim();
+                    document.getElementById('directMauSac').value = cleanMau || attrsMap['Màu sắc'] || '';
+                }
+                if (document.getElementById('directTrongLuong')) document.getElementById('directTrongLuong').value = trongLuong || attrsMap['Trọng lượng'] || '';
+                if (document.getElementById('directKichThuoc')) document.getElementById('directKichThuoc').value = kichThuoc || attrsMap['Kích thước'] || '';
+                if (document.getElementById('directMucCang')) document.getElementById('directMucCang').value = mucCang || attrsMap['Sức căng'] || '';
+
+
+                const currentImgWrap = document.getElementById('directCurrentImgWrap');
+                if (hinhAnh) {
+                    document.getElementById('directCurrentImg').src = '/uploads/product/' + hinhAnh;
+                    currentImgWrap.style.display = 'block';
+                } else {
+                    currentImgWrap.style.display = 'none';
+                }
+                imgRow.style.display = 'block';
+
+                const isHopCau = (categoryType === 'HOP_CAU');
+                document.getElementById('directHopCauNote').style.display = isHopCau ? '' : 'none';
+                const inputMauSac = document.getElementById('directMauSac');
+                if (isHopCau) {
+                    inputMauSac.value = 'Mặc định';
+                    inputMauSac.readOnly = true;
+                } else {
+                    inputMauSac.readOnly = false;
+                }
+
+                const isVot   = categoryType === 'VOT';
+                const isGiay  = categoryType === 'GIAY';
+                const isPhuc  = categoryType === 'TRANG_PHUC';
+
+                document.getElementById('directWrapTrongLuong').style.display = isVot ? 'block' : 'none';
+                document.getElementById('directWrapMucCang').style.display    = isVot ? 'block' : 'none';
+
+                const showKichThuoc = isGiay || isPhuc || Boolean(kichThuoc && kichThuoc.trim().length > 0);
+                document.getElementById('directWrapKichThuoc').style.display = showKichThuoc ? 'block' : 'none';
+                const pillsContainer = document.getElementById('pillsContainerKichThuoc');
+                pillsContainer.innerHTML = '';
+
+                if (isGiay) {
+                    if (document.getElementById('directKichThuoc')) document.getElementById('directKichThuoc').placeholder = 'VD: 36, 37... 46';
+                    if (pillsContainer) {
+                        const shoeSizes = ["36", "37", "38", "39", "40", "41", "42", "43", "44", "45", "46"];
+                        pillsContainer.innerHTML = shoeSizes.map(sz => `<button type="button" class="btn btn-sm btn-outline-secondary py-0.5 px-2 rounded-pill pill-attr" onclick="applyAttrPill(this, 'directKichThuoc')">${sz}</button>`).join('');
+                    }
+                } else if (isPhuc || showKichThuoc) {
+                    if (document.getElementById('directKichThuoc')) document.getElementById('directKichThuoc').placeholder = 'VD: XS, S, M, L...';
+                    if (pillsContainer) {
+                        const clothSizes = ["XS", "S", "M", "L", "XL", "2XL", "3XL"];
+                        pillsContainer.innerHTML = clothSizes.map(sz => `<button type="button" class="btn btn-sm btn-outline-secondary py-0.5 px-2 rounded-pill pill-attr" onclick="applyAttrPill(this, 'directKichThuoc')">${sz}</button>`).join('');
+                    }
+                }
+
+                const pGiay = document.getElementById('pillsContainerAddGiay');
+                if (pGiay) {
+                    const shoeSizes = ["36", "37", "38", "39", "40", "41", "42", "43", "44", "45", "46"];
+                    pGiay.innerHTML = shoeSizes.map(sz => `<button type="button" class="btn btn-sm btn-outline-secondary py-0.5 px-2 rounded-pill pill-attr" onclick="applyAttrPill(this, 'addKichThuocGiay')">${sz}</button>`).join('');
+                }
+                const pPhuc = document.getElementById('pillsContainerAddPhuc');
+                if (pPhuc) {
+                    const clothSizes = ["XS", "S", "M", "L", "XL", "2XL", "3XL"];
+                    pPhuc.innerHTML = clothSizes.map(sz => `<button type="button" class="btn btn-sm btn-outline-secondary py-0.5 px-2 rounded-pill pill-attr" onclick="applyAttrPill(this, 'addKichThuocPhuc')">${sz}</button>`).join('');
+                }
+
+
+                btnSubmit.innerHTML = '<i class="fas fa-save me-1"></i>Lưu Thay Đổi Biến Thể #' + btId;
+            }
+
+
+
+            document.getElementById('directFileAnh').value = '';
+            document.getElementById('directPreviewWrap').style.display = 'none';
+            document.getElementById('directFileError').style.display = 'none';
+        }
+
+        document.getElementById('directFileAnh').addEventListener('change', function () {
+            const fileError = document.getElementById('directFileError');
+            const previewWrap = document.getElementById('directPreviewWrap');
+            const previewImg  = document.getElementById('directPreviewImg');
+            fileError.style.display = 'none';
+            previewWrap.style.display = 'none';
+            previewImg.src = '';
+
+            const file = this.files[0];
+            if (!file) return;
+
+            const allowedExt = ['jpg','jpeg','png','webp'];
+            const ext = file.name.toLowerCase().split('.').pop();
+            if (!allowedExt.includes(ext)) {
+                fileError.textContent = 'Chỉ cho phép JPG, JPEG, PNG, WEBP.';
+                fileError.style.display = 'block';
+                this.value = ''; return;
+            }
+            if (file.size > 5 * 1024 * 1024) {
+                fileError.textContent = 'Ảnh quá lớn (tối đa 5MB).';
+                fileError.style.display = 'block';
+                this.value = ''; return;
+            }
+            const reader = new FileReader();
+            reader.onload = e => {
+                previewImg.src = e.target.result;
+                previewWrap.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        });
+
+        const fileAnhThemEl = document.getElementById('fileAnhThem');
+        if (fileAnhThemEl) {
+            fileAnhThemEl.addEventListener('change', function () {
+                const err = document.getElementById('fileErrorThem');
+                const wrap = document.getElementById('previewContainerThem');
+                const img  = document.getElementById('previewThem');
+                err.style.display = 'none'; wrap.style.display = 'none'; img.src = '';
+
+                const file = this.files[0];
+                if (!file) return;
+                const ext = file.name.toLowerCase().split('.').pop();
+                if (!['jpg','jpeg','png','webp'].includes(ext)) {
+                    err.textContent = 'Chỉ cho phép JPG, PNG, WEBP.';
+                    err.style.display = 'block'; this.value = ''; return;
+                }
+                if (file.size > 5 * 1024 * 1024) {
+                    err.textContent = 'Ảnh quá lớn (tối đa 5MB).';
+                    err.style.display = 'block'; this.value = ''; return;
+                }
+                const r = new FileReader();
+                r.onload = e => { img.src = e.target.result; wrap.style.display = 'block'; };
+                r.readAsDataURL(file);
+            });
+        }
+
+        function applyAttrPill(btn, inputId) {
+            const input = document.getElementById(inputId) || (btn.closest('.col-md-4, .col-md-6, .col-12, .mb-3') ? btn.closest('.col-md-4, .col-md-6, .col-12, .mb-3').querySelector('input[type="text"]') : null);
+            if (input) {
+                input.value = btn.textContent.trim();
+                const container = btn.parentElement;
+                container.querySelectorAll('.pill-attr').forEach(p => {
+                    p.classList.remove('btn-primary', 'text-white');
+                    p.classList.add('btn-outline-secondary');
+                });
+                btn.classList.remove('btn-outline-secondary');
+                btn.classList.add('btn-primary', 'text-white');
+            }
+        }
+
+        function validateAddBienThePrice(triggerToast = false) {
+            const inGiaNhap = document.getElementById('addGiaNhap');
+            const inGiaBan = document.getElementById('addGiaBan');
+            const warnMsg = document.getElementById('addGiaNhapWarn');
+            if (!inGiaNhap || !inGiaBan) return true;
+
+            const gNhap = parseFloat(inGiaNhap.value) || 0;
+            const gBan = parseFloat(inGiaBan.value) || 0;
+
+            if (gNhap > 0 && gBan > 0 && gNhap > gBan) {
+                inGiaNhap.classList.add('is-invalid', 'border-danger');
+                inGiaBan.classList.add('is-invalid', 'border-danger');
+                if (warnMsg) warnMsg.classList.remove('d-none');
+                if (triggerToast && typeof showToast === 'function') {
+                    showToast(`Cảnh báo: Giá nhập (${gNhap.toLocaleString('vi-VN')} đ) đang cao hơn giá bán (${gBan.toLocaleString('vi-VN')} đ). Vui lòng nhập lại!`, 'warning');
+                }
+                return false;
+            } else {
+                inGiaNhap.classList.remove('is-invalid', 'border-danger');
+                inGiaBan.classList.remove('is-invalid', 'border-danger');
+                if (warnMsg) warnMsg.classList.add('d-none');
+                return true;
+            }
+        }
+
+        const inAddGiaNhap = document.getElementById('addGiaNhap');
+        const inAddGiaBan = document.getElementById('addGiaBan');
+        if (inAddGiaNhap) {
+            inAddGiaNhap.addEventListener('input', () => validateAddBienThePrice(false));
+            inAddGiaNhap.addEventListener('change', () => validateAddBienThePrice(true));
+        }
+        if (inAddGiaBan) {
+            inAddGiaBan.addEventListener('input', () => validateAddBienThePrice(false));
+            inAddGiaBan.addEventListener('change', () => validateAddBienThePrice(true));
+        }
+
+        function validateAndConfirmThemBienThe(form) {
+            if (form.dataset.confirmed === 'true') {
+                return true;
+            }
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return false;
+            }
+
+            const inGiaNhap = document.getElementById('addGiaNhap');
+            const inGiaBan = document.getElementById('addGiaBan');
+            const gNhap = inGiaNhap ? (parseFloat(inGiaNhap.value) || 0) : 0;
+            const gBan = inGiaBan ? (parseFloat(inGiaBan.value) || 0) : 0;
+
+            if (gNhap > 0 && gBan > 0 && gNhap > gBan) {
+                validateAddBienThePrice(false);
+                if (inGiaNhap) inGiaNhap.focus();
+
+                if (window.Swal && typeof window.Swal.fire === 'function') {
+                    window.Swal.fire({
+                        icon: 'warning',
+                        title: 'Giá nhập cao hơn giá bán!',
+                        html: `
+                            <div style="font-size: 14px; text-align: left; padding: 4px;">
+                                <p class="mb-2">Giá nhập hiện tại (<strong class="text-danger">${gNhap.toLocaleString('vi-VN')} đ</strong>) đang cao hơn giá bán (<strong class="text-primary">${gBan.toLocaleString('vi-VN')} đ</strong>).</p>
+                                <div class="alert alert-warning py-2 px-3 mb-0 small border-0 rounded-3">
+                                    <i class="fas fa-exclamation-triangle text-warning me-1"></i>
+                                    Vui lòng kiểm tra và điều chỉnh lại giá bán hoặc giá nhập trước khi thêm biến thể.
+                                </div>
+                            </div>
+                        `,
+                        confirmButtonText: 'Tôi sẽ nhập lại giá',
+                        confirmButtonColor: '#f97316'
+                    });
+                } else if (typeof showToast === 'function') {
+                    showToast('Lỗi: Giá nhập cao hơn giá bán. Vui lòng nhập lại!', 'error');
+                } else if (window.SmashNotify && typeof window.SmashNotify.error === 'function') {
+                    window.SmashNotify.error('Giá nhập cao hơn giá bán. Vui lòng nhập lại!');
+                }
+                return false;
+            }
+
+            return confirmSubmitForm(form, 'Bạn có chắc chắn muốn thêm biến thể mới cho sản phẩm này không?');
+        }
+
+        function moTabNhapLoChoBienThe(btn) {
+            const btId = btn.dataset.btId;
+            const tabBtn = document.getElementById('pills-nhaplo-tab');
+            if (tabBtn) {
+                const tab = bootstrap.Tab.getOrCreateInstance(tabBtn);
+                tab.show();
+            }
+            const select = document.getElementById('selectNhapLoTab');
+            if (select) {
+                select.value = btId;
+            }
+            // Cũng load chi tiết biến thể sang tab Chi Tiết
+            taiChiTietBienThe(btId);
+            const target = document.getElementById('pills-tabContent');
+            if (target) {
+                target.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        }
+
+        function xemChiTietBienThe(btn) {
+            const btId     = btn.dataset.btId;
+            const giaBanRaw = btn.dataset.giaBan;
+            const soLuong   = btn.dataset.soLuong;
+
+            // Lấy tên biến thể từ bảng (ô phân loại cùng hàng)
+            const row = btn.closest('tr');
+            const rawTenBT = row ? ((row.querySelector('td strong') || {}).textContent || '').trim() : '';
+            const tenBT = (rawTenBT && rawTenBT !== 'Mặc định' && rawTenBT !== '—' && rawTenBT !== '--' && !rawTenBT.startsWith('Biến thể #')) ? rawTenBT : '';
+
+            // Điền tên vào header modal (ẩn nếu không có phân loại cụ thể / là Mặc định)
+            const colonEl = document.getElementById('modalBienTen_colon');
+            const tenBTEl = document.getElementById('modalBienTen_tenBT');
+            if (tenBT) {
+                if (colonEl) colonEl.style.display = 'inline';
+                if (tenBTEl) tenBTEl.textContent = tenBT;
+            } else {
+                if (colonEl) colonEl.style.display = 'none';
+                if (tenBTEl) tenBTEl.textContent = '';
+            }
+
+            // Điền giá bán & tồn kho ngay từ data attribute (không cần đợi AJAX)
+            document.getElementById('modalBT_giaBan').textContent = giaBanRaw
+                ? Number(giaBanRaw).toLocaleString('vi-VN') + ' đ' : '--';
+            document.getElementById('modalBT_tonKho').textContent = soLuong ? soLuong + ' chiếc' : '--';
+            document.getElementById('modalBT_giaVon').textContent = 'Đang tải...';
+            document.getElementById('modalBT_soLan').textContent  = '...';
+            document.getElementById('modalBT_tbody').innerHTML    =
+                '<tr><td colspan="7" class="text-center text-muted py-3"><i class="fas fa-spinner fa-spin me-1"></i>Đang tải...</td></tr>';
+
+            // Mở modal
+            const modalEl = document.getElementById('modalLichSuBienThe');
+            bootstrap.Modal.getOrCreateInstance(modalEl).show();
+
+            // Gọi API lấy dữ liệu
+            fetch('/admin/san-pham/bien-the/' + btId + '/lich-su-nhap')
+                .then(res => res.json())
+                .then(data => {
+                    const summary = data.summary || {};
+                    const lichSu  = data.history  || [];
+
+                    // Cập nhật thẻ thống kê
+                    document.getElementById('modalBT_giaVon').textContent = summary.giaVonBinhQuan != null
+                        ? Number(summary.giaVonBinhQuan).toLocaleString('vi-VN') + ' đ' : 'Chưa có';
+                    document.getElementById('modalBT_soLan').textContent =
+                        (summary.soLanNhapHang != null ? summary.soLanNhapHang : lichSu.length) + ' lần';
+                    if (summary.tonKhoHienTai != null) {
+                        document.getElementById('modalBT_tonKho').textContent =
+                            Number(summary.tonKhoHienTai).toLocaleString('vi-VN') + ' chiếc';
+                    }
+
+                    // Render bảng
+                    const tbody = document.getElementById('modalBT_tbody');
+                    if (lichSu.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">Biến thể này chưa có lịch sử nhập hàng.</td></tr>';
+                    } else {
+                        tbody.innerHTML = lichSu.map((ls, idx) => {
+                            const gia = ls.giaNhap ? Number(ls.giaNhap).toLocaleString('vi-VN') + ' đ' : 'N/A';
+                            const tt  = ls.thanhTien ? Number(ls.thanhTien).toLocaleString('vi-VN') + ' đ'
+                                      : (ls.giaNhap && ls.soLuongNhap) ? Number(ls.giaNhap * ls.soLuongNhap).toLocaleString('vi-VN') + ' đ' : 'N/A';
+                            const maPhieu = ls.maPhieuNhap || 'PN-LEGACY';
+                            const phieuId = ls.idPhieuNhap || '';
+                            const nv      = ls.tenNhanVien || '--';
+                            return `<tr class="small">
+                                <td class="text-center">${idx + 1}</td>
+                                <td><a href="javascript:void(0)" class="fw-bold text-decoration-none text-primary"
+                                       data-id-log="${phieuId}" onclick="moModalChiTietPhieuNhap(this)">${maPhieu}</a></td>
+                                <td>${ls.ngayNhapHienThi || '--'}</td>
+                                <td class="text-center"><span class="badge bg-success">+${ls.soLuongNhap} chiếc</span></td>
+                                <td class="text-end fw-bold text-dark">${gia}</td>
+                                <td class="text-end fw-bold text-success">${tt}</td>
+                                <td>${nv}</td>
+                            </tr>`;
+                        }).join('');
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    document.getElementById('modalBT_giaVon').textContent = 'Lỗi';
+                    document.getElementById('modalBT_tbody').innerHTML =
+                        '<tr><td colspan="7" class="text-center text-danger py-3">Lỗi kết nối server. Vui lòng thử lại.</td></tr>';
+                });
+        }
+
+        function renderDynamicEditAttributes() {
+            const attrWrap = document.getElementById('directAttrWrap');
+            if (!attrWrap || !spDanhMucId) return;
+
+            fetch('/api/categories/' + spDanhMucId + '/attributes')
+                .then(res => res.json())
+                .then(attributes => {
+                    if (!attributes || attributes.length === 0) return;
+
+                    attrWrap.innerHTML = '';
+                    const catType = categoryType || 'OTHER';
+
+                    attributes.forEach((att, idx) => {
+                        const attName = att.tenThuocTinh || '';
+                        const lowerName = attName.toLowerCase();
+                        const colDiv = document.createElement('div');
+                        colDiv.className = 'col-12 attr-group-box mb-2';
+                        colDiv.dataset.attrName = attName;
+
+                        let fieldName = 'kichThuoc';
+                        let inputId = 'directAttr_' + idx;
+                        let presetItems = [];
+                        let placeholderText = '';
+
+                        if (lowerName.includes('màu')) {
+                            fieldName = 'mauSac';
+                            inputId = 'directMauSac';
+                            presetItems = ["Đỏ", "Xanh dương", "Xanh lá", "Đen", "Trắng", "Vàng", "Cam", "Tím", "Hồng", "Ghi/Xám"];
+                            placeholderText = 'VD: Đỏ / Xanh / Đen';
+                        } else if (lowerName.includes('trọng lượng')) {
+                            fieldName = 'trongLuong';
+                            inputId = 'directTrongLuong';
+                            presetItems = ["3U", "4U", "5U"];
+                            placeholderText = 'VD: 3U / 4U / 5U';
+                        } else if (lowerName.includes('căng')) {
+                            fieldName = 'mucCang';
+                            inputId = 'directMucCang';
+                            presetItems = ["20 - 28 lbs", "22 - 30 lbs", "24 - 32 lbs"];
+                            placeholderText = 'VD: 20 - 28 lbs';
+                        } else if (lowerName.includes('size') || lowerName.includes('kích thước')) {
+                            fieldName = 'kichThuoc';
+                            inputId = 'directKichThuoc';
+                            if (catType === 'GIAY') {
+                                presetItems = ["36", "37", "38", "39", "40", "41", "42", "43", "44", "45", "46"];
+                                placeholderText = 'VD: 36, 37... 46';
+                            } else {
+                                presetItems = ["XS", "S", "M", "L", "XL", "2XL", "3XL"];
+                                placeholderText = 'VD: XS, S, M, L...';
+                            }
+                        }
+
+                        let pillsHtml = presetItems.map(item =>
+                            `<button type="button" class="btn btn-sm btn-outline-secondary py-0.5 px-2 rounded-pill pill-attr" onclick="applyAttrPill(this, '${inputId}')">${item}</button>`
+                        ).join('');
+
+                        colDiv.innerHTML = `
+                            <label class="admin-form-label">${attName} <span class="text-danger">*</span></label>
+                            <input type="text" id="${inputId}" name="${fieldName}" class="admin-form-control form-control mb-2 direct-attr-input" data-attr-name="${attName}" maxlength="50" placeholder="${placeholderText}">
+                            <div class="d-flex flex-wrap gap-1 pills-box">${pillsHtml}</div>
+                        `;
+                        attrWrap.appendChild(colDiv);
+                    });
+
+                    const select = document.getElementById('selectDoiTuongSua');
+                    if (select && select.value && select.value !== '0') {
+                        xuLyChonDoiTuongSua(select.value);
+                    }
+                })
+                .catch(err => {
+                    console.error("Error loading category attributes:", err);
+                    showToast('Không thể tải thuộc tính danh mục. Vui lòng thử lại.', 'error');
+                });
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            renderDynamicEditAttributes();
+            const select = document.getElementById('selectDoiTuongSua');
+            if (select) {
+                xuLyChonDoiTuongSua(select.value);
+            }
+        });
+    </script>
+
+    <!-- Modal Xem Trước Sản Phẩm (In-page Preview) -->
+    <div class="modal fade" id="productPreviewModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered" style="max-width: 1180px; margin: 1.5rem auto;">
+            <div class="modal-content admin-modal-content" style="border-radius: 16px; overflow: hidden; height: 88vh; display: flex; flex-direction: column; box-shadow: 0 20px 50px rgba(0,0,0,0.25);">
+                <div class="modal-header admin-modal-header py-2 px-3" style="flex-shrink: 0; background-color: #f8fafc; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between;">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge bg-warning text-dark px-2 py-1"><i class="fas fa-eye me-1"></i>Xem Trước</span>
+                        <h6 class="modal-title mb-0 fw-bold text-dark text-truncate" style="max-width: 450px;" id="productPreviewModalLabel">
+                            Xem Trước Sản Phẩm
+                        </h6>
+                    </div>
+
+                    <!-- Responsive Viewport Switcher & External Link -->
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="btn-group btn-group-sm" role="group" aria-label="Device view">
+                            <button type="button" class="btn btn-outline-secondary active" id="btnViewDesktop" onclick="setPreviewDevice('100%')" title="Xem dạng Máy tính">
+                                <i class="fas fa-desktop me-1"></i> Desktop
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary" id="btnViewTablet" onclick="setPreviewDevice('768px')" title="Xem dạng Máy tính bảng">
+                                <i class="fas fa-tablet-alt me-1"></i> Tablet
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary" id="btnViewMobile" onclick="setPreviewDevice('390px')" title="Xem dạng Điện thoại">
+                                <i class="fas fa-mobile-alt me-1"></i> Mobile
+                            </button>
+                        </div>
+                        <a id="btnOpenNewTabPreview" href="#" target="_blank" class="btn btn-sm btn-outline-primary" title="Mở trang trong tab mới nếu muốn">
+                            <i class="fas fa-external-link-alt me-1"></i> Tab mới
+                        </a>
+                        <button type="button" class="btn-close ms-2" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                </div>
+
+                <div class="modal-body p-0" style="flex: 1; height: calc(100% - 55px); overflow: hidden; background-color: #f1f5f9; display: flex; justify-content: center; align-items: stretch;">
+                    <div id="previewFrameContainer" style="width: 100%; height: 100%; transition: width 0.3s ease; background-color: #ffffff; box-shadow: 0 0 20px rgba(0,0,0,0.1);">
+                        <iframe id="productPreviewIframe" src="" style="width: 100%; height: 100%; border: none;"></iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let productPreviewModal = null;
+        let moTaEditEditorInstance = null;
+
+        document.addEventListener("DOMContentLoaded", function() {
+            const moTaEditEl = document.getElementById("moTaEdit");
+            if (moTaEditEl && typeof ClassicEditor !== "undefined") {
+                ClassicEditor
+                    .create(moTaEditEl, {
+                        toolbar: [
+                            'heading', '|', 
+                            'bold', 'italic', 'link', 'bulletedList', 'numberedList', 'blockQuote', '|',
+                            'insertTable', '|',
+                            'undo', 'redo'
+                        ],
+                        language: 'vi'
+                    })
+                    .then(editor => {
+                        moTaEditEditorInstance = editor;
+                    })
+                    .catch(error => {
+                        console.error('Lỗi khi khởi tạo CKEditor cho mô tả sản phẩm:', error);
+                    });
+            }
+
+            const previewModalEl = document.getElementById("productPreviewModal");
+            if (previewModalEl && typeof bootstrap !== "undefined") {
+                productPreviewModal = new bootstrap.Modal(previewModalEl);
+                previewModalEl.addEventListener("hidden.bs.modal", function () {
+                    const iframe = document.getElementById("productPreviewIframe");
+                    if (iframe) iframe.src = "";
+                });
+            }
+        });
+
+        function validateAndConfirmEditProduct(formElement) {
+            if (moTaEditEditorInstance) {
+                const moTaInput = document.getElementById("moTaEdit");
+                if (moTaInput) {
+                    moTaInput.value = moTaEditEditorInstance.getData();
+                }
+            }
+            return confirmSubmitForm(formElement, 'Bạn có chắc chắn muốn lưu thông tin gốc của sản phẩm này không?');
+        }
+
+        function openProductPreviewModal(url, productName) {
+            const modalLabel = document.getElementById("productPreviewModalLabel");
+            const iframe = document.getElementById("productPreviewIframe");
+            const newTabBtn = document.getElementById("btnOpenNewTabPreview");
+            
+            if (modalLabel) modalLabel.textContent = productName || "Xem Trước Sản Phẩm";
+            if (iframe) iframe.src = url;
+            if (newTabBtn) newTabBtn.href = url;
+            
+            setPreviewDevice('100%');
+            if (productPreviewModal) {
+                productPreviewModal.show();
+            } else {
+                window.location.href = url;
+            }
+        }
+
+        function setPreviewDevice(width) {
+            const container = document.getElementById("previewFrameContainer");
+            if (container) {
+                container.style.width = width;
+            }
+            document.querySelectorAll("#btnViewDesktop, #btnViewTablet, #btnViewMobile").forEach(btn => btn.classList.remove("active"));
+            if (width === '100%') document.getElementById("btnViewDesktop")?.classList.add("active");
+            else if (width === '768px') document.getElementById("btnViewTablet")?.classList.add("active");
+            else if (width === '390px') document.getElementById("btnViewMobile")?.classList.add("active");
+        }
+    </script>
+
+    <!-- Bootstrap 5.3.0 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Admin Layout JS -->
+    <script th:src="@{/js/admin-layout.js(v='2.4')}"></script>
+</body>
+</html>

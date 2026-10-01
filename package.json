@@ -1,0 +1,12 @@
+{
+  "name": "smash-vn-browser-tests",
+  "version": "0.0.4",
+  "private": true,
+  "description": "Browser regression checks for the SMASH-VN Spring Boot storefront",
+  "scripts": {
+    "test": "node --test src/test/js/*.test.cjs"
+  },
+  "devDependencies": {
+    "puppeteer": "25.5.0"
+  }
+}

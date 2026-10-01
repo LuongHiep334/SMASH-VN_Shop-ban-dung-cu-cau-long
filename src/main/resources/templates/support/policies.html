@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="content" class="support-layout">
+    <nav class="support-toc" aria-label="Mục lục chính sách">
+        <h2 class="blog-w__h">Mục lục chính sách</h2>
+        <ol>
+            <li><a href="#tai-khoan">Tài khoản &amp; quyền lợi</a></li>
+            <li><a href="#mua-hang-thanh-toan">Mua hàng &amp; thanh toán</a></li>
+            <li><a href="#van-chuyen">Vận chuyển &amp; giao hàng</a></li>
+            <li><a href="#huy-don">Hủy đơn hàng</a></li>
+            <li><a href="#doi-tra-hoan-tien">Đổi trả &amp; hỗ trợ sau mua</a></li>
+            <li><a href="#thong-tin-khach-hang">Thông tin khách hàng</a></li>
+            <li><a href="#lien-he">Liên hệ hỗ trợ</a></li>
+        </ol>
+    </nav>
+    <article class="support-article">
+        <div class="support-note"><strong>Phạm vi cửa hàng demo.</strong> Nội dung dưới đây mô tả các chức năng mua hàng và hỗ trợ hiện có của SMASH VN. Với chi phí hoặc điều kiện chưa được công bố cụ thể, hãy liên hệ để shop xác nhận cho trường hợp của bạn.</div>
+        <section id="tai-khoan">
+            <h2>1. Loại tài khoản và quyền lợi hiện có</h2>
+            <div class="support-cards">
+                <div><h3>Khách vãng lai</h3><p>Có thể chọn hàng, dùng giỏ và đặt hàng với email liên hệ. Hồ sơ vãng lai được tạo để gắn đơn với email; truy cập đơn trong phiên được cấp quyền hoặc tra cứu từng đơn bằng mã đơn và email/số điện thoại khớp.</p></div>
+                <div><h3>Tài khoản đã kích hoạt</h3><p>Sau khi thiết lập mật khẩu chính thức và đăng nhập, bạn có thể quản lý hồ sơ, sổ địa chỉ, giỏ hàng, danh sách yêu thích, lịch sử đơn và thông báo trong tài khoản.</p></div>
+            </div>
+            <p>Mật khẩu tạm hoặc hồ sơ vãng lai chưa thay thế bước kích hoạt tài khoản. Nếu email đã thuộc tài khoản kích hoạt, cần xác thực khi đặt hàng. Tài khoản bị khóa cần liên hệ shop để kiểm tra.</p>
+            <p>SMASH VN hiện chưa có chương trình cấp bậc Đồng/Bạc/Vàng hoặc quyền lợi theo hạng. Mã giảm giá áp dụng theo điều kiện thực tế của từng mã.</p>
+        </section>
+        <section id="mua-hang-thanh-toan">
+            <h2>2. Chính sách mua hàng và thanh toán</h2>
+            <p>Chọn đầy đủ phân loại, số lượng còn bán và cung cấp thông tin nhận hàng hợp lệ. Giá, tồn kho, phí giao hàng và mã giảm giá được hệ thống kiểm tra khi đặt; hãy kiểm tra tổng cộng trước khi xác nhận.</p>
+            <p>Website hỗ trợ <strong>COD</strong> và <strong>chuyển khoản ngân hàng qua QR/VietQR</strong>. Dùng đúng thông tin nhận tiền, số tiền và nội dung chuyển khoản hiển thị cho đơn. Với COD, đặt hàng thành công chưa đồng nghĩa đã thu tiền.</p>
+            <p>Lưu mã đơn và kiểm tra trạng thái trong chi tiết đơn. Khi lỗi kết nối, chưa rõ kết quả hoặc đã chuyển tiền mà chưa cập nhật, tra cứu và liên hệ shop trước khi đặt lại hoặc chuyển thêm.</p>
+            <p><a th:href="@{/huong-dan-mua-hang}">Xem các bước mua hàng</a> · <a th:href="@{/huong-dan-thanh-toan}">Xem hướng dẫn thanh toán và xử lý sự cố QR</a>.</p>
+        </section>
+        <section id="van-chuyen">
+            <h2>3. Vận chuyển, phí và giao hàng không thành công</h2>
+            <p>Chọn địa chỉ và đơn vị vận chuyển trong danh sách ở trang thanh toán. Phí được tính theo địa chỉ và đơn vị đã chọn, hiển thị trong tổng cộng; trang này không áp dụng một mức phí cố định cho mọi đơn.</p>
+            <p>Tiến trình giao hàng và mã vận đơn nếu có nằm trong chi tiết đơn. Đây là cửa hàng demo nên trạng thái vận chuyển trên website cần được đối chiếu với thông tin shop cung cấp khi cần.</p>
+            <p>Nếu giao không thành công, kiểm tra số điện thoại, địa chỉ và liên hệ shop để xác minh lý do, phương án giao lại hoặc xử lý hàng hoàn. Khách không tự đổi trạng thái giao hàng hay tạo lần giao lại trên website.</p>
+            <p>Thời gian giao, phí giao lại và trách nhiệm phí khi giao thất bại chưa có điều khoản thống nhất được công bố tại đây; shop cần xác nhận theo trường hợp, trước khi bạn đồng ý phương án xử lý.</p>
+        </section>
+        <section id="huy-don">
+            <h2>4. Hủy đơn hàng</h2>
+            <p>Trong chi tiết đơn, khách có thể bấm <strong>Hủy đơn hàng</strong> và nhập lý do khi đơn còn ở trạng thái <strong>chờ thanh toán, chờ xác nhận hoặc đã xác nhận</strong>. Hệ thống kiểm tra lại trạng thái tại thời điểm thao tác.</p>
+            <p>Nếu nút không xuất hiện, thao tác bị từ chối hoặc đơn đã chuyển sang chuẩn bị/giao hàng, hãy liên hệ shop để kiểm tra. Không tự coi đơn đã hủy khi chưa có kết quả thành công.</p>
+            <p>Đơn đã thanh toán được hủy sẽ chuyển sang quy trình chờ hoàn tiền để shop xử lý. <strong>Hủy đơn không tự chuyển tiền về ngân hàng.</strong> Kiểm tra tiếp trạng thái và trao đổi với shop theo <a href="#doi-tra-hoan-tien">quy trình hoàn tiền</a>.</p>
+        </section>
+        <section id="doi-tra-hoan-tien">
+            <h2>5. Đổi trả và hỗ trợ sau mua</h2>
+            <p><strong>Hỗ trợ gửi yêu cầu đổi/trả trong 7 ngày kể từ khi giao hàng thành công nếu sản phẩm lỗi do nhà sản xuất; shop kiểm tra và xét duyệt.</strong> Đây là phạm vi hỗ trợ sản phẩm lỗi của cửa hàng demo.</p>
+            <p>Hệ thống nhận yêu cầu cho đơn đã giao thành công hoặc đã xác nhận nhận hàng, trong hạn 7 ngày tính từ thời điểm giao được ghi nhận. Nếu thiếu mốc giao hàng hoặc không thể gửi yêu cầu, liên hệ shop để kiểm tra.</p>
+            <h3>Khách có thể tự thực hiện</h3>
+            <ol>
+                <li>Mở đúng chi tiết đơn bằng tài khoản có quyền hoặc <a th:href="@{/user/track-order}">tra cứu đơn</a>.</li>
+                <li>Bấm <strong>Yêu cầu Đổi / Trả hàng</strong> khi còn đủ điều kiện; chọn <strong>Đổi sản phẩm mới</strong> hoặc <strong>Trả hàng &amp; Hoàn tiền</strong>.</li>
+                <li>Chọn lý do, mô tả vấn đề và đính kèm video bằng chứng theo biểu mẫu hiện tại: MP4, WEBM hoặc MOV, tối đa 50 MB.</li>
+                <li>Gửi và theo dõi phản hồi/trạng thái trong chi tiết đơn. Không gửi yêu cầu trùng khi yêu cầu trước đang được xử lý.</li>
+            </ol>
+            <h3>Shop xét duyệt và xử lý</h3>
+            <p>Shop xem lý do/bằng chứng và quyết định chấp thuận hoặc từ chối. Khi chấp thuận, shop xử lý việc thu hồi, tiếp nhận và kiểm tra hàng về; khách làm theo hướng dẫn gửi trả đã được xác nhận.</p>
+            <p>Với yêu cầu đổi, shop kiểm tra khả năng có hàng thay thế và xử lý giao hàng đổi. Nếu muốn đổi size/màu hoặc có lý do khác ngoài sản phẩm lỗi, hãy trao đổi trước; việc biểu mẫu cho nhập lý do không đồng nghĩa mọi yêu cầu được chấp nhận.</p>
+            <h3>Hoàn tiền và cách kiểm tra</h3>
+            <p>Với trả hàng hoàn tiền, shop chỉ có thể xác nhận hoàn sau bước nhận, kiểm tra và xử lý hàng về. Với đơn đã thanh toán bị hủy, shop kiểm tra khoản tiền đã nhận và xử lý yêu cầu hoàn riêng.</p>
+            <p>Việc hoàn tiền do shop thực hiện và xác nhận bằng thông tin giao dịch; chức năng trên website ghi nhận kết quả, không phải cơ chế tự động chuyển tiền. Kiểm tra trạng thái hoàn tiền/chi tiết giao dịch trong đơn và đối chiếu tiền thực nhận với ngân hàng.</p>
+            <div class="support-note"><strong>Cần shop xác nhận cho từng trường hợp:</strong> điều kiện tình trạng hàng/bao bì, phí gửi trả hoặc giao hàng đổi, số tiền và phương thức hoàn, thời gian xét duyệt và hoàn tiền. Trang này chưa công bố thời hạn xử lý hay cam kết hoàn 100% khi chưa được xác định.</div>
+            <p>Nếu chuyển tiền sau khi đơn QR đã hết hạn hoặc đã hủy, liên hệ shop để đối soát. Xem <a th:href="@{/huong-dan-thanh-toan#su-co-thanh-toan}">hướng dẫn xử lý thanh toán</a>.</p>
+        </section>
+        <section id="thong-tin-khach-hang">
+            <h2>6. Sử dụng và bảo vệ thông tin khách hàng</h2>
+            <p>Website sử dụng email/tài khoản, họ tên, điện thoại, địa chỉ, giỏ hàng, thông tin đơn, giao dịch và bằng chứng đổi trả để xử lý mua hàng, giao hàng, xác thực, tra cứu và hỗ trợ sau mua. Thông tin giao hàng/thanh toán cần được xử lý qua dịch vụ vận chuyển/thanh toán tương ứng khi sử dụng.</p>
+            <p>Mật khẩu được lưu ở dạng băm. Việc xem đơn cần phiên truy cập được cấp quyền hoặc mã đơn cùng email/số điện thoại khớp. Giữ riêng các thông tin tra cứu, liên kết thiết lập mật khẩu và chứng từ của mình.</p>
+            <p>Bạn có thể sửa hồ sơ và địa chỉ bằng các chức năng tài khoản hiện có. Với yêu cầu kiểm tra, điều chỉnh dữ liệu khác hoặc xóa dữ liệu, liên hệ shop để xác minh và thống nhất phạm vi xử lý.</p>
+            <p>Chưa có thời hạn lưu dữ liệu hoặc quy trình tự xóa dữ liệu được công bố trong trang này. Không cung cấp mật khẩu hay mã OTP khi liên hệ hỗ trợ.</p>
+        </section>
+        <section>
+            <h2>7. Liên hệ hỗ trợ</h2>
+            <p>Gọi <a href="tel:0835420088">0835420088</a> hoặc gửi thư đến <a href="mailto:luonghiep334@gmail.com">luonghiep334@gmail.com</a>. Cung cấp mã đơn và vấn đề cần kiểm tra; với thanh toán, kèm chứng từ giao dịch. Shop sẽ trao đổi phương án xử lý dựa trên tình trạng đơn và dữ liệu xác minh.</p>
+        </section>
+    </article>
+</div>
+</body>
+</html>

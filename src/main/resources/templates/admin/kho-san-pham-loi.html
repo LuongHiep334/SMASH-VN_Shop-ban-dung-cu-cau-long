@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kho Sản Phẩm Lỗi - Admin SmashVN</title>
+
+    <!-- Bootstrap 5.3.0 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Admin Custom CSS -->
+    <link rel="stylesheet" th:href="@{/css/admin-custom.css(v='2.4')}">
+    <script th:src="@{/js/admin-layout-state.js(v='1.0')}"></script>
+</head>
+<body class="admin-body">
+
+    <!-- Sidebar -->
+    <div th:replace="~{admin/layout/sidebar :: sidebar('khoSpLoi')}"></div>
+
+    <div class="admin-page">
+        <!-- Header -->
+        <div th:replace="~{admin/layout/header :: header}"></div>
+
+        <!-- Main Content -->
+        <main class="admin-content">
+            <div class="container-fluid admin-container">
+
+                <!-- Page Header -->
+                <div class="admin-page-header">
+                    <div>
+                        <h1 class="admin-page-title">
+                            <i class="fas fa-triangle-exclamation text-danger me-2"></i>Kho sản phẩm lỗi
+                        </h1>
+                    </div>
+                </div>
+
+                <!-- Stat Cards -->
+                <div class="row g-3 mb-4">
+                    <!-- Card 1: Tổng sản phẩm lỗi -->
+                    <div class="col-12 col-sm-6 col-lg-3">
+                        <div class="admin-card h-100">
+                            <div class="admin-card-body d-flex align-items-center gap-3 p-3">
+                                <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                                     style="width:52px;height:52px;background:rgba(220,53,69,.12);">
+                                    <i class="fas fa-exclamation-circle fs-4 text-danger"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold fs-4 text-danger" th:text="${tongSoLuongSanPhamLoi}">0</div>
+                                    <div class="text-muted small">Tổng sản phẩm lỗi</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 2: Biến thể có lỗi -->
+                    <div class="col-12 col-sm-6 col-lg-3">
+                        <div class="admin-card h-100">
+                            <div class="admin-card-body d-flex align-items-center gap-3 p-3">
+                                <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                                     style="width:52px;height:52px;background:rgba(255,193,7,.12);">
+                                    <i class="fas fa-layer-group fs-4 text-warning"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold fs-4 text-warning" th:text="${soBienTheCoLoi}">0</div>
+                                    <div class="text-muted small">Biến thể có sản phẩm lỗi</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Table Card -->
+                <div class="admin-card mb-5">
+                    <div class="admin-card-header flex-wrap gap-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <h5 class="admin-card-title mb-0">
+                                <i class="fas fa-list text-danger me-2"></i>Danh sách sản phẩm lỗi
+                            </h5>
+                            <span class="admin-status admin-status-danger"
+                                  id="loiBadge"
+                                  th:text="${soBienTheCoLoi} + ' biến thể'">0 biến thể</span>
+                        </div>
+
+                        <!-- Search filter (JS-only, no extra backend query) -->
+                        <div class="d-flex flex-wrap gap-2 align-items-center">
+                            <input type="text"
+                                   id="searchInput"
+                                   class="admin-form-control form-control form-control-sm"
+                                   style="width:240px;"
+                                   placeholder="&#128269; Tìm tên sản phẩm / biến thể..."
+                                   oninput="filterTable()">
+                        </div>
+                    </div>
+
+                    <div class="admin-card-body p-0">
+                        <div class="admin-table-wrapper">
+
+                            <!-- Empty state -->
+                            <div th:if="${danhSachKhoLoi == null or danhSachKhoLoi.isEmpty()}"
+                                 class="text-center py-5 text-muted">
+                                <i class="fas fa-check-circle fs-1 text-success mb-3 d-block"></i>
+                                <p class="mb-0 fw-semibold">Hiện chưa có sản phẩm nào trong kho lỗi.</p>
+                                <small>Khi nhân viên kiểm tra hàng hoàn và chọn "Hàng lỗi", sản phẩm sẽ xuất hiện tại đây.</small>
+                            </div>
+
+                            <!-- Data table -->
+                            <table class="admin-table"
+                                   id="loiTable"
+                                   th:if="${danhSachKhoLoi != null and !danhSachKhoLoi.isEmpty()}">
+                                <thead>
+                                    <tr>
+                                        <th style="width:50px;" class="text-center text-nowrap">STT</th>
+                                        <th style="width:56px;" class="text-nowrap">Ảnh</th>
+                                        <th class="text-nowrap">Sản phẩm</th>
+                                        <th class="text-nowrap">Biến thể</th>
+                                        <th style="width:130px;" class="text-nowrap text-center">Tồn kho bán</th>
+                                        <th style="width:130px;" class="text-nowrap text-center">Sản phẩm lỗi</th>
+                                        <th style="width:110px;" class="text-nowrap text-center">Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="item, iterStat : ${danhSachKhoLoi}"
+                                        th:data-tensanpham="${#strings.toLowerCase(item.tenSanPham)}"
+                                        th:data-bienthe="${#strings.toLowerCase(item.phanLoaiHienThi)}">
+
+                                        <!-- STT -->
+                                        <td class="text-center text-nowrap" th:text="${iterStat.count}">1</td>
+
+                                        <!-- Ảnh -->
+                                        <td>
+                                            <div style="width:48px;height:48px;border:1px solid var(--admin-border,#dee2e6);
+                                                        border-radius:8px;overflow:hidden;display:flex;
+                                                        align-items:center;justify-content:center;background:#fff;">
+                                                <img th:src="@{${item.hinhAnhUrl}}"
+                                                     onerror="this.onerror=null;this.src='/images/placeholder.png';"
+                                                     alt="Ảnh sản phẩm"
+                                                     style="max-width:100%;max-height:100%;object-fit:contain;padding:2px;">
+                                            </div>
+                                        </td>
+
+                                        <!-- Tên sản phẩm -->
+                                        <td>
+                                            <div class="fw-bold text-primary product-name-cell"
+                                                 th:text="${item.tenSanPham}">—</div>
+                                            <div class="text-muted small" th:if="${item.idSanPham != null}">
+                                                <span th:text="'#' + ${item.idSanPhamChiTiet}"></span>
+                                            </div>
+                                        </td>
+
+                                        <!-- Biến thể -->
+                                        <td>
+                                            <span class="admin-status admin-status-neutral"
+                                                  th:text="${item.phanLoaiHienThi}">—</span>
+                                        </td>
+
+                                        <!-- Tồn kho bán -->
+                                        <td class="text-center text-nowrap">
+                                            <span th:text="${item.soLuongTon}"
+                                                  th:class="${item.soLuongTon == 0
+                                                               ? 'admin-status admin-status-danger'
+                                                               : (item.soLuongTon <= 5
+                                                                  ? 'admin-status admin-status-warning'
+                                                                  : 'admin-status admin-status-success')}">0</span>
+                                        </td>
+
+                                        <!-- Sản phẩm lỗi -->
+                                        <td class="text-center text-nowrap">
+                                            <span class="badge rounded-pill bg-danger fs-6 px-3 py-1"
+                                                  th:text="${item.soLuongSpLoi}">0</span>
+                                        </td>
+
+                                        <!-- Thao tác: Phase 2 – Chi tiết nguồn hàng -->
+                                        <td class="text-center text-nowrap">
+                                            <a th:href="@{/admin/kho-san-pham-loi/{id}(id=${item.idSanPhamChiTiet})}"
+                                               class="admin-btn admin-btn-icon"
+                                               title="Xem chi tiết nguồn hàng">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+
+                                    <!-- No-result row (injected by JS filter) -->
+                                    <tr id="noResultRow" style="display:none;">
+                                        <td colspan="7" class="text-center text-muted py-4">
+                                            <i class="fas fa-search me-2"></i>Không tìm thấy sản phẩm nào khớp với từ khóa.
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                        </div><!-- /table-wrapper -->
+                    </div><!-- /card-body -->
+                </div><!-- /card -->
+
+            </div><!-- /container -->
+        </main>
+    </div>
+
+    <!-- JS filter -->
+    <script>
+        function filterTable() {
+            const query = document.getElementById('searchInput').value.toLowerCase().trim();
+            const tbody = document.querySelector('#loiTable tbody');
+            if (!tbody) return;
+
+            const rows = tbody.querySelectorAll('tr[data-tensanpham]');
+            let visible = 0;
+
+            rows.forEach(row => {
+                const ten = row.getAttribute('data-tensanpham') || '';
+                const bien = row.getAttribute('data-bienthe') || '';
+                const match = ten.includes(query) || bien.includes(query);
+                row.style.display = match ? '' : 'none';
+                if (match) visible++;
+            });
+
+            const noResultRow = document.getElementById('noResultRow');
+            if (noResultRow) {
+                noResultRow.style.display = (rows.length > 0 && visible === 0) ? '' : 'none';
+            }
+
+            const badge = document.getElementById('loiBadge');
+            if (badge) {
+                badge.textContent = visible + ' biến thể';
+            }
+        }
+    </script>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Admin Layout JS -->
+    <script th:src="@{/js/admin-layout.js(v='2.4')}"></script>
+
+</body>
+</html>

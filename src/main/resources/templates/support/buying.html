@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="content" class="support-layout">
+    <nav class="support-toc" aria-label="Mục lục hướng dẫn mua hàng">
+        <h2 class="blog-w__h">Trong hướng dẫn này</h2>
+        <ol>
+            <li><a href="#tim-san-pham">Tìm sản phẩm</a></li>
+            <li><a href="#chon-phan-loai">Chọn phân loại &amp; số lượng</a></li>
+            <li><a href="#mua-ngay-gio-hang">Mua ngay hay thêm vào giỏ?</a></li>
+            <li><a href="#chon-gio-hang">Chọn hàng để thanh toán</a></li>
+            <li><a href="#nhan-hang">Thông tin nhận hàng</a></li>
+            <li><a href="#ma-giam-gia">Áp dụng mã giảm giá</a></li>
+            <li><a href="#dat-hang">Thanh toán &amp; đặt hàng</a></li>
+            <li><a href="#theo-doi">Tìm lại &amp; theo dõi đơn</a></li>
+        </ol>
+        <a href="#mua-khong-dang-nhap">Mua khi chưa đăng nhập</a>
+        <a href="#cau-hoi">Câu hỏi thường gặp</a>
+    </nav>
+    <article class="support-article">
+        <div class="support-note"><strong>Lần đầu mua tại SMASH VN?</strong> Bạn có thể đặt hàng khi chưa đăng nhập. Hãy dùng email và số điện thoại của mình, kiểm tra thông tin nhận hàng và lưu mã đơn sau khi đặt.</div>
+        <section class="support-step" id="tim-san-pham">
+            <h2>1. Tìm kiếm hoặc chọn sản phẩm</h2>
+            <p>Nhập tên sản phẩm vào ô tìm kiếm ở đầu trang, chọn gợi ý hoặc xem kết quả. Bạn cũng có thể mở <a th:href="@{/shop}">Sản phẩm</a>, chọn danh mục và lọc theo thương hiệu hoặc mức giá.</p>
+            <p>Bấm vào ảnh hoặc tên sản phẩm để xem chi tiết, giá và các phân loại đang bán.</p>
+        </section>
+        <section class="support-step" id="chon-phan-loai">
+            <h2>2. Chọn phân loại và số lượng</h2>
+            <p>Chọn đầy đủ các thuộc tính xuất hiện trên trang: màu sắc, size, trọng lượng hoặc phân loại khác tùy sản phẩm. Kiểm tra giá và tình trạng còn hàng của lựa chọn đó.</p>
+            <p>Dùng nút <strong>− / +</strong> hoặc ô số lượng để chọn số sản phẩm cần mua. Nếu chưa chọn đủ phân loại, hết hàng hoặc số lượng vượt tồn kho, hãy điều chỉnh theo thông báo.</p>
+            <figure class="support-figure">
+                <a th:href="@{/images/guides/chon-phan-loai.jpg}" target="_blank" rel="noopener" aria-label="Mở ảnh chọn phân loại và số lượng ở kích thước lớn">
+                    <img th:src="@{/images/guides/chon-phan-loai.jpg}" alt="Giao diện SMASH VN: màu Midnight Purple, trọng lượng 4U, ô số lượng và hai nút Thêm vào giỏ, Mua ngay" width="1265" height="430" loading="lazy">
+                </a>
+                <figcaption>Ảnh giao diện thật: chọn màu → trọng lượng → số lượng → cách mua. Với giày hoặc quần áo, phân loại có thể là size. Bấm ảnh để xem lớn.</figcaption>
+            </figure>
+        </section>
+        <section class="support-step" id="mua-ngay-gio-hang">
+            <h2>3. Chọn “Mua ngay” hoặc “Thêm vào giỏ”</h2>
+            <div class="support-cards">
+                <div><h3>Mua ngay</h3><p>Đi thẳng đến trang thanh toán cho phân loại và số lượng vừa chọn. Các món khác đã có trong giỏ không được gộp vào lần mua này.</p></div>
+                <div><h3>Thêm vào giỏ</h3><p>Lưu lựa chọn vào giỏ để bạn tiếp tục chọn hàng. Khi sẵn sàng, mở giỏ và chọn những món muốn thanh toán cùng nhau.</p></div>
+            </div>
+            <p>Cả hai thao tác đều chưa hoàn tất đặt hàng. Bạn vẫn cần nhập thông tin và bấm <strong>ĐẶT HÀNG NGAY</strong> ở trang thanh toán.</p>
+        </section>
+        <section class="support-step" id="chon-gio-hang">
+            <h2>4. Chọn sản phẩm trong giỏ để thanh toán</h2>
+            <p>Mở <a th:href="@{/gio-hang}">Giỏ hàng</a>, kiểm tra phân loại, giá và số lượng. Tích ô bên cạnh món muốn mua hoặc dùng ô chọn tất cả, rồi bấm nút thanh toán.</p>
+            <p>Chỉ các món được chọn đi vào lần thanh toán này; các món còn lại vẫn ở trong giỏ. Món hết hàng hoặc ngừng bán không thể được chọn để đặt.</p>
+        </section>
+        <section class="support-step" id="nhan-hang">
+            <h2>5. Nhập thông tin nhận hàng và vận chuyển</h2>
+            <p>Điền họ tên người nhận, số điện thoại, email liên hệ nếu được yêu cầu và địa chỉ cụ thể. Nếu có địa chỉ đã lưu, chọn địa chỉ phù hợp hoặc chọn <strong>Nhập địa chỉ mới</strong>.</p>
+            <p>Chọn tỉnh/thành phố, quận/huyện và phường/xã theo các ô trên trang. Nếu dùng nhập nhanh địa chỉ, kiểm tra lại kết quả được điền tự động. Chọn đơn vị vận chuyển trong danh sách hiển thị.</p>
+            <p>Kiểm tra người nhận, số nhà/đường và <strong>phí vận chuyển</strong> trước khi tiếp tục. Phí phụ thuộc địa chỉ và đơn vị vận chuyển; số tiền áp dụng nằm trong phần tổng đơn.</p>
+        </section>
+        <section class="support-step" id="ma-giam-gia">
+            <h2>6. Áp dụng mã giảm giá nếu có</h2>
+            <p>Nhập mã vào ô mã giảm giá ở trang thanh toán và bấm <strong>Áp dụng</strong>. Kiểm tra thông báo cùng khoản giảm và tổng cộng đã cập nhật.</p>
+            <p>Mã có thể không dùng được do hết hạn, hết lượt hoặc đơn chưa đáp ứng điều kiện. Khi đổi sản phẩm, số lượng hay thông tin thanh toán, hãy kiểm tra lại tổng tiền và hiệu lực mã.</p>
+        </section>
+        <section class="support-step" id="dat-hang">
+            <h2>7. Chọn thanh toán và xác nhận đặt hàng</h2>
+            <p>Chọn <strong>COD</strong> để trả tiền khi nhận hàng, hoặc <strong>Chuyển khoản Ngân hàng</strong> để thanh toán qua QR. Đọc <a th:href="@{/huong-dan-thanh-toan}">hướng dẫn thanh toán</a> nếu cần.</p>
+            <p>Kiểm tra danh sách hàng, người nhận, vận chuyển, giảm giá và tổng cộng, rồi bấm <strong>ĐẶT HÀNG NGAY</strong>. Với chuyển khoản, làm theo thông tin trong cửa sổ QR và kiểm tra trạng thái trên website.</p>
+            <div class="support-note">Nếu trang báo mất kết nối hoặc chưa rõ kết quả, dùng <strong>Kiểm tra kết quả</strong> khi nút này xuất hiện, hoặc tra cứu đơn trước khi đặt lại để tránh đơn trùng.</div>
+        </section>
+        <section class="support-step" id="theo-doi">
+            <h2>8. Lưu kết quả và theo dõi đơn hàng</h2>
+            <p>Lưu <strong>mã đơn hàng</strong> trên trang kết quả/chi tiết đơn. Với tài khoản đã đăng nhập, mở <a th:href="@{/user/my-order}">Đơn hàng của tôi</a> để xem lại lịch sử.</p>
+            <p>Khi chưa đăng nhập hoặc đã đóng trang, mở <a th:href="@{/user/track-order}">Theo dõi đơn hàng</a>, nhập mã đơn cùng <strong>email hoặc số điện thoại đã dùng cho đơn</strong>. Sau khi thông tin khớp, bạn được mở chi tiết đơn đó.</p>
+            <p>Chi tiết đơn cho biết tiến trình giao hàng, trạng thái thanh toán và các thao tác hiện được phép. Chỉ bấm xác nhận đã nhận hàng sau khi thực sự nhận được hàng.</p>
+        </section>
+        <section id="mua-khong-dang-nhap">
+            <h2>Mua hàng khi chưa đăng nhập</h2>
+            <ul>
+                <li><strong>Email mới:</strong> bạn có thể đặt trực tiếp. Hệ thống tạo hồ sơ khách vãng lai gắn với email để lưu đơn; điều này chưa đồng nghĩa tài khoản đã kích hoạt đầy đủ.</li>
+                <li><strong>Email của tài khoản đã kích hoạt:</strong> trang thanh toán yêu cầu nhập mật khẩu để xác thực và nối đơn với tài khoản. Dùng <strong>Quên mật khẩu?</strong> nếu không nhớ. Tài khoản bị khóa cần liên hệ hỗ trợ.</li>
+                <li><strong>Email của hồ sơ vãng lai:</strong> việc đặt hàng không tự cấp quyền xem toàn bộ đơn cũ. Để xem từng đơn, dùng mã đơn và thông tin liên hệ khớp ở trang tra cứu.</li>
+                <li><strong>Kích hoạt tài khoản:</strong> kiểm tra email về mật khẩu tạm/liên kết thiết lập mật khẩu khi hệ thống gửi. Đăng nhập bằng mật khẩu tạm vẫn cần thiết lập mật khẩu chính thức để dùng chức năng thành viên.</li>
+            </ul>
+            <p>Nếu chưa nhận được email, kiểm tra thư rác. Bạn vẫn có thể tra cứu bằng mã đơn; liên hệ shop khi không tìm được đơn hoặc cần hỗ trợ thiết lập tài khoản.</p>
+        </section>
+        <section id="cau-hoi" class="support-faq">
+            <h2>Câu hỏi thường gặp</h2>
+            <details><summary>Vì sao chưa bấm mua được?</summary><p>Hãy chọn đủ phân loại và số lượng hợp lệ. Lựa chọn hết hàng/ngừng bán không thể đặt; thử phân loại khác hoặc liên hệ shop.</p></details>
+            <details><summary>Bấm “Mua ngay” có mua luôn cả giỏ không?</summary><p>Không. Mua ngay chỉ thanh toán lựa chọn trên trang sản phẩm. Muốn mua nhiều món, thêm vào giỏ và tích chọn các món trong giỏ.</p></details>
+            <details><summary>Có bắt buộc đăng ký trước khi mua không?</summary><p>Không. Bạn có thể đặt với email liên hệ. Nếu email đã thuộc tài khoản được kích hoạt, bạn cần xác thực bằng mật khẩu.</p></details>
+            <details><summary>Tôi đóng trang hoặc chưa nhận email, tìm đơn ở đâu?</summary><p>Mở <a th:href="@{/user/track-order}">Theo dõi đơn hàng</a> và dùng mã đơn cùng email/số điện thoại đặt hàng. Nếu không còn mã đơn, liên hệ shop với thông tin đặt hàng để được kiểm tra.</p></details>
+            <details><summary>Muốn đổi địa chỉ hoặc hủy sau khi đặt thì làm gì?</summary><p>Kiểm tra nút Hủy đơn hàng trong chi tiết đơn. Đơn đã chuyển sang xử lý/giao hàng hoặc cần sửa thông tin nhận hàng thì liên hệ shop. Xem <a th:href="@{/chinh-sach#huy-don}">chính sách hủy đơn</a>.</p></details>
+        </section>
+    </article>
+</div>
+</body>
+</html>

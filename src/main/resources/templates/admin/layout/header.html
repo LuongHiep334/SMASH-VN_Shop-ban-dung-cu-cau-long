@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+    <header th:fragment="header" class="admin-topbar">
+        <script th:src="@{/js/notifications.js(v='1.0.0')}"></script>
+        <div th:if="${globalNotificationMessage != null}"
+             data-smash-server-notification
+             th:data-type="${globalNotificationType}"
+             th:data-title="${globalNotificationTitle}"
+             th:data-message="${globalNotificationMessage}"
+             hidden></div>
+        <!-- CSRF Token Holder (CRITICAL BACKEND BINDING) -->
+        <div id="csrf-token-holder" 
+             th:data-csrf-token="${_csrf != null ? _csrf.token : ''}" 
+             th:data-csrf-header="${_csrf != null ? _csrf.headerName : ''}" 
+             style="display:none;"></div>
+
+        <div class="admin-topbar-inner">
+            <!-- CỤM BÊN TRÁI: Hamburger toggle + Thanh tìm kiếm -->
+            <div class="admin-topbar-left">
+                <button class="admin-sidebar-toggle" id="adminSidebarToggle" type="button"
+                        title="Thu gọn menu" aria-label="Thu gọn menu quản trị"
+                        aria-controls="adminSidebar" aria-expanded="true">
+                    <i class="fas fa-bars"></i>
+                </button>
+
+                <!-- Thanh tìm kiếm nhanh sản phẩm (Ẩn đối với vai trò Nhân viên, chỉ hiển thị cho Quản lý) -->
+                <th:block th:if="${session.activeRole != 'NV' and session.vaiTro != 'NV'}">
+                    <button class="admin-search-toggle" id="adminSearchToggle" type="button"
+                            title="Mở tìm kiếm sản phẩm" aria-label="Mở tìm kiếm sản phẩm"
+                            aria-controls="adminProductSearch" aria-expanded="false">
+                        <i class="fas fa-search"></i>
+                    </button>
+
+                    <div class="admin-search-bar" id="adminProductSearch" role="search">
+                        <input type="search" id="adminGlobalSearch" placeholder="Tìm sản phẩm..."
+                               aria-label="Tìm sản phẩm" autocomplete="off">
+                        <button class="search-clear-btn" id="adminSearchClear" type="button"
+                                title="Xóa từ khóa" aria-label="Xóa từ khóa tìm kiếm" hidden>
+                            <i class="fas fa-times"></i>
+                        </button>
+                        <button class="search-btn" type="button" title="Tìm sản phẩm" aria-label="Tìm sản phẩm">
+                            <i class="fas fa-search"></i>
+                        </button>
+                        <button class="search-mobile-close" id="adminSearchMobileClose" type="button"
+                                title="Đóng tìm kiếm" aria-label="Đóng tìm kiếm sản phẩm">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </th:block>
+            </div>
+
+            <!-- CỤM BÊN PHẢI: Trang chủ / Tổng quan + Tài khoản User Dropdown -->
+            <div class="admin-topbar-right">
+                <a th:href="@{/admin/all}" class="admin-topbar-action nav-home-link" title="Tổng quan" aria-label="Về trang tổng quan">
+                    <i class="fas fa-home"></i>
+                </a>
+
+                <div class="dropdown admin-user-dropdown">
+                    <button class="admin-user-btn dropdown-toggle" id="adminUserDropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="far fa-user-circle user-avatar"></i>
+                        <span class="admin-user-name d-none d-sm-inline" th:text="${session.tenHienThi != null ? session.tenHienThi : 'Quản trị'}">Admin</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="adminUserDropdown">
+                        <li class="dropdown-header text-uppercase fw-bold pb-2" style="font-size: 0.72rem; color: #888;">
+                            <i class="fas fa-user-shield me-1"></i> <span th:text="${session.tenHienThi != null ? session.tenHienThi : 'Quản trị'}"></span>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item text-danger py-2" th:href="@{/admin/dang-xuat}">
+                                <i class="fas fa-sign-out-alt me-2"></i> Đăng xuất
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dynamic Admin Footer Relocation Placeholder -->
+        <div class="admin-footer-placeholder" style="display: none;">
+            <div class="container-fluid d-flex justify-content-between align-items-center py-3 flex-wrap gap-2 text-muted small border-top mt-4" style="border-color: #e5e7eb !important;">
+                <span>© 2026 <strong>SmashVN Shop</strong> - Hệ thống quản lý bán vợt cầu lông</span>
+                <span>Phiên bản 2.0 Admin Panel</span>
+            </div>
+        </div>
+
+        <!-- Scroll to Top Button (CRITICAL BINDING: id="topScroll") -->
+        <button id="topScroll" type="button" title="Cuộn lên đầu" aria-label="Cuộn lên đầu trang">
+            <i class="fas fa-long-arrow-alt-up"></i>
+        </button>
+    </header>
+
+</body>
+</html>

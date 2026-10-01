@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${pageTitle + ' | SMASH VN'}">Hướng dẫn | SMASH VN</title>
+    <meta name="description" th:content="${pageDescription}">
+    <link th:href="@{/images/favicon.png}" rel="shortcut icon">
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,600,700,800" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/vendor.css}">
+    <link rel="stylesheet" th:href="@{/css/utility.css}">
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+    <link rel="stylesheet" th:href="@{/css/support-pages.css(v=2)}">
+</head>
+<body class="config">
+<a class="support-skip" href="#support-content">Đến nội dung hướng dẫn</a>
+<div id="app">
+    <header th:replace="~{layout/header :: header}"></header>
+    <main id="support-content" class="app-content support-page" tabindex="-1"
+          th:with="currentPath=${supportPage == 'buying' ? '/huong-dan-mua-hang' : (supportPage == 'payment' ? '/huong-dan-thanh-toan' : '/chinh-sach')}">
+        <div class="u-s-p-y-60">
+            <div class="section__content">
+                <div class="container">
+                    <nav class="breadcrumb" aria-label="Đường dẫn">
+                        <div class="breadcrumb__wrap">
+                            <ul class="breadcrumb__list">
+                                <li class="has-separator"><a th:href="@{/}">Trang chủ</a></li>
+                                <li class="is-marked"><a th:href="@{${currentPath}}" th:text="${pageTitle}" aria-current="page"></a></li>
+                            </ul>
+                        </div>
+                    </nav>
+                </div>
+            </div>
+        </div>
+        <div class="u-s-p-b-60">
+            <div class="section__intro u-s-m-b-46">
+                <div class="container">
+                    <div class="section__text-wrap support-intro">
+                        <h1 class="section__heading u-c-secondary" th:text="${pageTitle}">Hướng dẫn mua hàng</h1>
+                        <p class="u-s-m-t-12" th:text="${pageDescription}"></p>
+                    </div>
+                </div>
+            </div>
+            <div class="section__content">
+                <div class="container">
+                    <nav class="support-tabs u-s-m-b-30" aria-label="Hướng dẫn và chính sách">
+                        <ul class="nav pd-tab__list">
+                            <li class="nav-item"><a class="nav-link" th:classappend="${supportPage == 'buying' ? 'active' : ''}" th:href="@{/huong-dan-mua-hang}" th:attr="aria-current=${supportPage == 'buying' ? 'page' : null}">Mua hàng</a></li>
+                            <li class="nav-item"><a class="nav-link" th:classappend="${supportPage == 'payment' ? 'active' : ''}" th:href="@{/huong-dan-thanh-toan}" th:attr="aria-current=${supportPage == 'payment' ? 'page' : null}">Thanh toán</a></li>
+                            <li class="nav-item"><a class="nav-link" th:classappend="${supportPage == 'policies' ? 'active' : ''}" th:href="@{/chinh-sach}" th:attr="aria-current=${supportPage == 'policies' ? 'page' : null}">Chính sách</a></li>
+                        </ul>
+                    </nav>
+                    <div th:if="${supportPage == 'buying'}" th:insert="~{support/buying :: content}"></div>
+                    <div th:if="${supportPage == 'payment'}" th:insert="~{support/payment :: content}"></div>
+                    <div th:if="${supportPage == 'policies'}" th:insert="~{support/policies :: content}"></div>
+                    <section class="support-contact" id="lien-he" aria-labelledby="support-contact-title">
+                        <div>
+                            <h2 id="support-contact-title">Liên hệ SMASH VN</h2>
+                            <p>Chuẩn bị mã đơn hàng và mô tả vấn đề để shop kiểm tra. Với thanh toán, gửi thêm mã giao dịch và chứng từ chuyển khoản; không cung cấp mật khẩu hoặc mã OTP.</p>
+                        </div>
+                        <div class="support-contact-links">
+                            <a href="tel:0835420088"><i class="fas fa-phone" aria-hidden="true"></i> 0835420088</a>
+                            <a href="mailto:luonghiep334@gmail.com"><i class="far fa-envelope" aria-hidden="true"></i> luonghiep334@gmail.com</a>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+    </main>
+    <footer th:replace="~{layout/footer :: footer}"></footer>
+</div>
+<script th:src="@{/js/vendor.js}"></script>
+<script th:src="@{/js/jquery.shopnav.js}"></script>
+<script th:src="@{/js/app.js(v=1.0.3)}"></script>
+</body>
+</html>

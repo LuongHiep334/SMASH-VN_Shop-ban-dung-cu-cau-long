@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sửa Phân Loại - Admin SmashVN</title>
+    
+    <!-- Bootstrap 5.3.0 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Admin Custom CSS -->
+    <link rel="stylesheet" th:href="@{/css/admin-custom.css(v='2.4')}">
+    <script th:src="@{/js/admin-layout-state.js(v='1.0')}"></script>
+    
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body class="admin-body">
+
+    <!-- Sidebar Layout Fragment -->
+    <div th:replace="~{admin/layout/sidebar :: sidebar('sanpham')}"></div>
+
+    <div class="admin-page">
+        <!-- Topbar Layout Fragment -->
+        <div th:replace="~{admin/layout/header :: header}"></div>
+
+        <!-- Main Content -->
+        <main class="admin-content">
+            <div class="container-fluid admin-container">
+
+                <!-- Page Header -->
+                <div class="admin-page-header">
+                    <div>
+                        <h1 class="admin-page-title"><i class="fas fa-edit text-brand me-2"></i>Chỉnh Sửa Biến Thể</h1>
+                    </div>
+                    <div class="admin-toolbar">
+                        <a th:href="@{/admin/san-pham/{id}/bien-the(id=${sp.id})}" class="admin-btn admin-btn-secondary">
+                            <i class="fas fa-arrow-left me-1"></i> Quay lại Biến Thể
+                        </a>
+                    </div>
+                </div>
+
+                <div class="row justify-content-center">
+                    <div class="col-lg-10 col-xl-8">
+                        <div class="admin-card">
+                            <div class="admin-card-header bg-dark text-white">
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="fas fa-box-open text-primary me-1"></i>
+                                    <span class="fw-bold">Sản phẩm: <span class="text-warning" th:text="${sp.tenSanPham}">Tên SP</span></span>
+                                    <span class="admin-status admin-status-info" th:text="${sp.danhMuc.tenDanhMuc}">Danh mục</span>
+                                </div>
+                                <span class="admin-status admin-status-neutral fw-bold">Mã biến thể: #<span th:text="${bt.id}">1</span></span>
+                            </div>
+                            <div class="admin-card-body">
+                                <div th:if="${error != null}" class="alert alert-danger border-0 shadow-sm mb-4" th:text="${error}">Đã xảy ra lỗi!</div>
+
+                                <form id="formSuaBienThe" th:action="@{/admin/san-pham/{idSP}/bien-the/sua/{idBT}(idSP=${sp.id}, idBT=${bt.id})}" method="post" enctype="multipart/form-data" onsubmit="return confirmSubmitForm(this, 'Bạn có chắc chắn muốn lưu thông tin cập nhật cho biến thể này không?');">
+                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+                                    <div class="row g-3 mb-4">
+                                        <div class="col-md-6">
+                                            <label class="admin-form-label">Giá bán <span class="text-danger">*</span></label>
+                                            <input type="number" name="giaBan" class="admin-form-control form-control" th:value="${bt.giaBan}" required min="1000" step="1000" placeholder="VD: 2500000" oninvalid="this.setCustomValidity('Vui lòng nhập giá bán hợp lệ (tối thiểu 1.000 VNĐ)!')" oninput="this.setCustomValidity('')">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="admin-form-label">Số lượng kho <span class="text-danger">*</span></label>
+                                            <input type="number" name="soLuongTon" class="admin-form-control form-control bg-light" th:value="${bt.soLuongTon}" readonly disabled>
+                                        </div>
+                                    </div>
+
+                                    <!-- Category Specific Attributes -->
+                                    <div class="row g-3 mb-4" th:if="${categoryType == 'VOT'}">
+                                        <div class="col-md-4">
+                                            <label class="admin-form-label">Màu sắc <span class="text-danger">*</span></label>
+                                            <input type="text" name="mauSac" class="admin-form-control form-control mb-2" th:value="${bt.mauSac}" required maxlength="50" placeholder="VD: Đỏ / Xanh / Đen" oninvalid="this.setCustomValidity('Vui lòng nhập màu sắc!')" oninput="this.setCustomValidity('')">
+                                            <div class="d-flex flex-wrap gap-1">
+                                                <button type="button" class="btn btn-sm btn-outline-secondary py-0.5 px-2 rounded-pill pill-attr" onclick="applyAttrPill(this)">Đỏ</button>
+                                                <button type="button" class="btn btn-sm btn-outline-secondary py-0.5 px-2 rounded-pill pill-attr" onclick="applyAttrPill(this)">Xanh dương</button>
+                                                <button type="button" class="btn btn-sm btn-outline-secondary py-0.5 px-2 rounded-pill pill-attr" onclick="applyAttrPill(this)">Xanh lá</button>
+                                                <button type="button" class="btn btn-sm btn-outline-secondary py-0.5 px-2 rounded-pill pill-attr" onclick="applyAttrPill(this)">Đen</button>
+                                                <button type="button" class="btn btn-sm btn-outline-secondary py-0.5 px-2 rounded-pill pill-attr" onclick="applyAttrPill(this)">Trắng</button>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="admin-form-label">Trọng lượng <span class="text-danger">*</span></label>
+                                            <input type="text" name="trongLuong" class="admin-form-control form-control mb-2" th:value="${bt.trongLuong}" required maxlength="50" placeholder="VD: 3U / 4U / 5U" oninvalid="this.setCustomValidity('Vui lòng nhập trọng lượng vợt (VD: 3U, 4U, 5U)!')" oninput="this.setCustomValidity('')">
+                                            <div class="d-flex flex-wrap gap-1">
+                                                <button type="button" class="btn btn-sm btn-outline-secondary py-0.5 px-2 rounded-pill pill-attr" onclick="applyAttrPill(this)">3U</button>
+                                                <button type="button" class="btn btn-sm btn-outline-secondary py-0.5 px-2 rounded-pill pill-attr" onclick="applyAttrPill(this)">4U</button>
+                                                <button type="button" class="btn btn-sm btn-outline-secondary py-0.5 px-2 rounded-pill pill-attr" onclick="applyAttrPill(this)">5U</button>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="admin-form-label">Sức căng khuyến nghị</label>
+                                            <input type="text" name="mucCang" class="admin-form-control form-control mb-2" th:value="${bt.mucCang}" maxlength="50" placeholder="VD: 20 - 28 lbs">
+                                            <div class="d-flex flex-wrap gap-1">
+                                                <button type="button" class="btn btn-sm btn-outline-secondary py-0.5 px-2 rounded-pill pill-attr" onclick="applyAttrPill(this)">20 - 28 lbs</button>
+                                                <button type="button" class="btn btn-sm btn-outline-secondary py-0.5 px-2 rounded-pill pill-attr" onclick="applyAttrPill(this)">22 - 30 lbs</button>
+                                                <button type="button" class="btn btn-sm btn-outline-secondary py-0.5 px-2 rounded-pill pill-attr" onclick="applyAttrPill(this)">24 - 32 lbs</button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row g-3 mb-4" th:if="${categoryType == 'GIAY'}">
+                                        <div class="col-md-6">
+                                            <label class="admin-form-label">Màu sắc <span class="text-danger">*</span></label>
+                                            <input type="text" name="mauSac" class="admin-form-control form-control mb-2" th:value="${bt.mauSac}" required maxlength="50" placeholder="VD: Trắng Xanh" oninvalid="this.setCustomValidity('Vui lòng nhập màu sắc!')" oninput="this.setCustomValidity('')">
+                                            <div class="d-flex flex-wrap gap-1">
+                                                <button type="button" class="btn btn-sm btn-outline-secondary py-0.5 px-2 rounded-pill pill-attr" onclick="applyAttrPill(this)">Trắng</button>
+                                                <button type="button" class="btn btn-sm btn-outline-secondary py-0.5 px-2 rounded-pill pill-attr" onclick="applyAttrPill(this)">Đen</button>
+                                                <button type="button" class="btn btn-sm btn-outline-secondary py-0.5 px-2 rounded-pill pill-attr" onclick="applyAttrPill(this)">Đỏ</button>
+                                                <button type="button" class="btn btn-sm btn-outline-secondary py-0.5 px-2 rounded-pill pill-attr" onclick="applyAttrPill(this)">Xanh dương</button>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="admin-form-label">Size giày <span class="text-danger">*</span></label>
+                                            <input type="text" name="kichThuoc" class="admin-form-control form-control mb-2" th:value="${bt.kichThuoc}" required maxlength="50" placeholder="VD: 36, 37... 46" oninvalid="this.setCustomValidity('Vui lòng chọn hoặc nhập kích thước giày!')" oninput="this.setCustomValidity('')">
+                                            <div class="d-flex flex-wrap gap-1">
+                                                <button type="button" class="btn btn-sm btn-outline-secondary py-0.5 px-2 rounded-pill pill-attr" onclick="applyAttrPill(this)" th:each="sz : ${listKichThuocGiay}" th:text="${sz}">36</button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row g-3 mb-4" th:if="${categoryType == 'TRANG_PHUC'}">
+                                        <div class="col-md-6">
+                                            <label class="admin-form-label">Màu sắc <span class="text-danger">*</span></label>
+                                            <input type="text" name="mauSac" class="admin-form-control form-control mb-2" th:value="${bt.mauSac}" required maxlength="50" placeholder="VD: Đen / Đỏ" oninvalid="this.setCustomValidity('Vui lòng nhập màu sắc!')" oninput="this.setCustomValidity('')">
+                                            <div class="d-flex flex-wrap gap-1">
+                                                <button type="button" class="btn btn-sm btn-outline-secondary py-0.5 px-2 rounded-pill pill-attr" onclick="applyAttrPill(this)">Đen</button>
+                                                <button type="button" class="btn btn-sm btn-outline-secondary py-0.5 px-2 rounded-pill pill-attr" onclick="applyAttrPill(this)">Đỏ</button>
+                                                <button type="button" class="btn btn-sm btn-outline-secondary py-0.5 px-2 rounded-pill pill-attr" onclick="applyAttrPill(this)">Trắng</button>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="admin-form-label">Size trang phục <span class="text-danger">*</span></label>
+                                            <input type="text" name="kichThuoc" class="admin-form-control form-control mb-2" th:value="${bt.kichThuoc}" required maxlength="50" placeholder="VD: XS, S, M, L, XL..." oninvalid="this.setCustomValidity('Vui lòng chọn hoặc nhập kích thước trang phục!')" oninput="this.setCustomValidity('')">
+                                            <div class="d-flex flex-wrap gap-1">
+                                                <button type="button" class="btn btn-sm btn-outline-secondary py-0.5 px-2 rounded-pill pill-attr" onclick="applyAttrPill(this)" th:each="sz : ${listKichThuocTrangPhuc}" th:text="${sz}">M</button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row g-3 mb-4" th:if="${categoryType != 'HOP_CAU' and categoryType != 'VOT' and categoryType != 'GIAY' and categoryType != 'TRANG_PHUC'}">
+                                        <div class="col-12">
+                                            <label class="admin-form-label">Màu sắc <span class="text-danger">*</span></label>
+                                            <input type="text" name="mauSac" class="admin-form-control form-control" th:value="${bt.mauSac}" required maxlength="50" placeholder="VD: Tiêu chuẩn" oninvalid="this.setCustomValidity('Vui lòng nhập màu sắc!')" oninput="this.setCustomValidity('')">
+                                        </div>
+                                    </div>
+
+                                    <div class="row mb-4" th:if="${categoryType == 'HOP_CAU'}">
+                                        <div class="col-12">
+                                            <input type="hidden" name="mauSac" value="Mặc định">
+                                            <div class="alert alert-info border-0 shadow-sm mb-0">
+                                                <i class="fas fa-info-circle me-2"></i> Hộp cầu không sử dụng màu sắc hoặc kích thước. Bạn đang sửa thông tin giá bán và số lượng của biến thể mặc định này.
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Image Preview Section -->
+                                    <div class="row mb-4">
+                                        <div class="col-12">
+                                            <label class="admin-form-label">Hình ảnh biến thể</label>
+                                            <input type="file" name="fileAnh" id="fileAnh" class="admin-form-control form-control" accept="image/jpeg, image/png, image/webp" oninvalid="this.setCustomValidity('Vui lòng chọn hình ảnh hợp lệ!')" oninput="this.setCustomValidity('')">
+                                            <div id="fileError" class="text-danger mt-1" style="display: none;"></div>
+
+                                            <div class="mt-3 p-3 bg-light rounded-3 border d-flex align-items-center gap-4" th:if="${bt.hinhAnhSanPham != null}">
+                                                <div th:if="${bt.hinhAnhSanPham != null}" id="currentImageArea" class="d-flex align-items-center gap-2">
+                                                    <small class="text-muted fw-semibold">Ảnh hiện tại:</small>
+                                                    <img th:src="@{${bt.hinhAnhUrl}}" onerror="this.onerror=null; this.src='/images/placeholder.png';" alt="Ảnh SP" style="height: 70px; width: 70px; object-fit: contain; padding: 4px; background: #fff; border-radius: 8px; border: 1px solid #e5e7eb;">
+                                                </div>
+                                                <div id="imagePreviewContainer" style="display: none;" class="d-flex align-items-center gap-2">
+                                                    <small class="text-muted fw-semibold">Xem trước ảnh mới:</small>
+                                                    <img id="imagePreview" src="" alt="Preview image" style="height: 70px; width: 70px; object-fit: contain; padding: 4px; background: #fff; border-radius: 8px; border: 1px solid #e5e7eb;">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Form Action Buttons -->
+                                    <div class="d-flex justify-content-end gap-2 border-top pt-3">
+                                        <a th:href="@{/admin/san-pham/{id}/bien-the(id=${sp.id})}" class="admin-btn admin-btn-secondary px-4">
+                                            <i class="fas fa-times me-1"></i> Hủy bỏ
+                                        </a>
+                                        <button type="submit" class="admin-btn admin-btn-primary px-4">
+                                            <i class="fas fa-save me-1"></i> LƯU THAY ĐỔI
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const fileInput = document.getElementById("fileAnh");
+        const fileError = document.getElementById("fileError");
+        const previewContainer = document.getElementById("imagePreviewContainer");
+        const previewImg = document.getElementById("imagePreview");
+        const currentImageArea = document.getElementById("currentImageArea");
+
+        if (fileInput) {
+            fileInput.addEventListener("change", function () {
+                fileError.style.display = "none";
+                fileError.textContent = "";
+                previewContainer.style.display = "none";
+                previewImg.src = "";
+
+                const file = fileInput.files[0];
+                if (!file) {
+                    if (currentImageArea) currentImageArea.style.display = "flex";
+                    return;
+                }
+
+                const allowedExtensions = ["jpg", "jpeg", "png", "webp"];
+                const fileName = file.name.toLowerCase();
+                const extension = fileName.substring(fileName.lastIndexOf(".") + 1);
+                if (!allowedExtensions.includes(extension)) {
+                    fileError.textContent = "Định dạng tệp không hợp lệ! Chỉ cho phép JPG, JPEG, PNG, WEBP.";
+                    fileError.style.display = "block";
+                    fileInput.value = "";
+                    return;
+                }
+
+                const maxSize = 5 * 1024 * 1024;
+                if (file.size > maxSize) {
+                    fileError.textContent = "Kích thước hình ảnh quá lớn! Kích thước tối đa cho phép là 5MB.";
+                    fileError.style.display = "block";
+                    fileInput.value = "";
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    previewImg.src = e.target.result;
+                    previewContainer.style.display = "flex";
+                    if (currentImageArea) currentImageArea.style.display = "none";
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+    });
+    </script>
+
+    <!-- Bootstrap 5.3.0 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Admin Layout JS -->
+    <script th:src="@{/js/admin-layout.js(v='2.4')}"></script>
+</body>
+</html>

@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tổng Quan Quản Trị - SmashVN</title>
+    
+    <!-- Bootstrap 5.3.0 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Admin Custom CSS -->
+    <link rel="stylesheet" th:href="@{/css/admin-custom.css(v='2.4')}">
+    <script th:src="@{/js/admin-layout-state.js(v='1.0')}"></script>
+    
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body class="admin-body">
+
+    <!-- Sidebar Layout Fragment -->
+    <div th:replace="~{admin/layout/sidebar :: sidebar('tongquan')}"></div>
+
+    <div class="admin-page">
+        <!-- Topbar Layout Fragment -->
+        <div th:replace="~{admin/layout/header :: header}"></div>
+
+        <!-- Main Content Wrapper -->
+        <main class="admin-content">
+            <div class="container-fluid admin-container">
+
+                <!-- Page Header -->
+                <div class="admin-page-header">
+                    <div>
+                        <h1 class="admin-page-title"><i class="fas fa-chart-pie me-2 text-brand"></i>Tổng Quan Quản Trị</h1>
+                    </div>
+                </div>
+
+                <!-- Dynamic Alerts Container -->
+
+                <div th:if="${param.pheDuyetThanhCong != null}" class="alert alert-success alert-dismissible fade show border-start border-success border-4 rounded-3 shadow-sm mb-4" role="alert">
+                    <i class="fas fa-check-circle me-2"></i>Phê duyệt khóa tài khoản nhân viên thành công!
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                <div th:if="${param.tuChoiThanhCong != null}" class="alert alert-info alert-dismissible fade show border-start border-info border-4 rounded-3 shadow-sm mb-4" role="alert">
+                    <i class="fas fa-info-circle me-2"></i>Đã từ chối khóa tài khoản nhân viên (giữ nguyên trạng thái hoạt động).
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                <div th:if="${param.loi != null}" class="alert alert-danger alert-dismissible fade show border-start border-danger border-4 rounded-3 shadow-sm mb-4" role="alert">
+                    <i class="fas fa-times-circle me-2"></i><span th:text="${param.loi}">Lỗi thao tác</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+
+                <!-- Yêu cầu khóa tài khoản chờ xác nhận -->
+                <div th:if="${!danhSachChoKhoa.isEmpty()}" id="pendingLockCard" class="admin-card border-warning border-start border-4 mb-4">
+                    <div class="admin-card-header bg-warning-soft">
+                        <h5 class="admin-card-title text-warning"><i class="fas fa-exclamation-triangle me-2"></i>Yêu Cầu Khóa Tài Khoản Nhân Viên Chờ Xác Nhận</h5>
+                        <span id="pendingLockBadge" class="admin-status admin-status-warning" th:text="${danhSachChoKhoa.size()} + ' yêu cầu'"></span>
+                    </div>
+                    <div class="admin-card-body p-0">
+                        <div class="admin-table-wrapper">
+                            <table class="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>Nhân Viên</th>
+                                        <th>Tên đăng nhập</th>
+                                        <th>Chức Vụ</th>
+                                        <th>Số Điện Thoại</th>
+                                        <th class="text-center">Hành Động Phê Duyệt</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="nv : ${danhSachChoKhoa}" th:id="'row-nv-' + ${nv.id}">
+                                        <td class="fw-bold" th:text="${nv.hoTenNv}"></td>
+                                        <td class="fw-semibold text-secondary" th:text="${nv.taiKhoan.username}"></td>
+                                        <td th:text="${nv.chucVu}"></td>
+                                        <td th:text="${nv.soDienThoaiNv}"></td>
+                                        <td class="text-center">
+                                            <button type="button" th:data-id="${nv.id}" class="admin-btn admin-btn-danger admin-btn-sm btn-approve-lock">
+                                                <i class="fas fa-check me-1"></i> Phê Duyệt Khóa
+                                            </button>
+                                            <button type="button" th:data-id="${nv.id}" class="admin-btn admin-btn-secondary admin-btn-sm ms-2 btn-reject-lock">
+                                                <i class="fas fa-times me-1"></i> Từ Chối
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Metrics Widgets -->
+                <div class="row g-3 mb-4">
+                    <!-- Nhân viên hệ thống -->
+                    <div class="col-xxl col-xl-4 col-md-6 col-sm-6">
+                        <div class="admin-stat-card">
+                            <div class="admin-stat-info">
+                                <div class="stat-label">Nhân Viên Hệ Thống</div>
+                                <div class="stat-value" th:text="${soLuongNhanVien}">0</div>
+                            </div>
+                            <div class="admin-stat-icon primary">
+                                <i class="fas fa-user-tie"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Tài khoản nhân viên -->
+                    <div class="col-xxl col-xl-4 col-md-6 col-sm-6">
+                        <div class="admin-stat-card">
+                            <div class="admin-stat-info">
+                                <div class="stat-label">Tài Khoản Nhân Viên</div>
+                                <div class="stat-value" th:text="${soLuongTaiKhoanNhanVienOnly}">0</div>
+                            </div>
+                            <div class="admin-stat-icon success">
+                                <i class="fas fa-user-shield"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Tài khoản quản lý -->
+                    <div class="col-xxl col-xl-4 col-md-6 col-sm-6">
+                        <div class="admin-stat-card">
+                            <div class="admin-stat-info">
+                                <div class="stat-label">Tài Khoản Quản Lý</div>
+                                <div class="stat-value" th:text="${soLuongTaiKhoanQuanLy}">0</div>
+                            </div>
+                            <div class="admin-stat-icon warning">
+                                <i class="fas fa-user-cog"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Tài khoản khách hàng -->
+                    <div class="col-xxl col-xl-4 col-md-6 col-sm-6">
+                        <div class="admin-stat-card">
+                            <div class="admin-stat-info">
+                                <div class="stat-label">Tài Khoản Khách Hàng</div>
+                                <div class="stat-value" th:text="${soLuongTaiKhoanKhachHang}">0</div>
+                            </div>
+                            <div class="admin-stat-icon info">
+                                <i class="fas fa-users"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Sản phẩm trong kho -->
+                    <div class="col-xxl col-xl-4 col-md-6 col-sm-6">
+                        <div class="admin-stat-card">
+                            <div class="admin-stat-info">
+                                <div class="stat-label">Sản Phẩm Trong Kho</div>
+                                <div class="stat-value" th:text="${soLuongSanPhamConHang}">0</div>
+                            </div>
+                            <div class="admin-stat-icon primary">
+                                <i class="fas fa-box-open"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Detailed Tables Row -->
+                <div class="row g-4 mb-4">
+                    <!-- Employee Accounts Table -->
+                    <div class="col-lg-6 col-md-12">
+                        <div class="admin-card h-100">
+                            <div class="admin-card-header">
+                                <h5 class="admin-card-title"><i class="fas fa-user-shield me-2 text-primary"></i>Tài Khoản Nhân Viên &amp; Quản Lý</h5>
+                                <span class="admin-status admin-status-info" th:text="${soLuongTaiKhoanNhanVien} + ' tài khoản'"></span>
+                                <a th:href="@{/admin/nhan-vien}" class="admin-btn admin-btn-secondary admin-btn-sm">Xem tất cả</a>
+                            </div>
+                            <div class="admin-card-body p-0">
+                                <div class="admin-table-wrapper" style="max-height: 380px; overflow-y: auto;">
+                                    <table class="admin-table">
+                                        <thead style="position: sticky; top: 0; z-index: 2;">
+                                            <tr>
+                                                <th>STT</th>
+                                                <th>Tên đăng nhập</th>
+                                                <th>Vai Trò</th>
+                                                <th>Trạng Thái</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr th:each="tk, iterStat : ${danhSachTaiKhoanNhanVien}"
+                                                th:data-account-id="${tk.id}">
+                                                <td th:text="${iterStat.count}"></td>
+                                                <td class="fw-semibold text-secondary" th:text="${tk.username}"></td>
+                                                <td>
+                                                    <span class="admin-status admin-status-neutral" th:text="${tk.vaiTro}"></span>
+                                                </td>
+                                                <td class="account-status-cell">
+                                                    <span th:if="${tk.trangThai == 'hoat_dong'}" class="admin-status admin-status-success">Hoạt động</span>
+                                                    <span th:if="${tk.trangThai == 'cho_khoa'}" class="admin-status admin-status-warning">Chờ khóa</span>
+                                                    <span th:if="${tk.trangThai == 'bi_khoa'}" class="admin-status admin-status-danger">Ngừng hoạt động</span>
+                                                    <span th:if="${tk.trangThai == 'khach_vang_lai'}" class="admin-status admin-status-info">Khách vãng lai</span>
+                                                </td>
+                                            </tr>
+                                            <tr th:if="${danhSachTaiKhoanNhanVien.isEmpty()}">
+                                                <td colspan="4" class="text-center text-muted py-4">Không có tài khoản nhân viên nào.</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Customer Accounts Table -->
+                    <div class="col-lg-6 col-md-12">
+                        <div class="admin-card h-100">
+                            <div class="admin-card-header">
+                                <h5 class="admin-card-title"><i class="fas fa-users me-2 text-info"></i>Tài Khoản Khách Hàng</h5>
+                                <span class="admin-status admin-status-info" th:text="${soLuongTaiKhoanKhachHang} + ' tài khoản'"></span>
+                                <a th:href="@{/admin/khach-hang}" class="admin-btn admin-btn-secondary admin-btn-sm">Xem tất cả</a>
+                            </div>
+                            <div class="admin-card-body p-0">
+                                <div class="admin-table-wrapper" style="max-height: 380px; overflow-y: auto;">
+                                    <table class="admin-table">
+                                        <thead style="position: sticky; top: 0; z-index: 2;">
+                                            <tr>
+                                                <th>STT</th>
+                                                <th>Tên đăng nhập</th>
+                                                <th>Trạng Thái</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr th:each="tk, iterStat : ${danhSachTaiKhoanKhachHang}">
+                                                <td th:text="${iterStat.count}"></td>
+                                                <td class="fw-semibold text-secondary" th:text="${tk.username}"></td>
+                                                <td>
+                                                    <span th:if="${tk.trangThai == 'hoat_dong'}" class="admin-status admin-status-success">Hoạt động</span>
+                                                    <span th:if="${tk.trangThai == 'khach_vang_lai'}" class="admin-status admin-status-info">Khách vãng lai</span>
+                                                    <span th:if="${tk.trangThai == 'cho_khoa'}" class="admin-status admin-status-warning">Chờ khóa</span>
+                                                    <span th:if="${tk.trangThai == 'bi_khoa'}" class="admin-status admin-status-danger">Ngừng hoạt động</span>
+                                                </td>
+                                            </tr>
+                                            <tr th:if="${danhSachTaiKhoanKhachHang.isEmpty()}">
+                                                <td colspan="3" class="text-center text-muted py-4">Không có tài khoản khách hàng nào.</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Products Table Full Width -->
+                <div class="row g-4 mb-4">
+                    <div class="col-lg-12">
+                        <div class="admin-card">
+                            <div class="admin-card-header">
+                                <h5 class="admin-card-title"><i class="fas fa-box me-2 text-primary"></i>Sản Phẩm Gần Nhất Trong Hệ Thống</h5>
+                                <span class="admin-status admin-status-info" th:text="${soLuongSanPham} + ' sản phẩm'"></span>
+                                <a th:href="@{/admin/san-pham}" class="admin-btn admin-btn-secondary admin-btn-sm">Xem tất cả</a>
+                            </div>
+                            <div class="admin-card-body p-0">
+                                <div class="admin-table-wrapper" style="max-height: 450px; overflow-y: auto;">
+                                    <table class="admin-table">
+                                        <thead style="position: sticky; top: 0; z-index: 2;">
+                                            <tr>
+                                                <th>STT</th>
+                                                <th>Tên Sản Phẩm</th>
+                                                <th>Danh Mục</th>
+                                                <th>Thương Hiệu</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr th:each="sp, iterStat : ${danhSachSanPham}">
+                                                <td th:text="${iterStat.count}"></td>
+                                                <td class="fw-bold text-primary" th:text="${sp.tenSanPham}"></td>
+                                                <td th:text="${sp.danhMuc.tenDanhMuc}"></td> 
+                                                <td th:text="${sp.thuongHieu.tenThuongHieu}"></td>
+                                            </tr>
+                                            <tr th:if="${danhSachSanPham.isEmpty()}">
+                                                <td colspan="4" class="text-center text-muted py-4">Không có sản phẩm nào.</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Page Specific Script -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const pendingLockCard = document.getElementById('pendingLockCard');
+        const pendingLockBadge = document.getElementById('pendingLockBadge');
+
+        function showAlert(message, type = 'success') {
+            showToast(message, type === 'danger' ? 'error' : type);
+        }
+
+        if (pendingLockCard) {
+            pendingLockCard.addEventListener('click', function(e) {
+                const btnApprove = e.target.closest('.btn-approve-lock');
+                const btnReject = e.target.closest('.btn-reject-lock');
+
+                if (btnApprove) {
+                    const id = btnApprove.getAttribute('data-id');
+                    SmashNotify.confirm({
+                        title: 'Xác nhận phê duyệt',
+                        message: 'Bạn có chắc chắn muốn PHÊ DUYỆT KHÓA tài khoản này? Người này sẽ bị chặn truy cập hệ thống ngay lập tức.',
+                        confirmText: 'Phê duyệt khóa',
+                        danger: true
+                    }).then((confirmed) => {
+                        if (confirmed) processLockAction(id, 'approve-lock', btnApprove);
+                    });
+                } else if (btnReject) {
+                    const id = btnReject.getAttribute('data-id');
+                    SmashNotify.confirm({
+                        title: 'Xác nhận từ chối',
+                        message: 'Bạn có chắc chắn muốn TỪ CHỐI KHÓA tài khoản này? Trạng thái hoạt động của nhân viên sẽ được giữ nguyên.',
+                        confirmText: 'Từ chối khóa'
+                    }).then((confirmed) => {
+                        if (confirmed) processLockAction(id, 'reject-lock', btnReject);
+                    });
+                }
+            });
+        }
+
+        function updateEmployeeAccountStatus(accountId, status, statusLabel) {
+            const accountRow = document.querySelector(`[data-account-id="${accountId}"]`);
+            const statusCell = accountRow ? accountRow.querySelector('.account-status-cell') : null;
+            if (!statusCell) return;
+
+            const statusClassMap = {
+                hoat_dong: 'admin-status-success',
+                cho_khoa: 'admin-status-warning',
+                bi_khoa: 'admin-status-danger',
+                khach_vang_lai: 'admin-status-info'
+            };
+            const badge = document.createElement('span');
+            badge.className = `admin-status ${statusClassMap[status] || 'admin-status-neutral'}`;
+            badge.textContent = statusLabel || status;
+            statusCell.replaceChildren(badge);
+        }
+
+        function processLockAction(id, actionUrl, sourceButton) {
+            const tokenHolder = document.getElementById('csrf-token-holder');
+            const token = tokenHolder ? tokenHolder.getAttribute('data-csrf-token') : '';
+            const header = tokenHolder ? tokenHolder.getAttribute('data-csrf-header') : '';
+
+            const actionRow = sourceButton ? sourceButton.closest('tr') : null;
+            const actionButtons = actionRow ? actionRow.querySelectorAll('button') : [];
+            actionButtons.forEach(button => button.disabled = true);
+            if (actionRow) actionRow.setAttribute('aria-busy', 'true');
+
+            const headers = {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            };
+            if (token && header) {
+                headers[header] = token;
+            }
+
+            if (!token || !header) {
+                actionButtons.forEach(button => button.disabled = false);
+                if (actionRow) actionRow.removeAttribute('aria-busy');
+                showAlert('Phiên bảo mật không hợp lệ. Vui lòng tải lại trang!', 'danger');
+                return;
+            }
+
+            fetch(`/admin/nhan-vien/${actionUrl}/${id}?ajax=true`, {
+                method: 'POST',
+                headers: headers
+            })
+                .then(response => response.json()
+                    .catch(() => ({ success: false, message: 'Phản hồi hệ thống không hợp lệ.' }))
+                    .then(data => {
+                        if (!response.ok) {
+                            throw new Error(data.message || 'Không thể thực hiện thao tác.');
+                        }
+                        return data;
+                    }))
+                .then(data => {
+                    if (data.success) {
+                        showAlert(data.message || 'Thao tác thành công!', 'success');
+                        updateEmployeeAccountStatus(data.accountId, data.status, data.statusLabel);
+                        
+                        const row = document.getElementById(`row-nv-${id}`);
+                        if (row) {
+                            row.remove();
+                        }
+
+                        const remainingRows = pendingLockCard.querySelectorAll('tbody tr');
+                        if (remainingRows.length === 0) {
+                            pendingLockCard.style.display = 'none';
+                        } else if (pendingLockBadge) {
+                            pendingLockBadge.textContent = `${remainingRows.length} yêu cầu`;
+                        }
+                    } else {
+                        showAlert(data.message || 'Có lỗi xảy ra!', 'danger');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showAlert(error.message || 'Lỗi kết nối hệ thống. Vui lòng thử lại!', 'danger');
+                })
+                .finally(() => {
+                    actionButtons.forEach(button => button.disabled = false);
+                    if (actionRow) actionRow.removeAttribute('aria-busy');
+                });
+        }
+    });
+    </script>
+
+    <!-- Bootstrap 5.3.0 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Admin Layout JS -->
+    <script th:src="@{/js/admin-layout.js(v='2.4')}"></script>
+</body>
+</html>

@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Từ Khóa Cấm Blog - Admin SmashVN</title>
+    
+    <!-- Bootstrap 5.3.0 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Admin Custom CSS -->
+    <link rel="stylesheet" th:href="@{/css/admin-custom.css(v='2.4')}">
+    <script th:src="@{/js/admin-layout-state.js(v='1.0')}"></script>
+    
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body class="admin-body">
+
+    <!-- Sidebar Layout Fragment -->
+    <div th:replace="~{admin/layout/sidebar :: sidebar('moderationKeywords')}"></div>
+
+    <div class="admin-page">
+        <!-- Topbar Layout Fragment -->
+        <div th:replace="~{admin/layout/header :: header}"></div>
+
+        <!-- Main Content -->
+        <main class="admin-content">
+            <div class="container-fluid admin-container">
+
+                <!-- Page Header -->
+                <div class="admin-page-header">
+                    <div>
+                        <h1 class="admin-page-title"><i class="fas fa-filter text-brand me-2"></i>Từ Khóa Cấm Blog</h1>
+                    </div>
+                </div>
+
+                <!-- Alert Messages -->
+                <div th:if="${successMsg != null}" class="alert alert-success alert-dismissible fade show border-start border-success border-4 rounded-3 shadow-sm mb-4" role="alert">
+                    <i class="fas fa-check-circle me-2"></i><span th:text="${successMsg}">Thành công</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                <div th:if="${errorMsg != null}" class="alert alert-danger alert-dismissible fade show border-start border-danger border-4 rounded-3 shadow-sm mb-4" role="alert">
+                    <i class="fas fa-times-circle me-2"></i><span th:text="${errorMsg}">Lỗi</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+
+                <div class="row">
+                    <!-- Add Keyword Card -->
+                    <div class="col-lg-4 mb-4">
+                        <div class="admin-card">
+                            <div class="admin-card-header">
+                                <h5 class="admin-card-title"><i class="fas fa-plus-circle text-primary me-2"></i>Thêm Từ Khóa Cấm Mới</h5>
+                            </div>
+                            <div class="admin-card-body">
+                                <form th:action="@{/admin/moderation/keywords/add}" method="POST">
+                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                                    <div class="mb-3">
+                                        <label for="keywordInput" class="admin-form-label">Từ khóa / Cụm từ cấm</label>
+                                        <input type="text" id="keywordInput" name="keyword" class="admin-form-control form-control" placeholder="Ví dụ: ditme, cặc..." required autocomplete="off">
+                                        <div class="form-text text-muted">Hệ thống sẽ tự động chuẩn hóa chữ thường, bỏ dấu khi so sánh.</div>
+                                    </div>
+                                    <button type="submit" class="admin-btn admin-btn-primary w-100"><i class="fas fa-save me-1"></i> Lưu Từ Khóa</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Keywords List Card -->
+                    <div class="col-lg-8 mb-4">
+                        <div class="admin-card">
+                            <div class="admin-card-header">
+                                <h5 class="admin-card-title"><i class="fas fa-list text-primary me-2"></i>Danh Sách Từ Khóa Cấm Hoạt Động</h5>
+                                <span class="admin-status admin-status-info" th:text="${keywords.size()} + ' từ khóa'"></span>
+                            </div>
+                            <div class="admin-card-body p-0">
+                                <div class="admin-table-wrapper">
+                                    <table class="admin-table">
+                                        <thead>
+                                            <tr>
+                                                <th style="width: 60px;" class="text-center">STT</th>
+                                                <th>Mã TK</th>
+                                                <th>Từ Khóa</th>
+                                                <th>Trạng Thái</th>
+                                                <th>Ngày Tạo</th>
+                                                <th class="text-center">Hành Động</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr th:each="kw, iterStat : ${keywords}">
+                                                <td class="text-center" th:text="${iterStat.count}">1</td>
+                                                <td th:text="${kw.id}" class="fw-bold">1</td>
+                                                <td class="fw-bold text-primary" th:text="${kw.keyword}" style="max-width: 280px; word-break: break-all;">keyword</td>
+                                                <td>
+                                                    <span th:if="${kw.active}" class="admin-status admin-status-success">Hoạt động</span>
+                                                    <span th:unless="${kw.active}" class="admin-status admin-status-neutral">Vô hiệu hóa</span>
+                                                </td>
+                                                <td class="small text-muted" th:text="${#temporals.format(kw.createdAt, 'yyyy-MM-dd HH:mm:ss')}">2026-06-17 12:00:00</td>
+                                                <td class="text-center text-nowrap">
+                                                    <form th:action="@{/admin/moderation/keywords/toggle/{id}(id=${kw.id})}" method="POST" class="d-inline">
+                                                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                                                        <button type="submit" class="admin-btn admin-btn-icon ms-1" th:title="${kw.active ? 'Vô hiệu hóa' : 'Kích hoạt'}">
+                                                            <i class="fas" th:classappend="${kw.active ? 'fa-ban' : 'fa-check'}"></i>
+                                                        </button>
+                                                    </form>
+                                                    
+                                                    <button type="button" class="admin-btn admin-btn-icon ms-1"
+                                                            th:data-id="${kw.id}"
+                                                            th:data-keyword="${kw.keyword}"
+                                                            onclick="showEditModal(this)" title="Sửa từ khóa">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+
+                                                     <form th:action="@{/admin/moderation/keywords/delete/{id}(id=${kw.id})}" method="POST" class="d-inline" onsubmit="return confirmSubmitForm(this, 'Bạn có chắc chắn muốn xóa từ khóa cấm này không?');">
+                                                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                                                        <button type="submit" class="admin-btn admin-btn-icon danger ms-1" title="Xóa">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
+                                                    </form>
+                                                </td>
+                                            </tr>
+                                            <tr th:if="${#lists.isEmpty(keywords)}">
+                                                <td colspan="6" class="text-center text-muted py-4">Chưa có từ khóa cấm nào được cấu hình.</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Edit Modal -->
+    <div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content admin-modal-content">
+                <form id="editForm" method="POST">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                    <div class="modal-header admin-modal-header">
+                        <h5 class="modal-title admin-modal-title"><i class="fas fa-edit text-primary me-2"></i>Chỉnh Sửa Từ Khóa</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body admin-modal-body">
+                        <div class="mb-3">
+                            <label for="editKeywordInput" class="admin-form-label">Từ khóa / Cụm từ cấm</label>
+                            <input type="text" id="editKeywordInput" name="keyword" class="admin-form-control form-control" required autocomplete="off">
+                        </div>
+                    </div>
+                    <div class="modal-footer admin-modal-footer">
+                        <button type="button" class="admin-btn admin-btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                        <button type="submit" class="admin-btn admin-btn-primary"><i class="fas fa-save me-1"></i> Lưu Thay Đổi</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let editModal;
+        document.addEventListener("DOMContentLoaded", function() {
+            const modalEl = document.getElementById('editModal');
+            if (modalEl) {
+                editModal = new bootstrap.Modal(modalEl);
+            }
+        });
+
+        function showEditModal(btn) {
+            var id = btn.getAttribute('data-id');
+            var keyword = btn.getAttribute('data-keyword');
+            document.getElementById('editKeywordInput').value = keyword;
+            document.getElementById('editForm').action = '/admin/moderation/keywords/edit/' + id;
+            if (editModal) editModal.show();
+        }
+    </script>
+
+    <!-- Bootstrap 5.3.0 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Admin Layout JS -->
+    <script th:src="@{/js/admin-layout.js(v='2.4')}"></script>
+</body>
+</html>

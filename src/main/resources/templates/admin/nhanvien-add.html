@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thêm Nhân Viên Mới - Admin SmashVN</title>
+    
+    <!-- Bootstrap 5.3.0 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Admin Custom CSS -->
+    <link rel="stylesheet" th:href="@{/css/admin-custom.css(v='2.4')}">
+    <script th:src="@{/js/admin-layout-state.js(v='1.0')}"></script>
+    
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body class="admin-body">
+
+    <!-- Sidebar Layout Fragment -->
+    <div th:replace="~{admin/layout/sidebar :: sidebar('nhanvien')}"></div>
+
+    <div class="admin-page">
+        <!-- Topbar Layout Fragment -->
+        <div th:replace="~{admin/layout/header :: header}"></div>
+
+        <!-- Main Content -->
+        <main class="admin-content">
+            <div class="container-fluid admin-container">
+
+                <!-- Page Header -->
+                <div class="admin-page-header">
+                    <div>
+                        <h1 class="admin-page-title"><i class="fas fa-user-plus text-brand me-2"></i>Thêm Nhân Viên Mới</h1>
+                    </div>
+                    <div class="admin-toolbar">
+                        <a th:href="@{/admin/nhan-vien}" class="admin-btn admin-btn-secondary">
+                            <i class="fas fa-arrow-left me-1"></i> Quay lại Danh Sách
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Alert Messages -->
+                <div th:if="${error != null or loi != null}" class="alert alert-danger alert-dismissible fade show border-start border-danger border-4 rounded-3 shadow-sm mb-4" role="alert">
+                    <i class="fas fa-times-circle me-2"></i><span th:text="${error != null ? error : loi}">Lỗi nhập liệu</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                <div th:if="${success != null}" class="alert alert-success alert-dismissible fade show border-start border-success border-4 rounded-3 shadow-sm mb-4" role="alert">
+                    <i class="fas fa-check-circle me-2"></i><span th:text="${success}">Thao tác thành công</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+
+                <!-- Form Card -->
+                <div class="row justify-content-center">
+                    <div class="col-lg-8">
+                        <div class="admin-card">
+                            <div class="admin-card-header">
+                                <h5 class="admin-card-title"><i class="fas fa-user-plus text-primary me-2"></i>Nhập Thông Tin Tài Khoản Nhân Viên</h5>
+                            </div>
+                            <div class="admin-card-body">
+                                <form th:action="@{/admin/nhan-vien/them}" method="POST" class="row g-4" onsubmit="return confirmSubmitForm(this, 'Bạn có chắc chắn muốn khởi tạo tài khoản nhân viên mới này không?');">
+                                    <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+
+                                    <!-- Email -->
+                                    <div class="col-md-6">
+                                        <label for="email" class="admin-form-label">Email Đăng Nhập <span class="text-danger">*</span></label>
+                                        <input type="email" id="email" name="email" th:value="${email}" class="admin-form-control form-control" placeholder="example@smash.vn" required>
+                                        <div class="form-text text-muted">Email này sẽ dùng để đăng nhập hệ thống và phải là duy nhất.</div>
+                                    </div>
+
+                                    <!-- Password -->
+                                    <div class="col-md-6">
+                                        <label for="matKhau" class="admin-form-label">Mật Khẩu <span class="text-danger">*</span></label>
+                                        <div class="input-group">
+                                            <input type="password" id="matKhau" name="matKhau" class="admin-form-control form-control" placeholder="Nhập mật khẩu ban đầu" required minlength="8" maxlength="50">
+                                            <button class="btn btn-outline-secondary" type="button" id="togglePassword" title="Giữ chuột để xem mật khẩu">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                        </div>
+                                        <div class="form-text text-muted">Mật khẩu ban đầu phải dài từ 8 đến 50 ký tự.</div>
+                                    </div>
+
+                                    <!-- Name -->
+                                    <div class="col-md-6">
+                                        <label for="hoTenNv" class="admin-form-label">Họ và Tên Nhân Viên <span class="text-danger">*</span></label>
+                                        <input type="text" id="hoTenNv" name="hoTenNv" th:value="${hoTenNv}" class="admin-form-control form-control" placeholder="Ví dụ: Nguyễn Văn A" required>
+                                    </div>
+
+                                    <!-- Phone -->
+                                    <div class="col-md-6">
+                                        <label for="soDienThoaiNv" class="admin-form-label">Số Điện Thoại <span class="text-danger">*</span></label>
+                                        <input type="tel" id="soDienThoaiNv" name="soDienThoaiNv" th:value="${soDienThoaiNv}" class="admin-form-control form-control" placeholder="Ví dụ: 0912345678" required pattern="(03|05|07|08|09)[0-9]{8}" maxlength="10" title="Số điện thoại phải bắt đầu bằng 03, 05, 07, 08, 09 và đủ 10 số.">
+                                    </div>
+
+                                    <!-- Role / Title -->
+                                    <div class="col-md-6">
+                                        <label for="chucVu" class="admin-form-label">Chức Vụ Cụ Thể <span class="text-danger">*</span></label>
+                                        <input type="text" id="chucVu" name="chucVu" th:value="${chucVu}" class="admin-form-control form-control" placeholder="Ví dụ: Nhân viên bán hàng, Kế toán..." required>
+                                    </div>
+
+                                    <div class="col-12 mt-4 pt-3 border-top d-flex justify-content-end gap-2">
+                                        <a th:href="@{/admin/nhan-vien}" class="admin-btn admin-btn-secondary"><i class="fas fa-times me-1"></i> Hủy bỏ</a>
+                                        <button type="submit" class="admin-btn admin-btn-primary"><i class="fas fa-save me-1"></i> Lưu Thông Tin</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script>
+        (function() {
+            const btn = document.getElementById('togglePassword');
+            const inp = document.getElementById('matKhau');
+            if (!btn || !inp) return;
+            const icon = btn.querySelector('i');
+
+            function showPass(e) {
+                if (e.type === 'mousedown') e.preventDefault();
+                inp.type = 'text';
+                icon.classList.remove('fa-eye'); icon.classList.add('fa-eye-slash');
+            }
+            function hidePass() {
+                inp.type = 'password';
+                icon.classList.remove('fa-eye-slash'); icon.classList.add('fa-eye');
+            }
+
+            btn.addEventListener('mousedown', showPass);
+            btn.addEventListener('mouseup', hidePass);
+            btn.addEventListener('mouseleave', hidePass);
+            btn.addEventListener('touchstart', showPass);
+            btn.addEventListener('touchend', hidePass);
+        })();
+    </script>
+
+    <!-- Bootstrap 5.3.0 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Admin Layout JS -->
+    <script th:src="@{/js/admin-layout.js(v='2.4')}"></script>
+</body>
+</html>

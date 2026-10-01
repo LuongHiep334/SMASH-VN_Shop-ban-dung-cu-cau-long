@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Danh Sách Vi Phạm Bình Luận - Admin SmashVN</title>
+    
+    <!-- Bootstrap 5.3.0 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Admin Custom CSS -->
+    <link rel="stylesheet" th:href="@{/css/admin-custom.css(v='2.4')}">
+    <script th:src="@{/js/admin-layout-state.js(v='1.0')}"></script>
+    
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body class="admin-body">
+
+    <!-- Sidebar Layout Fragment -->
+    <div th:replace="~{admin/layout/sidebar :: sidebar('viphambinhluan')}"></div>
+
+    <div class="admin-page">
+        <!-- Topbar Layout Fragment -->
+        <div th:replace="~{admin/layout/header :: header}"></div>
+
+        <!-- Main Content -->
+        <main class="admin-content">
+            <div class="container-fluid admin-container">
+
+                <!-- Page Header -->
+                <div class="admin-page-header">
+                    <div>
+                        <h1 class="admin-page-title"><i class="fas fa-exclamation-triangle text-danger me-2"></i>Quản Lý Vi Phạm Bình Luận</h1>
+                    </div>
+                    <div class="admin-toolbar">
+                        <span class="admin-status admin-status-danger" th:text="${listViPham != null ? listViPham.size() : 0} + ' Lượt vi phạm'">0 Lượt vi phạm</span>
+                    </div>
+                </div>
+
+                <!-- Alert Messages -->
+                <div th:if="${successMsg != null}" class="alert alert-success alert-dismissible fade show border-start border-success border-4 rounded-3 shadow-sm mb-4" role="alert">
+                    <i class="fas fa-check-circle me-2"></i>
+                    <span th:text="${successMsg}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                <div th:if="${errorMsg != null}" class="alert alert-danger alert-dismissible fade show border-start border-danger border-4 rounded-3 shadow-sm mb-4" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <span th:text="${errorMsg}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+
+                <!-- Violations Table Card -->
+                <div class="admin-card">
+                    <div class="admin-card-header">
+                        <h5 class="admin-card-title"><i class="fas fa-list text-primary me-2"></i>Lịch Sử Vi Phạm Bình Luận Tục Tĩu &amp; Độc Hại</h5>
+                    </div>
+                    <div class="admin-card-body p-0">
+                        <div class="admin-table-wrapper">
+                            <table class="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 60px;" class="text-center">STT</th>
+                                        <th>Mã VP</th>
+                                        <th>Khách Hàng</th>
+                                        <th>Sản Phẩm</th>
+                                        <th>Nội Dung Gốc</th>
+                                        <th>Nội Dung Đã Lọc</th>
+                                        <th>Mức Độ</th>
+                                        <th class="text-center">Số Lần VP</th>
+                                        <th>Hình Phạt</th>
+                                        <th>Thời Gian</th>
+                                        <th class="text-center">Thao Tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="vp, iterStat : ${listViPham}">
+                                        <td class="text-center" th:text="${iterStat.count}">1</td>
+                                        <td class="fw-bold text-dark" th:text="'VP' + ${vp.id}">VP1</td>
+                                        <td>
+                                            <div class="fw-semibold" th:text="${vp.taiKhoan != null ? vp.taiKhoan.username : 'Không rõ tài khoản'}">user@example.com</div>
+                                            <div th:if="${vp.taiKhoan != null and vp.taiKhoan.ngayKhoaBinhLuanDen != null and vp.taiKhoan.ngayKhoaBinhLuanDen.isAfter(T(java.time.LocalDateTime).now())}">
+                                                <span class="admin-status admin-status-danger mt-1">Đang bị khóa bình luận</span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <a th:if="${vp.sanPham != null}" th:href="@{'/san-pham/' + ${vp.sanPham.id}}" target="_blank" th:text="${vp.sanPham.tenSanPham}" class="text-primary fw-semibold">Sản phẩm</a>
+                                            <span th:if="${vp.sanPham == null}" class="text-muted">Sản phẩm không còn tồn tại</span>
+                                        </td>
+                                        <td class="text-muted" th:text="${vp.noiDungGoc != null ? vp.noiDungGoc : '(trống)'}">Nội dung gốc</td>
+                                        <td class="fw-semibold" th:text="${vp.noiDungDaLoc != null ? vp.noiDungDaLoc : '(không có)'}">Nội dung đã lọc</td>
+                                        <td>
+                                            <span th:if="${vp.mucDoViPham == 'LOW'}" class="admin-status admin-status-neutral">Nhẹ</span>
+                                            <span th:if="${vp.mucDoViPham == 'MEDIUM'}" class="admin-status admin-status-warning">Trung bình</span>
+                                            <span th:if="${vp.mucDoViPham == 'HIGH'}" class="admin-status admin-status-danger">Nặng</span>
+                                            <span th:if="${vp.mucDoViPham == 'CRITICAL'}" class="admin-status admin-status-danger">Nghiêm trọng</span>
+                                            <span th:if="${vp.mucDoViPham == null or (vp.mucDoViPham != 'LOW' and vp.mucDoViPham != 'MEDIUM' and vp.mucDoViPham != 'HIGH' and vp.mucDoViPham != 'CRITICAL')}" class="admin-status admin-status-neutral" th:text="${vp.mucDoViPham != null ? vp.mucDoViPham : 'Không xác định'}">Không xác định</span>
+                                        </td>
+                                        <td class="text-center fw-bold" th:text="${vp.soLanViPham != null ? vp.soLanViPham : 0}">1</td>
+                                        <td>
+                                            <span class="fw-bold text-danger" th:text="${vp.thoiHanKhoa != null ? vp.thoiHanKhoa : 'Không khóa'}">3 giờ</span>
+                                        </td>
+                                        <td class="small text-muted" th:text="${vp.ngayViPham != null ? #temporals.format(vp.ngayViPham, 'dd/MM/yyyy HH:mm') : 'Không rõ'}">16/06/2026 14:00</td>
+                                        <td class="text-center text-nowrap">
+                                            <div class="d-flex flex-column gap-1">
+                                                <form th:if="${vp.taiKhoan != null and vp.taiKhoan.ngayKhoaBinhLuanDen != null and vp.taiKhoan.ngayKhoaBinhLuanDen.isAfter(T(java.time.LocalDateTime).now())}" 
+                                                      th:action="@{'/admin/danh-gia/vi-pham/go-khoa/' + ${vp.taiKhoan.id}}" method="post"
+                                                      onsubmit="return confirmSubmitForm(this, 'Bạn có chắc chắn muốn mở khóa tính năng bình luận cho tài khoản này sớm hơn thời hạn không?');">
+                                                    <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                                                    <button type="submit" class="admin-btn admin-btn-sm admin-btn-primary w-100" style="font-size: 0.75rem;">
+                                                        <i class="fas fa-unlock me-1"></i>Mở Khóa
+                                                    </button>
+                                                </form>
+                                                <form th:if="${vp.taiKhoan != null and vp.taiKhoan.soLanNhacNhoViPham != null and vp.taiKhoan.soLanNhacNhoViPham > 0}" 
+                                                      th:action="@{'/admin/danh-gia/vi-pham/reset-vi-pham/' + ${vp.taiKhoan.id}}" method="post"
+                                                      onsubmit="return confirmSubmitForm(this, 'Bạn có chắc chắn muốn reset bộ đếm vi phạm về 0 cho tài khoản này không?');">
+                                                    <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                                                    <button type="submit" class="admin-btn admin-btn-sm admin-btn-secondary w-100" style="font-size: 0.75rem;">
+                                                        <i class="fas fa-redo me-1"></i>Reset Vi Phạm
+                                                    </button>
+                                                </form>
+                                                <span th:if="${vp.taiKhoan == null}" class="text-muted small">Không thể thao tác</span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr th:if="${listViPham == null or listViPham.isEmpty()}">
+                                        <td colspan="11" class="text-center text-muted py-4">Chưa ghi nhận lượt vi phạm bình luận nào.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Bootstrap 5.3.0 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Admin Layout JS -->
+    <script th:src="@{/js/admin-layout.js(v='2.4')}"></script>
+</body>
+</html>

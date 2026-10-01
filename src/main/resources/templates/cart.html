@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link th:href="@{/images/favicon.png}" rel="shortcut icon">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <title>Giỏ Hàng - Smash VN</title>
+
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,600,700,800" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/vendor.css}">
+    <link rel="stylesheet" th:href="@{/css/utility.css}">
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body class="config">
+    <div class="preloader is-active">
+        <div class="preloader__wrap">
+            <img class="preloader__img" th:src="@{/images/preloader.svg}" alt="Đang tải" width="64" height="64">
+        </div>
+    </div>
+
+    <div id="app">
+        <header class="header--style-1">
+            <div th:replace="~{layout/header :: header}"></div>
+        </header>
+
+        <div class="app-content">
+            <nav class="support-inline-links" aria-label="Hỗ trợ giỏ hàng">
+                <a th:href="@{/huong-dan-mua-hang#chon-gio-hang}">Cách chọn hàng để thanh toán</a>
+                <a th:href="@{/huong-dan-thanh-toan}">Hướng dẫn thanh toán</a>
+                <a th:href="@{/chinh-sach}">Chính sách mua hàng</a>
+            </nav>
+            <div class="u-s-p-y-60">
+                <div class="section__content">
+                    <div class="container">
+                        <div class="breadcrumb">
+                            <div class="breadcrumb__wrap">
+                                <ul class="breadcrumb__list">
+                                    <li class="has-separator"><a th:href="@{/}">Trang chủ</a></li>
+                                    <li class="is-marked"><a th:href="@{/gio-hang}">Giỏ hàng</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="u-s-p-b-60">
+                <div class="section__intro u-s-m-b-60">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <div class="section__text-wrap">
+                                    <h1 class="section__heading u-c-secondary">GIỎ HÀNG CỦA BẠN</h1>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section__content">
+                    <div class="container" th:if="${param.loi != null}">
+                        <div class="alert alert-danger border-start border-danger border-4 rounded-3 shadow-sm mb-4" role="alert" style="padding: 15px; border-left: 4px solid #dc3545; background-color: #f8d7da; color: #721c24; border-radius: 4px; position: relative; margin-bottom: 20px;">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <span th:text="${param.loi}">Lỗi hệ thống</span>
+                        </div>
+                    </div>
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-lg-12 col-md-12 col-sm-12 u-s-m-b-30">
+
+
+                                <div class="table-responsive">
+                                    <table class="table-p">
+                                        <thead>
+                                            <tr>
+                                                <th style="width: 50px; text-align: center;"></th>
+                                                <th>SẢN PHẨM</th>
+                                                <th>ĐƠN GIÁ</th>
+                                                <th>SỐ LƯỢNG</th>
+                                                <th>THAO TÁC</th>
+                                            </tr>
+                                               <tbody>
+                                             <tr th:each="item : ${danhSachCart}" 
+ 											    th:classappend="${!item.hopLe} ? 'opacity-50 bg-light' : ''"
+ 											    class="js-cart-row"
+ 											    th:attr="data-item-id=${item.cartItemId != null ? item.cartItemId : item.idSanPhamChiTiet}, data-product-detail-id=${item.idSanPhamChiTiet}, data-unit-price=${item.donGia != null ? item.donGia : 0}, data-quantity=${item.soLuong}, data-line-total=${item.thanhTien != null ? item.thanhTien : 0}, data-max-quantity=${item.soLuongTon != null ? item.soLuongTon : 999}, data-valid=${item.hopLe ? 'true' : 'false'}">
+ 											    
+                                                 <td style="width: 40px; text-align: center; vertical-align: middle;">
+                                                     <input type="checkbox" class="js-cart-item-checkbox" 
+                                                            th:value="${item.cartItemId != null ? item.cartItemId : item.idSanPhamChiTiet}" 
+                                                            th:disabled="${!item.hopLe}" 
+                                                            th:checked="${item.hopLe}"
+                                                            style="width: 18px; height: 18px; cursor: pointer; accent-color: #ff4500;">
+                                                 </td>
+ 											    <td>
+ 											        <div class="table-p__box">
+ 											            <div class="table-p__img-wrap">
+ 											                <img class="u-img-fluid" th:src="@{${item.anhSanPham}}" onerror="this.onerror=null; this.src='/images/placeholder.png';" alt="Ảnh sản phẩm">
+ 											            </div>
+ 											            <div class="table-p__info">
+ 											                <span class="table-p__name">
+ 											                    <a th:href="@{/san-pham/{id}(id=${item.sanPhamId})}" th:text="${item.tenSanPham}">Tên Vợt</a>
+ 											                </span>
+ 											                <span class="table-p__category" th:if="${item.danhMuc != null and !item.danhMuc.isEmpty()}">
+ 											                    <a th:href="@{#}" th:text="${item.danhMuc}">Danh Mục</a>
+ 											                </span>
+ 											                <div class="cart-product__variants u-s-m-t-8" th:if="${item.thuocTinh != null and !item.thuocTinh.isEmpty()}">
+ 											                    <span class="cart-variant-badge" th:each="tt : ${item.thuocTinh}">
+ 											                        <i class="fas fa-tag"></i>
+ 											                        <span th:text="${tt}">Thuộc tính</span>
+ 											                    </span>
+ 											                </div>
+ 											                
+ 											                <div th:if="${item.ngungBan}" class="text-danger fw-bold u-s-m-t-8">
+ 											                    <i class="fas fa-exclamation-circle"></i> Sản phẩm hoặc phân loại đã ngừng kinh doanh
+ 											                </div>
+ 											                <div th:if="${item.hetHang and !item.ngungBan}" class="text-warning fw-bold u-s-m-t-8">
+ 											                    <i class="fas fa-exclamation-circle"></i> Phân loại này tạm hết hàng
+ 											                </div>
+ 											            </div>
+ 											        </div>
+ 											    </td>
+ 											    <td>
+ 											        <span class="table-p__price" th:text="${#numbers.formatDecimal(item.donGia, 0, 'COMMA', 0, 'POINT')} + ' đ'">Giá</span>
+ 											    </td>
+ 											    <td>
+ 											        <div class="table-p__input-counter-wrap">
+ 											            <div class="input-counter" th:if="${item.hopLe}">
+ 											                <span class="input-counter__minus fas fa-minus js-cart-qty-minus"></span>
+ 											                <input class="js-cart-qty-input input-counter__text input-counter--text-primary-style" 
+ 											                       type="text" 
+ 											                       th:value="${item.soLuong}" 
+ 											                       th:attr="data-item-id=${item.cartItemId != null ? item.cartItemId : item.idSanPhamChiTiet}, data-max=${item.soLuongTon}"
+ 											                       min="1"
+ 											                       max="999"
+ 											                       data-min="1">
+ 											                <span class="input-counter__plus fas fa-plus js-cart-qty-plus"></span>
+ 											            </div>
+ 											            
+ 											            <div th:if="${!item.hopLe}" class="fw-bold text-muted">
+ 											                <span th:text="'Số lượng: ' + ${item.soLuong}"></span>
+ 											            </div>
+ 											        </div>
+ 											    </td>
+ 											    <td>
+ 											        <div class="table-p__del-wrap">
+ 													    <a class="far fa-trash-alt table-p__delete-link js-delete-cart-item" 
+ 													       href="javascript:void(0)" 
+ 													       th:attr="data-id=${item.cartItemId}">
+ 													    </a>
+ 													</div>
+ 											    </td>
+ 											</tr>
+                                             
+                                             <tr th:if="${danhSachCart.isEmpty()}">
+                                                 <td colspan="5" class="text-center u-s-p-y-30">
+                                                     Giỏ hàng của bạn đang trống. Hãy thêm sản phẩm vào giỏ nhé!
+                                                 </td>
+                                             </tr>
+                                         </tbody>
+                                     </table>
+                                 </div>
+                             </div>
+                              <div class="col-lg-12" th:if="${!danhSachCart.isEmpty()}">
+                                  <div class="cart-action-bar route-box">
+                                      <div class="cart-action-bar__left">
+                                          <a class="route-box__link" th:href="@{/}"><i class="fas fa-long-arrow-alt-left"></i>
+                                              <span>TIẾP TỤC MUA SẮM</span></a>
+
+                                          <label for="js-cart-select-all" class="cart-select-all mb-0">
+                                              <input type="checkbox" id="js-cart-select-all" class="js-cart-select-all" checked>
+                                              <span>
+                                                  Chọn tất cả (<span id="js-selected-count">0</span>/<span id="js-total-valid-count">0</span>)
+                                              </span>
+                                          </label>
+
+                                          <button type="button" id="js-delete-selected-cart-items" class="cart-action-btn cart-action-btn--danger js-delete-selected-cart-items" disabled>
+                                              <i class="fa-regular fa-trash-can"></i>
+                                              <span>XÓA ĐÃ CHỌN</span>
+                                          </button>
+                                      </div>
+                                      <div class="cart-action-bar__right">
+                                          <a class="route-box__link" th:href="@{/gio-hang}"><i class="fas fa-sync"></i>
+                                              <span>CẬP NHẬT GIỎ HÀNG</span></a>
+                                      </div>
+                                  </div>
+                              </div>
+                         </div>
+                     </div>
+                 </div>
+             </div>
+
+             <div class="u-s-p-b-60" th:if="${!danhSachCart.isEmpty()}">
+                 <div class="section__content">
+                     <div class="container">
+                         <div class="row">
+                             <div class="col-lg-12 col-md-12 col-sm-12 u-s-m-b-30">
+                             <form class="f-cart">
+                                 <div class="row ">
+                                     <div class="col-lg-4 col-md-6 u-s-m-b-30">
+                                         <div class="f-cart__pad-box">
+                                             <div class="u-s-m-b-30">
+                                                 <table class="f-cart__table">
+                                                     <tbody>
+                                                         <tr>
+                                                             <td>TẠM TÍNH ĐÃ CHỌN (<span id="js-summary-selected-count">0</span> sản phẩm)</td>
+                                                             <td class="js-cart-summary-subtotal">0 đ</td>
+                                                         </tr>
+                                                         <tr>
+                                                             <td>VẬN CHUYỂN</td>
+                                                             <td>(Tính khi thanh toán)</td>
+                                                         </tr>
+                                                         <tr>
+                                                             <td><strong>TỔNG CỘNG</strong></td>
+                                                             <td><strong class="js-cart-summary-total">0 đ</strong></td>
+                                                         </tr>
+                                                     </tbody>
+                                                 </table>
+                                             </div>
+                                             <div>
+                                                 <button type="button" class="btn btn--e-brand-b-2" id="js-start-checkout-btn" disabled>TIẾN HÀNH THANH TOÁN</button>
+                                             </div>
+                                         </div>
+                                     </div>
+                                 </div>
+                                 </form>
+                             </div>
+                         </div>
+                     </div>
+                 </div>
+             </div>
+        </div>
+
+        <footer th:replace="~{layout/footer :: footer}"></footer>
+        <div th:replace="~{layout/modals :: all-modals}"></div>
+    </div>
+
+    <script th:src="@{/js/vendor.js}"></script>
+    <script th:src="@{/js/jquery.shopnav.js}"></script>
+    <script th:src="@{/js/app.js}"></script>
+</body>
+</html>
+
+

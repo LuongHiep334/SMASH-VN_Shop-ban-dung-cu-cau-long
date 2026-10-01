@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link th:href="@{/images/favicon.png}" rel="shortcut icon">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <title>Smash VN - Danh Sách Yêu Thích</title>
+
+    <!--====== Phông chữ Google ======-->
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,600,700,800" rel="stylesheet">
+
+    <!--====== CSS Nhà cung cấp ======-->
+    <link rel="stylesheet" th:href="@{/css/vendor.css}">
+
+    <!--====== Tiện ích khoảng cách ======-->
+    <link rel="stylesheet" th:href="@{/css/utility.css}">
+
+    <!--====== Ứng dụng ======-->
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body class="config">
+    <div class="preloader is-active">
+        <div class="preloader__wrap">
+
+            <img class="preloader__img" th:src="@{/images/preloader.svg}" alt="Đang tải" width="64" height="64"></div>
+    </div>
+
+    <!--====== app js ======-->
+    <div id="app">
+
+        <!--====== Header ======-->
+        <header class="header--style-1">
+            <div th:replace="~{layout/header :: header}"></div>
+        </header>
+        <!--====== End - Main Header ======-->
+
+
+        <!--====== App Content ======-->
+        <div class="app-content">
+
+            <!--====== Section 1 ======-->
+            <div class="u-s-p-y-60">
+
+                <!--====== Section Content ======-->
+                <div class="section__content">
+                    <div class="container">
+                        <div class="breadcrumb">
+                            <div class="breadcrumb__wrap">
+                                <ul class="breadcrumb__list">
+                                    <li class="has-separator">
+
+                                        <a th:href="@{/}">Trang chủ</a></li>
+                                    <li class="is-marked">
+
+                                        <a th:href="@{/wishlist}">Danh sách yêu thích</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!--====== End - Section 1 ======-->
+
+
+            <!--====== Section 2 ======-->
+            <div class="u-s-p-b-60">
+
+                <!--====== Section Intro ======-->
+                <div class="section__intro u-s-m-b-60">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <div class="section__text-wrap">
+                                    <h1 class="section__heading u-c-secondary">Danh sách yêu thích</h1>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!--====== End - Section Intro ======-->
+
+
+                <!--====== Section Content ======-->
+                <div class="section__content">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-lg-12 col-md-12 col-sm-12">
+
+								<div th:if="${listWishlist.isEmpty()}" style="text-align: center;" class="u-s-p-y-60">
+								    <h3 class="u-s-m-b-15">Danh sách yêu thích của bạn đang trống!</h3>
+								    <a class="w-r__link btn btn--e-brand-b-2" th:href="@{/}">QUAY LẠI MUA SẮM</a>
+								</div>
+                                <!--====== Wishlist Product ======-->
+                                
+
+								<div class="w-r u-s-m-b-30" th:each="item : ${listWishlist}">
+								    <div class="w-r__container">
+								        <div class="w-r__wrap-1">
+								            <div class="table-p__img-wrap">
+								                <img class="u-img-fluid" th:src="@{${item.hinhAnh != null && (item.hinhAnh.startsWith('/') || item.hinhAnh.startsWith('http')) ? item.hinhAnh : (item.hinhAnh != null && item.hinhAnh.startsWith('uploads/') ? '/' + item.hinhAnh : '/uploads/product/' + item.hinhAnh)}}" onerror="this.onerror=null; this.src='/images/placeholder.png';" alt="">
+								            </div>
+								            <div class="w-r__info">
+								                <span class="w-r__name">
+								                    <a th:href="@{/san-pham/{id}(id=${item.idSanPham})}" th:text="${item.tenSanPham}">Tên SP</a>
+								                </span>
+								                <span class="w-r__category">
+								                    <a th:href="@{#}" th:text="${item.tenDanhMuc}">Danh mục</a>
+								                </span>
+								                <span class="w-r__price" th:text="${#numbers.formatDecimal(item.giaBan, 0, 'COMMA', 0, 'POINT')} + ' đ'">Giá</span>
+								            </div>
+								        </div>
+								        <div class="w-r__wrap-2">
+								            <a class="w-r__link btn--e-transparent-platinum-b-2" th:href="@{/san-pham/{id}(id=${item.idSanPham})}">XEM CHI TIẾT</a>
+								            <a class="w-r__link btn--e-transparent-platinum-b-2 js-delete-wishlist-item" 
+											   href="javascript:void(0)" 
+											   th:attr="data-id=${item.idSanPham}">XÓA</a>
+								        </div>
+								    </div>
+								</div>
+                                <!--====== End - Wishlist Product ======-->
+                            </div>
+                            <div class="col-lg-12">
+                                <div class="route-box">
+                                    <div class="route-box__g">
+
+                                        <a class="route-box__link" th:href="@{/}"><i class="fas fa-long-arrow-alt-left"></i>
+
+                                            <span>TIẾP TỤC MUA SẮM</span></a></div>
+                                    <div class="route-box__g">
+
+                                        <a class="route-box__link" th:href="@{/wishlist/xoa-tat-ca}"
+                                           onclick="event.preventDefault(); const targetUrl = this.href; SmashNotify.confirm({title: 'Xóa toàn bộ danh sách?', message: 'Bạn có chắc chắn muốn xóa tất cả sản phẩm yêu thích?', confirmText: 'Xóa tất cả', danger: true}).then(function(confirmed) { if (confirmed) window.location.href = targetUrl; }); return false;">
+											    
+											    <i class="fas fa-trash"></i><span> XÓA TẤT CẢ</span></a></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!--====== End - Section Content ======-->
+            </div>
+            <!--====== End - Section 2 ======-->
+        </div>
+        <!--====== End - App Content ======-->
+
+
+        <!--====== Main Footer ======-->
+        <footer th:replace="~{layout/footer :: footer}"></footer>
+        <!--====== End - Main Footer ======-->
+
+        <!--====== Modal Section ======-->
+        <!--====== End - Modal Section ======-->
+    </div>
+    <!--====== End - Main App ======-->
+
+
+    <!--====== Google Analytics: change UA-XXXXX-Y to be your site's ID ======-->
+    <script>
+        window.ga = function() {
+            ga.q.push(arguments)
+        };
+        ga.q = [];
+        ga.l = +new Date;
+        ga('create', 'UA-XXXXX-Y', 'auto');
+        ga('send', 'pageview')
+    </script>
+    <script src="https://www.google-analytics.com/analytics.js" async defer></script>
+
+    <!--====== Vendor Js ======-->
+    <script th:src="@{/js/vendor.js}"></script>
+
+    <!--====== Plugin jQuery Shopnav ======-->
+    <script th:src="@{/js/jquery.shopnav.js}"></script>
+
+    <!--====== Ứng dụng ======-->
+    <script th:src="@{/js/app.js}"></script>
+
+    <!--====== Khi không hỗ trợ JavaScript ======-->
+    <noscript>
+        <div class="app-setting">
+            <div class="container">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="app-setting__wrap">
+                            <h1 class="app-setting__h1">Trình duyệt của bạn đã tắt JavaScript.</h1>
+
+                            <span class="app-setting__text">Vui lòng bật JavaScript trong cài đặt trình duyệt hoặc nâng cấp lên trình duyệt có hỗ trợ JavaScript.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </noscript>
+</body>
+</html>

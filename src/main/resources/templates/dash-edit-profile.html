@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link th:href="@{/images/favicon.png}" rel="shortcut icon">
+    <title>Smash VN - Sửa Hồ Sơ</title>
+
+    <!--====== Phông chữ Google ======-->
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,600,700,800" rel="stylesheet">
+
+    <!--====== CSS Nhà cung cấp ======-->
+    <link rel="stylesheet" th:href="@{/css/vendor.css}">
+
+    <!--====== Tiện ích khoảng cách ======-->
+    <link rel="stylesheet" th:href="@{/css/utility.css}">
+
+    <!--====== Ứng dụng ======-->
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+    <style>
+        .error-msg {
+            color: #ff4500;
+            font-size: 0.78rem;
+            margin-top: 5px;
+            display: none;
+        }
+        .input-text.invalid-input {
+            border-color: #ff4500 !important;
+            box-shadow: 0 0 0 3px rgba(255, 69, 0, 0.1) !important;
+        }
+    </style>
+</head>
+<body class="config">
+    <div class="preloader is-active">
+        <div class="preloader__wrap">
+
+            <img class="preloader__img" th:src="@{/images/preloader.svg}" alt="Đang tải" width="64" height="64"></div>
+    </div>
+
+    <!--====== Ứng dụng chính ======-->
+    <div id="app">
+
+        <!--====== Tiêu đề chính ======-->
+        <header class="header--style-1">
+            <div th:replace="~{layout/header :: header}"></div>
+        </header>
+        <!--====== End - Main Header ======-->
+
+
+        <!--====== App Content ======-->
+        <div class="app-content">
+
+            <!--====== Section 1 ======-->
+            <div class="u-s-p-y-60">
+
+                <!--====== Section Content ======-->
+                <div class="section__content">
+                    <div class="container">
+                        <div class="breadcrumb">
+                            <div class="breadcrumb__wrap">
+                                <ul class="breadcrumb__list">
+                                    <li class="has-separator">
+
+                                        <a th:href="@{/}">Trang chủ</a></li>
+                                    <li class="is-marked">
+
+                                        <a th:href="@{/user/profile/edit}">Sửa hồ sơ</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!--====== End - Section 1 ======-->
+
+
+            <!--====== Section 2 ======-->
+            <div class="u-s-p-b-60">
+
+                <!--====== Section Content ======-->
+                <div class="section__content">
+                    <div class="dash">
+                        <div class="container">
+                            <div class="row">
+                                <div class="col-lg-3 col-md-12">
+
+                                    <!--====== Dashboard Features ======-->
+                                    <div class="dash__box dash__box--bg-white dash__box--shadow u-s-m-b-30">
+                                        <div class="dash__pad-1">
+
+                                            <span class="dash__text u-s-m-b-16" th:text="'Hello, ' + ${kh.hoKh} + ' ' + ${kh.tenKh}"></span>
+                                            <ul class="dash__f-list">
+                                                <li>
+
+                                                    <a th:href="@{/user/dashboard}">Quản lý tài khoản</a></li>
+                                                <li>
+
+                                                    <a class="dash-active" th:href="@{/user/profile}">Thông tin cá nhân</a></li>
+                                                <li>
+
+                                                    <a th:href="@{/user/address}">Địa chỉ</a></li>
+                                                <li>
+
+                                                    <a th:href="@{/user/track-order}">Theo dõi đơn hàng</a></li>
+                                                <li>
+
+                                                    <a th:href="@{/user/my-order}">Đơn hàng</a></li>
+                                                <li>
+
+                                                    <a th:href="@{/user/payment-option}">Các tùy chọn thanh toán</a></li>
+                                                <li>
+
+                                                     <a th:href="@{/user/cancellation}">Chính sách hoàn trả hàng</a></li>
+                                                <li>
+                                                     <a th:href="@{/user/notifications}">Thông báo</a></li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <div class="dash__box dash__box--bg-white dash__box--shadow dash__box--w">
+                                        <div class="dash__pad-1">
+                                            <ul class="dash__w-list">
+                                                <li>
+                                                    <div class="dash__w-wrap">
+
+                                                        <span class="dash__w-icon dash__w-icon-style-1"><i class="fas fa-cart-arrow-down"></i></span>
+
+                                                        <span class="dash__w-text" th:text="${orderPlaced}">4</span>
+
+                                                        <span class="dash__w-name">Đơn Hàng Đã Đặt</span></div>
+                                                </li>
+                                                <li>
+                                                    <div class="dash__w-wrap">
+
+                                                        <span class="dash__w-icon dash__w-icon-style-2"><i class="fas fa-times"></i></span>
+
+                                                        <span class="dash__w-text" th:text="${cancelOrders}">0</span>
+
+                                                        <span class="dash__w-name">Đơn Hàng Đã Hủy</span></div>
+                                                </li>
+                                                <li>
+                                                    <div class="dash__w-wrap">
+
+                                                        <span class="dash__w-icon dash__w-icon-style-3"><i class="far fa-heart"></i></span>
+
+                                                        <span class="dash__w-text" th:text="${wishlist}">0</span>
+
+                                                        <span class="dash__w-name">Yêu Thích</span></div>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <!--====== End - Dashboard Features ======-->
+                                </div>
+                                <div class="col-lg-9 col-md-12">
+                                    <div class="dash__box dash__box--bg-white dash__box--shadow">
+									    <div class="dash__pad-2">
+									        <h2 class="dash__h2 u-s-m-b-8">SỬA HỒ SƠ CÁ NHÂN</h2>
+									        <span class="dash__text u-s-m-b-30">Vui lòng nhập đầy đủ thông tin bên dưới để chúng tôi phục vụ bạn tốt hơn.</span>
+									        
+									        <!-- General error display -->
+									        <div th:if="${loi != null}" class="u-s-m-b-15">
+									            <span style="color: #ff0000; font-weight: bold;" th:text="${loi}"></span>
+									        </div>
+									        
+									        <form class="dash-address-manipulation" th:action="@{/user/profile/edit}" method="post">
+									            <!-- CSRF protection token -->
+									            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+									            
+									            <div class="gl-inline">
+									                <div class="u-s-m-b-30">
+									                    <label class="gl-label" for="reg-fname">HỌ *</label>
+									                    <input class="input-text input-text--primary-style" type="text" id="reg-fname" name="ho" th:value="${kh.hoKh}" required placeholder="VD: Nguyễn" maxlength="50">
+									                    <span class="error-msg" id="error-fname" style="color: #ff0000; font-size: 12px; display: none; margin-top: 5px;"></span>
+									                </div>
+									                <div class="u-s-m-b-30">
+									                    <label class="gl-label" for="reg-lname">TÊN *</label>
+									                    <input class="input-text input-text--primary-style" type="text" id="reg-lname" name="ten" th:value="${kh.tenKh}" required placeholder="VD: Văn A" maxlength="50">
+									                    <span class="error-msg" id="error-lname" style="color: #ff0000; font-size: 12px; display: none; margin-top: 5px;"></span>
+									                </div>
+									            </div>
+									            <div class="gl-inline">
+									                <div class="u-s-m-b-30">
+									                    <label class="gl-label" for="reg-email">EMAIL ĐĂNG NHẬP</label>
+									                    <input class="input-text input-text--primary-style" type="text" id="reg-email" th:value="${kh.taiKhoan?.username ?: ''}" readonly style="background-color: #f1f1f1;">
+									                </div>
+									                <div class="u-s-m-b-30">
+									                    <label class="gl-label" for="reg-phone">SỐ ĐIỆN THOẠI *</label>
+									                    <input class="input-text input-text--primary-style" type="text" id="reg-phone" name="sdt" th:value="${kh.soDienThoaiKh}" required placeholder="VD: 0987654321" maxlength="12">
+									                    <span class="error-msg" id="error-phone" style="color: #ff0000; font-size: 12px; display: none; margin-top: 5px;"></span>
+									                </div>
+									            </div>
+									
+									            <button class="btn btn--e-brand-b-2" type="submit">LƯU THAY ĐỔI</button>
+									        </form>
+									    </div>
+									</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!--====== End - Section Content ======-->
+            </div>
+            <!--====== End - Section 2 ======-->
+        </div>
+
+        <!--====== Main Footer ======-->
+        <footer>
+            <div th:replace="~{layout/footer :: footer}"></div>
+        </footer>
+
+        <!--====== Modal Section ======-->
+
+
+        <!--====== Unsubscribe or Subscribe Newsletter ======-->
+        <div class="modal fade" id="dash-newsletter">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content modal--shadow">
+                    <div class="modal-body">
+                            <div class="dash__box dash__box--bg-white dash__box--shadow">
+                            <div class="dash__pad-2">
+                                <h2 class="dash__h2 u-s-m-b-8">SỬA HỒ SƠ CÁ NHÂN</h2>
+                                <span class="dash__text u-s-m-b-30">Vui lòng nhập đầy đủ thông tin bên dưới để chúng tôi phục vụ bạn tốt hơn.</span>
+                                
+                                <form class="d-modal__form" th:action="@{/user/profile/edit}" method="post">
+                                    <!-- CSRF protection token -->
+                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                    
+                                    <div class="gl-inline">
+                                        <div class="u-s-m-b-30">
+                                            <label class="gl-label" for="modal-reg-fname">HỌ *</label>
+                                            <input class="input-text input-text--primary-style" type="text" id="modal-reg-fname" name="ho" th:value="${kh.hoKh}" required placeholder="VD: Nguyễn" maxlength="50">
+                                            <span class="error-msg" id="error-modal-fname" style="color: #ff0000; font-size: 12px; display: none; margin-top: 5px;"></span>
+                                        </div>
+                                        <div class="u-s-m-b-30">
+                                            <label class="gl-label" for="modal-reg-lname">TÊN *</label>
+                                            <input class="input-text input-text--primary-style" type="text" id="modal-reg-lname" name="ten" th:value="${kh.tenKh}" required placeholder="VD: Văn A" maxlength="50">
+                                            <span class="error-msg" id="error-modal-lname" style="color: #ff0000; font-size: 12px; display: none; margin-top: 5px;"></span>
+                                        </div>
+                                    </div>
+                                    <div class="gl-inline">
+                                        <div class="u-s-m-b-30">
+                                            <label class="gl-label" for="modal-reg-email">EMAIL ĐĂNG NHẬP</label>
+                                            <input class="input-text input-text--primary-style" type="text" id="modal-reg-email" th:value="${kh.taiKhoan?.username ?: ''}" readonly style="background-color: #f1f1f1;">
+                                        </div>
+                                        <div class="u-s-m-b-30">
+                                            <label class="gl-label" for="modal-reg-phone">SỐ ĐIỆN THOẠI *</label>
+                                            <input class="input-text input-text--primary-style" type="text" id="modal-reg-phone" name="sdt" th:value="${kh.soDienThoaiKh}" required placeholder="VD: 0987654321" maxlength="12">
+                                            <span class="error-msg" id="error-modal-phone" style="color: #ff0000; font-size: 12px; display: none; margin-top: 5px;"></span>
+                                        </div>
+                                    </div>
+                                    <button class="btn btn--e-brand-b-2" type="submit">LƯU THAY ĐỔI</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!--====== Unsubscribe or Subscribe Newsletter ======-->
+        <!--====== End - Modal Section ======-->
+    </div>
+    <!--====== End - Main App ======-->
+
+
+    <!--====== Google Analytics: change UA-XXXXX-Y to be your site's ID ======-->
+    <script>
+        window.ga = function() {
+            ga.q.push(arguments)
+        };
+        ga.q = [];
+        ga.l = +new Date;
+        ga('create', 'UA-XXXXX-Y', 'auto');
+        ga('send', 'pageview')
+    </script>
+    <script src="https://www.google-analytics.com/analytics.js" async defer></script>
+
+    <!--====== Vendor Js ======-->
+    <script th:src="@{/js/vendor.js}"></script>
+
+    <!--====== Plugin jQuery Shopnav ======-->
+    <script th:src="@{/js/jquery.shopnav.js}"></script>
+
+    <!--====== Ứng dụng ======-->
+    <script th:src="@{/js/app.js}"></script>
+
+    <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const mainForm = document.querySelector(".dash-address-manipulation");
+        const modalForm = document.querySelector(".d-modal__form");
+
+        function setupValidation(form, isModal) {
+            if (!form) return;
+
+            const hoInput = form.querySelector(isModal ? "#modal-reg-fname" : "#reg-fname");
+            const tenInput = form.querySelector(isModal ? "#modal-reg-lname" : "#reg-lname");
+            const sdtInput = form.querySelector(isModal ? "#modal-reg-phone" : "#reg-phone");
+
+            const hoError = document.getElementById(isModal ? "error-modal-fname" : "error-fname");
+            const tenError = document.getElementById(isModal ? "error-modal-lname" : "error-lname");
+            const sdtError = document.getElementById(isModal ? "error-modal-phone" : "error-phone");
+
+            const phoneRegex = /^(\+84|0)(3|5|7|8|9)[0-9]{8}$/;
+
+            function validateHo() {
+                const val = hoInput.value.trim();
+                if (val === "") {
+                    hoError.textContent = "Họ không được để trống.";
+                    hoError.style.display = "block";
+                    return false;
+                }
+                if (val.length > 50) {
+                    hoError.textContent = "Họ không được vượt quá 50 ký tự.";
+                    hoError.style.display = "block";
+                    return false;
+                }
+                hoError.style.display = "none";
+                return true;
+            }
+
+            function validateTen() {
+                const val = tenInput.value.trim();
+                if (val === "") {
+                    tenError.textContent = "Tên không được để trống.";
+                    tenError.style.display = "block";
+                    return false;
+                }
+                if (val.length > 50) {
+                    tenError.textContent = "Tên không được vượt quá 50 ký tự.";
+                    tenError.style.display = "block";
+                    return false;
+                }
+                tenError.style.display = "none";
+                return true;
+            }
+
+            function validateSdt() {
+                const val = sdtInput.value.trim();
+                if (val === "") {
+                    sdtError.textContent = "Số điện thoại không được để trống.";
+                    sdtError.style.display = "block";
+                    return false;
+                }
+                if (!phoneRegex.test(val)) {
+                    sdtError.textContent = "Số điện thoại không đúng định dạng Việt Nam (phải bắt đầu bằng 0 hoặc +84 và gồm 10 chữ số tiếp theo).";
+                    sdtError.style.display = "block";
+                    return false;
+                }
+                sdtError.style.display = "none";
+                return true;
+            }
+
+            hoInput.addEventListener("input", validateHo);
+            hoInput.addEventListener("blur", validateHo);
+
+            tenInput.addEventListener("input", validateTen);
+            tenInput.addEventListener("blur", validateTen);
+
+            sdtInput.addEventListener("input", validateSdt);
+            sdtInput.addEventListener("blur", validateSdt);
+
+            form.addEventListener("submit", function (e) {
+                const isHoValid = validateHo();
+                const isTenValid = validateTen();
+                const isSdtValid = validateSdt();
+
+                if (!isHoValid || !isTenValid || !isSdtValid) {
+                    e.preventDefault();
+                } else {
+                    // Trim values before submit
+                    hoInput.value = hoInput.value.trim();
+                    tenInput.value = tenInput.value.trim();
+                    sdtInput.value = sdtInput.value.trim();
+                }
+            });
+        }
+
+        setupValidation(mainForm, false);
+        setupValidation(modalForm, true);
+    });
+    </script>
+
+    <!--====== Khi không hỗ trợ JavaScript ======-->
+    <noscript>
+        <div class="app-setting">
+            <div class="container">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="app-setting__wrap">
+                            <h1 class="app-setting__h1">Trình duyệt của bạn đã tắt JavaScript.</h1>
+
+                            <span class="app-setting__text">Vui lòng bật JavaScript trong cài đặt trình duyệt hoặc nâng cấp lên trình duyệt có hỗ trợ JavaScript.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </noscript>
+</body>
+</html>

@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Lý Khách Hàng - Admin SmashVN</title>
+    
+    <!-- Bootstrap 5.3.0 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Admin Custom CSS -->
+    <link rel="stylesheet" th:href="@{/css/admin-custom.css(v='2.4')}">
+    <script th:src="@{/js/admin-layout-state.js(v='1.0')}"></script>
+    
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body class="admin-body">
+
+    <!-- Sidebar Layout Fragment -->
+    <div th:replace="~{admin/layout/sidebar :: sidebar('khachhang')}"></div>
+
+    <div class="admin-page">
+        <!-- Topbar Layout Fragment -->
+        <div th:replace="~{admin/layout/header :: header}"></div>
+
+        <!-- Main Content -->
+        <main class="admin-content">
+            <div class="container-fluid admin-container">
+
+                <!-- Page Header -->
+                <div class="admin-page-header">
+                    <div>
+                        <h1 class="admin-page-title"><i class="fas fa-users text-brand me-2"></i>Quản Lý Khách Hàng</h1>
+                    </div>
+                    <div class="admin-toolbar">
+                        <span class="admin-status admin-status-info" th:text="${danhSachKhachHang.size()} + ' Khách hàng'">0 Khách hàng</span>
+                        <button type="button" class="admin-btn admin-btn-primary ms-2" data-bs-toggle="modal" data-bs-target="#modalThemKhachHang">
+                            <i class="fas fa-user-plus me-1"></i>Tạo Mới Tài Khoản
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Alert Messages -->
+                <div th:if="${warningMsg != null}" class="alert alert-danger alert-dismissible fade show border-start border-danger border-4 rounded-3 shadow-sm mb-4" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <span th:text="${warningMsg}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+
+                <div th:if="${success != null or param.themThanhCong != null or param.suaThanhCong != null}" class="alert alert-success alert-dismissible fade show border-start border-success border-4 rounded-3 shadow-sm mb-4" role="alert">
+                    <i class="fas fa-check-circle me-2"></i>
+                    <span th:text="${success != null ? success : (param.themThanhCong != null ? 'Tạo mới tài khoản khách hàng thành công!' : 'Cập nhật thông tin khách hàng thành công!')}">Thao tác thành công!</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+
+                <div th:if="${error != null or loi != null or param.loi != null}" class="alert alert-danger alert-dismissible fade show border-start border-danger border-4 rounded-3 shadow-sm mb-4" role="alert">
+                    <i class="fas fa-times-circle me-2"></i>
+                    <span th:text="${error != null ? error : (loi != null ? loi : param.loi)}">Lỗi thao tác!</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+
+                <!-- Customer Table Card -->
+                <div class="admin-card">
+                    <div class="admin-card-header">
+                        <div class="d-flex align-items-center gap-3 flex-wrap">
+                            <h5 class="admin-card-title"><i class="fas fa-list text-primary me-2"></i>Danh Sách Khách Hàng</h5>
+                            <div class="admin-search-bar" style="width: 260px;">
+                                <input type="text" id="customerSearchInput" placeholder="🔍 Tìm tên, email, sđt..." oninput="filterCustomers()">
+                            </div>
+                        </div>
+                        <span class="admin-status admin-status-info" id="customerCountBadge" th:text="${danhSachKhachHang.size()} + ' khách hàng'">0 khách hàng</span>
+                    </div>
+                    <div class="admin-card-body p-0">
+                        <div class="admin-table-wrapper">
+                            <table class="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 60px;" class="text-center">STT</th>
+                                        <th>Họ Tên</th>
+                                        <th>Tên đăng nhập</th>
+                                        <th>Số Điện Thoại</th>
+                                        <th>Trạng Thái</th>
+                                        <th style="width: 150px;" class="text-center">Thao Tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbodyKhachHang">
+                                    <tr th:each="kh, iterStat : ${danhSachKhachHang}">
+                                        <td class="text-center" th:text="${iterStat.count}">1</td>
+                                        <td class="fw-bold text-primary" style="cursor: pointer;" th:onclick="'xemChiTietKhachHang(' + ${kh.id} + ')'" th:text="${kh.hoTenKh != null and kh.hoTenKh != '' ? kh.hoTenKh : (kh.hoKh + ' ' + kh.tenKh)}">John Doe</td>
+                                        <td class="fw-semibold text-secondary" th:text="${kh.taiKhoan?.username ?: 'Khách vãng lai / POS'}">john@gmail.com</td>
+                                        <td th:text="${kh.soDienThoaiKh != null and kh.soDienThoaiKh != '' ? kh.soDienThoaiKh : 'Chưa cập nhật'}">0909090909</td>
+                                        <td>
+                                            <span th:if="${kh.taiKhoan != null and (kh.taiKhoan.trangThai == 'hoat_dong' or kh.taiKhoan.trangThaiTaiKhoan?.name() == 'ACTIVE')}" class="admin-status admin-status-success">Hoạt động</span>
+                                            <span th:if="${kh.taiKhoan != null and (kh.taiKhoan.trangThai == 'khach_vang_lai' or kh.taiKhoan.trangThaiTaiKhoan?.name() == 'GUEST')}" class="admin-status admin-status-info">Khách vãng lai</span>
+                                            <span th:if="${kh.taiKhoan != null and (kh.taiKhoan.trangThai == 'cho_khoa' or kh.taiKhoan.trangThaiTaiKhoan?.name() == 'PENDING_LOCK')}" class="admin-status admin-status-warning">Chờ khóa</span>
+                                            <span th:if="${kh.taiKhoan != null and (kh.taiKhoan.trangThai == 'bi_khoa' or kh.taiKhoan.trangThaiTaiKhoan?.name() == 'LOCKED')}" class="admin-status admin-status-danger">Ngừng hoạt động</span>
+                                            <span th:if="${kh.taiKhoan == null}" class="admin-status admin-status-neutral">Không có tài khoản</span>
+                                        </td>
+                                        <td class="text-center text-nowrap">
+                                            <button type="button" class="admin-btn admin-btn-icon" th:onclick="'xemChiTietKhachHang(' + ${kh.id} + ')'" title="Xem chi tiết">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button type="button" class="admin-btn admin-btn-icon ms-1" th:onclick="moModalSuaKhachHang([[${kh.id}]], [[${kh.hoTenKh}]], [[${kh.taiKhoan?.username}]], [[${kh.soDienThoaiKh}]], [[${kh.taiKhoan?.trangThai}]])" title="Chỉnh sửa">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr th:if="${danhSachKhachHang.isEmpty()}">
+                                        <td colspan="6" class="text-center text-muted py-4">Chưa có khách hàng nào đăng ký hệ thống.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal 1: Tạo Mới Tài Khoản Khách Hàng -->
+    <div class="modal fade" id="modalThemKhachHang" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content admin-modal-content">
+                <div class="modal-header admin-modal-header">
+                    <h5 class="modal-title admin-modal-title"><i class="fas fa-user-plus text-primary me-2"></i>Tạo Mới Tài Khoản Khách Hàng</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="formThemKhachHang" th:action="@{/admin/khach-hang/them}" method="POST" onsubmit="return confirmSubmitForm(this, 'Bạn có chắc chắn muốn tạo tài khoản khách hàng mới này không?');">
+                    <div class="modal-body admin-modal-body">
+                        <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                        
+                        <div class="mb-3">
+                            <label for="themEmail" class="admin-form-label">Tên đăng nhập</label>
+                            <input type="text" id="themEmail" name="email" class="admin-form-control form-control" placeholder="Nhập địa chỉ email...">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="themMatKhau" class="admin-form-label">Mật khẩu ban đầu <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <input type="password" id="themMatKhau" name="matKhau" class="admin-form-control form-control" placeholder="Nhập mật khẩu (8-50 ký tự)" required minlength="8" maxlength="50">
+                                <button class="btn btn-outline-secondary" type="button" onclick="togglePasswordVisibility('themMatKhau', this)">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="themHoTenKh" class="admin-form-label">Họ và Tên <span class="text-danger">*</span></label>
+                            <input type="text" id="themHoTenKh" name="hoTenKh" class="admin-form-control form-control" placeholder="Ví dụ: Nguyễn Văn A" required minlength="2" maxlength="100">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="themSoDienThoaiKh" class="admin-form-label">Số điện thoại</label>
+                            <input type="tel" id="themSoDienThoaiKh" name="soDienThoaiKh" class="admin-form-control form-control" placeholder="Ví dụ: 0912345678" pattern="(03|05|07|08|09)[0-9]{8}" maxlength="10">
+                        </div>
+                    </div>
+                    <div class="modal-footer admin-modal-footer">
+                        <button type="button" class="admin-btn admin-btn-secondary" data-bs-dismiss="modal">Hủy bỏ</button>
+                        <button type="submit" class="admin-btn admin-btn-primary"><i class="fas fa-save me-1"></i> Tạo Tài Khoản</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal 2: Cập Nhật Tài Khoản Khách Hàng -->
+    <div class="modal fade" id="modalSuaKhachHang" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content admin-modal-content">
+                <div class="modal-header admin-modal-header">
+                    <h5 class="modal-title admin-modal-title"><i class="fas fa-user-edit text-primary me-2"></i>Cập Nhật Tài Khoản Khách Hàng</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="formSuaKhachHang" method="POST" onsubmit="return confirmSubmitForm(this, 'Bạn có chắc chắn muốn cập nhật thông tin tài khoản khách hàng này không?');">
+                    <div class="modal-body admin-modal-body">
+                        <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                        
+                        <div class="mb-3">
+                            <label class="admin-form-label">Tên đăng nhập</label>
+                            <input type="text" id="suaEmail" class="admin-form-control form-control bg-light" readonly disabled>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="suaHoTenKh" class="admin-form-label">Họ và Tên <span class="text-danger">*</span></label>
+                            <input type="text" id="suaHoTenKh" name="hoTenKh" class="admin-form-control form-control" required minlength="2" maxlength="100">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="suaSoDienThoaiKh" class="admin-form-label">Số điện thoại</label>
+                            <input type="tel" id="suaSoDienThoaiKh" name="soDienThoaiKh" class="admin-form-control form-control" pattern="(03|05|07|08|09)[0-9]{8}" maxlength="10">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="suaTrangThai" class="admin-form-label">Trạng thái tài khoản <span class="text-danger">*</span></label>
+                            <select id="suaTrangThai" name="trangThai" class="form-select admin-form-control" required>
+                                <option value="hoat_dong">Hoạt động</option>
+                                <option value="bi_khoa">Ngừng hoạt động</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer admin-modal-footer">
+                        <button type="button" class="admin-btn admin-btn-secondary" data-bs-dismiss="modal">Hủy bỏ</button>
+                        <button type="submit" class="admin-btn admin-btn-primary"><i class="fas fa-save me-1"></i> Cập Nhật</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal 3: Chi Tiết Khách Hàng -->
+    <div class="modal fade" id="modalChiTietKhachHang" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content admin-modal-content">
+                <div class="modal-header admin-modal-header">
+                    <h5 class="modal-title admin-modal-title"><i class="fas fa-user-circle text-primary me-2"></i>Chi Tiết Khách Hàng</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body admin-modal-body bg-light">
+                    <!-- Loading Spinner -->
+                    <div id="modalKhachHangLoading" class="text-center py-5">
+                        <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+                            <span class="visually-hidden">Đang tải...</span>
+                        </div>
+                        <p class="text-muted mt-3 mb-0 fw-semibold">Đang tải thông tin khách hàng...</p>
+                    </div>
+
+                    <!-- Main Content Body -->
+                    <div id="modalKhachHangBody" class="d-none">
+                        <!-- Key Statistics -->
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <div class="admin-stat-card">
+                                    <div class="admin-stat-info">
+                                        <div class="stat-label">Đơn Hàng Hoàn Thành</div>
+                                        <div class="stat-value text-success" id="khStatDonHoanThanh">0 đơn</div>
+                                    </div>
+                                    <div class="admin-stat-icon success">
+                                        <i class="fas fa-check-circle"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="admin-stat-card">
+                                    <div class="admin-stat-info">
+                                        <div class="stat-label">Tổng Chi Tiêu</div>
+                                        <div class="stat-value" id="khStatTongChiTieu">0 ₫</div>
+                                    </div>
+                                    <div class="admin-stat-icon warning">
+                                        <i class="fas fa-wallet"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Personal Information Card -->
+                        <div class="admin-card mb-4">
+                            <div class="admin-card-header">
+                                <h5 class="admin-card-title"><i class="fas fa-id-card text-primary me-2"></i>Thông Tin Cá Nhân</h5>
+                            </div>
+                            <div class="admin-card-body">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <span class="text-muted small d-block">Mã Khách Hàng:</span>
+                                        <span class="fw-bold text-dark" id="khDetailMaKH">-</span>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <span class="text-muted small d-block">Họ và Tên:</span>
+                                        <span class="fw-bold text-primary" id="khDetailHoTen">-</span>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <span class="text-muted small d-block">Tên Đăng Nhập:</span>
+                                        <span class="fw-semibold text-secondary" id="khDetailUsername">-</span>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <span class="text-muted small d-block">Số Điện Thoại:</span>
+                                        <span class="fw-semibold text-dark" id="khDetailSDT">-</span>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <span class="text-muted small d-block">Trạng Thái Tài Khoản:</span>
+                                        <span id="khDetailTrangThai">-</span>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <span class="text-muted small d-block">Ngày Tham Gia:</span>
+                                        <span class="fw-semibold text-dark" id="khDetailNgayTao">-</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Address Book -->
+                        <div class="admin-card mb-4">
+                            <div class="admin-card-header">
+                                <h5 class="admin-card-title"><i class="fas fa-map-marker-alt text-danger me-2"></i>Sổ Địa Chỉ Giao Hàng</h5>
+                            </div>
+                            <div class="admin-card-body p-0">
+                                <div id="khContainerDiaChi" class="p-3"></div>
+                            </div>
+                        </div>
+
+                        <!-- Order History -->
+                        <div class="admin-card">
+                            <div class="admin-card-header">
+                                <h5 class="admin-card-title"><i class="fas fa-shopping-bag text-info me-2"></i>Lịch Sử Đơn Hàng Gần Đây</h5>
+                                <span class="admin-status admin-status-info" id="khStatTongSoDon">0 đơn</span>
+                            </div>
+                            <div class="admin-card-body p-0">
+                                <div class="admin-table-wrapper">
+                                    <table class="admin-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Mã Đơn</th>
+                                                <th>Ngày Đặt</th>
+                                                <th>Tổng Tiền</th>
+                                                <th>Trạng Thái Đơn</th>
+                                                <th>Thanh Toán</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="khTbodyDonHang"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer admin-modal-footer">
+                    <button type="button" class="admin-btn admin-btn-secondary px-4" data-bs-dismiss="modal">Đóng</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+    /*<![CDATA[*/
+    function moModalSuaKhachHang(id, hoTen, username, sdt, trangThai) {
+        const formSua = document.getElementById('formSuaKhachHang');
+        if (formSua) {
+            formSua.action = '/admin/khach-hang/sua/' + id;
+            formSua.dataset.confirmed = "false";
+        }
+        
+        document.getElementById('suaEmail').value = username || '';
+        document.getElementById('suaHoTenKh').value = hoTen || '';
+        document.getElementById('suaSoDienThoaiKh').value = sdt || '';
+        
+        const selectTrangThai = document.getElementById('suaTrangThai');
+        if (selectTrangThai) {
+            if (trangThai === 'bi_khoa' || trangThai === 'LOCKED') {
+                selectTrangThai.value = 'bi_khoa';
+            } else {
+                selectTrangThai.value = 'hoat_dong';
+            }
+        }
+        
+        const modalSua = new bootstrap.Modal(document.getElementById('modalSuaKhachHang'));
+        modalSua.show();
+    }
+
+    function togglePasswordVisibility(inputId, btnElement) {
+        const input = document.getElementById(inputId);
+        if (!input) return;
+        const icon = btnElement.querySelector('i');
+        if (input.type === 'password') {
+            input.type = 'text';
+            if (icon) icon.className = 'fas fa-eye-slash';
+        } else {
+            input.type = 'password';
+            if (icon) icon.className = 'fas fa-eye';
+        }
+    }
+
+    window.xemChiTietKhachHang = function(id) {
+        if (!id) return;
+        const modalElement = document.getElementById('modalChiTietKhachHang');
+        if (!modalElement) return;
+
+        let modalKhachHang = bootstrap.Modal.getInstance(modalElement);
+        if (!modalKhachHang) {
+            modalKhachHang = new bootstrap.Modal(modalElement);
+        }
+        
+        document.getElementById('modalKhachHangLoading').classList.remove('d-none');
+        document.getElementById('modalKhachHangBody').classList.add('d-none');
+        modalKhachHang.show();
+
+        fetch('/admin/khach-hang/api/' + id)
+            .then(response => {
+                if (!response.ok) throw new Error('Network error');
+                return response.json();
+            })
+            .then(data => {
+                document.getElementById('khDetailMaKH').textContent = data.maKhachHang || '-';
+                document.getElementById('khDetailHoTen').textContent = data.hoTen || '-';
+                document.getElementById('khDetailUsername').textContent = data.username || '-';
+                document.getElementById('khDetailSDT').textContent = data.soDienThoai || '-';
+                document.getElementById('khDetailNgayTao').textContent = data.ngayTaoFormatted || '-';
+                
+                const badgeClass = data.trangThaiTaiKhoan === 'Hoạt động' ? 'admin-status-success' : 'admin-status-danger';
+                document.getElementById('khDetailTrangThai').innerHTML = `<span class="admin-status ${badgeClass}">${data.trangThaiTaiKhoan || '-'}</span>`;
+
+                document.getElementById('khStatDonHoanThanh').textContent = (data.tongDonHoanThanh || 0) + ' đơn';
+                document.getElementById('khStatTongChiTieu').textContent = data.tongChiTieuFormatted || '0 ₫';
+                document.getElementById('khStatTongSoDon').textContent = (data.tongSoDonHang || 0) + ' đơn';
+
+                const containerDiaChi = document.getElementById('khContainerDiaChi');
+                if (data.danhSachDiaChi && data.danhSachDiaChi.length > 0) {
+                    let html = '<div class="row g-2">';
+                    data.danhSachDiaChi.forEach(dc => {
+                        html += `
+                            <div class="col-12">
+                                <div class="p-2 border rounded bg-white">
+                                    <div class="fw-bold">${dc.hoTenNguoiNhan || ''} - ${dc.sdtNguoiNhan || ''} ${dc.laMacDinh ? '<span class="admin-status admin-status-info ms-1">Mặc định</span>' : ''}</div>
+                                    <div class="text-muted small">${dc.diaChiFull || ''}</div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    html += '</div>';
+                    containerDiaChi.innerHTML = html;
+                } else {
+                    containerDiaChi.innerHTML = '<div class="text-muted small italic">Chưa có sổ địa chỉ nào.</div>';
+                }
+
+                const tbody = document.getElementById('khTbodyDonHang');
+                if (data.danhSachDonHang && data.danhSachDonHang.length > 0) {
+                    let html = '';
+                    data.danhSachDonHang.forEach(dh => {
+                        html += `
+                            <tr>
+                                <td class="fw-bold"><a href="/admin/don-hang?keyword=${dh.maDonHang}">${dh.maDonHang}</a></td>
+                                <td>${dh.ngayTaoFormatted}</td>
+                                <td class="fw-bold text-danger">${dh.tongTienFormatted}</td>
+                                <td><span class="admin-status ${getBadgeOrder(dh.trangThaiDonRaw)}">${dh.trangThaiDonHang}</span></td>
+                                <td><span class="admin-status ${getBadgePay(dh.trangThaiThanhToanRaw)}">${formatTrangThaiThanhToan(dh.trangThaiThanhToanRaw)}</span></td>
+                            </tr>
+                        `;
+                    });
+                    tbody.innerHTML = html;
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-3">Chưa có đơn hàng nào.</td></tr>';
+                }
+
+                document.getElementById('modalKhachHangLoading').classList.add('d-none');
+                document.getElementById('modalKhachHangBody').classList.remove('d-none');
+            })
+            .catch(err => {
+                console.error(err);
+                document.getElementById('modalKhachHangLoading').innerHTML = '<div class="text-danger py-4"><i class="fas fa-exclamation-circle me-1"></i>Không thể tải dữ liệu khách hàng.</div>';
+            });
+    };
+
+    function getBadgeOrder(st) {
+        if (!st) return 'admin-status-neutral';
+        const s = st.toLowerCase();
+        if (s === 'hoan_thanh' || s === 'da_giao') return 'admin-status-success';
+        if (s === 'da_huy' || s === 'huy') return 'admin-status-danger';
+        if (s === 'dang_giao') return 'admin-status-info';
+        return 'admin-status-warning';
+    }
+
+    function formatTrangThaiThanhToan(st) {
+        if (!st) return 'Chưa thanh toán';
+        const s = st.toLowerCase();
+        if (s === 'da_thanh_toan' || s === 'paid') return 'Đã thanh toán';
+        if (s === 'cho_thanh_toan' || s === 'pending') return 'Chờ thanh toán';
+        return st;
+    }
+
+    function getBadgePay(st) {
+        if (!st) return 'admin-status-neutral';
+        const s = st.toLowerCase();
+        if (s === 'da_thanh_toan' || s === 'paid') return 'admin-status-success';
+        return 'admin-status-warning';
+    }
+
+    function filterCustomers() {
+        const query = document.getElementById('customerSearchInput').value.toLowerCase().trim();
+        const rows = document.querySelectorAll('#tbodyKhachHang tr');
+        let visibleCount = 0;
+        let hasRealRows = false;
+        
+        rows.forEach(row => {
+            if (row.cells.length === 1 && row.cells[0].colSpan > 1) return;
+            hasRealRows = true;
+            const text = row.textContent.toLowerCase();
+            if (text.includes(query)) {
+                row.style.display = '';
+                visibleCount++;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+        
+        const countBadge = document.getElementById('customerCountBadge');
+        if (countBadge) {
+            countBadge.textContent = hasRealRows ? `${visibleCount} khách hàng` : `0 khách hàng`;
+        }
+    }
+    /*]]>*/
+    </script>
+
+    <!-- Bootstrap 5.3.0 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Admin Layout JS -->
+    <script th:src="@{/js/admin-layout.js(v='2.4')}"></script>
+</body>
+</html>

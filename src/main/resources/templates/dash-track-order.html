@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link th:href="@{/images/favicon.png}" rel="shortcut icon">
+    <title>Smash VN - Theo Dõi Đơn Hàng</title>
+
+    <!--====== Phông chữ Google ======-->
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,600,700,800" rel="stylesheet">
+
+    <!--====== CSS Nhà cung cấp ======-->
+    <link rel="stylesheet" th:href="@{/css/vendor.css}">
+
+    <!--====== Tiện ích khoảng cách ======-->
+    <link rel="stylesheet" th:href="@{/css/utility.css}">
+
+    <!--====== Ứng dụng ======-->
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body class="config">
+    <div class="preloader is-active">
+        <div class="preloader__wrap">
+            <img class="preloader__img" th:src="@{/images/preloader.svg}" alt="Đang tải" width="64" height="64">
+        </div>
+    </div>
+
+    <!--====== Ứng dụng chính ======-->
+    <div id="app">
+
+        <!--====== Tiêu đề chính ======-->
+        <header class="header--style-1">
+            <div th:replace="~{layout/header :: header}"></div>
+        </header>
+        <!--====== End - Main Header ======-->
+
+        <!--====== App Content ======-->
+        <div class="app-content">
+
+            <!--====== Section 1 ======-->
+            <div class="u-s-p-y-60">
+                <!--====== Section Content ======-->
+                <div class="section__content">
+                    <div class="container">
+                        <div class="breadcrumb">
+                            <div class="breadcrumb__wrap">
+                                <ul class="breadcrumb__list">
+                                    <li class="has-separator">
+                                        <a th:href="@{/}">Trang chủ</a>
+                                    </li>
+                                    <li class="has-separator" th:if="${memberView == true}">
+                                        <a th:href="@{/user/dashboard}">Tài khoản của tôi</a>
+                                    </li>
+                                    <li class="is-marked">
+                                        <a th:href="@{/user/track-order}">Theo dõi đơn hàng</a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!--====== End - Section 1 ======-->
+
+            <!--====== Section 2 ======-->
+            <div class="u-s-p-b-60">
+                <!--====== Section Content ======-->
+                <div class="section__content">
+                    <div class="dash">
+                        <div class="container">
+                            <!-- Case A: Dashboard layout with Sidebar (Guest Account Session or Member) -->
+                            <div class="row" th:if="${hasSidebar == true}">
+                                <!-- Sidebar -->
+                                <div class="col-lg-3 col-md-12">
+                                    <div class="dash__box dash__box--bg-white dash__box--shadow u-s-m-b-30">
+                                        <div class="dash__pad-1">
+                                            <span class="dash__text u-s-m-b-16" th:text="'Hello, ' + (${kh != null} ? (${kh.hoKh} + ' ' + ${kh.tenKh}) : (${tenHienThi != null} ? ${tenHienThi} : 'Quý khách'))"></span>
+                                            
+                                            <!-- Member Links -->
+                                            <ul class="dash__f-list" th:if="${isGuestView != true}">
+                                                <li><a th:href="@{/user/dashboard}">Quản lý tài khoản</a></li>
+                                                <li><a th:href="@{/user/profile}">Thông tin cá nhân</a></li>
+                                                <li><a th:href="@{/user/address}">Địa chỉ</a></li>
+                                                <li><a class="dash-active" th:href="@{/user/track-order}">Theo dõi đơn hàng</a></li>
+                                                <li><a th:href="@{/user/my-order}">Đơn hàng</a></li>
+                                                <li><a th:href="@{/user/payment-option}">Các tùy chọn thanh toán</a></li>
+                                                <li><a th:href="@{/user/cancellation}">Chính sách hoàn trả hàng</a></li>
+                                                <li><a th:href="@{/user/notifications}">Thông báo</a></li>
+                                            </ul>
+                                            
+                                            <!-- Guest Links -->
+                                            <ul class="dash__f-list" th:if="${isGuestView == true}">
+                                                <li><a th:href="@{/}">Trang chủ cửa hàng</a></li>
+                                                <li><a class="dash-active" th:href="@{/user/track-order}">Theo dõi đơn hàng khác</a></li>
+                                                <li><a th:href="@{/user/thiet-lap-mat-khau}">Thiết lập mật khẩu</a></li>
+                                            </ul>
+                                            
+                                            <!-- Guest Info Notice Box -->
+                                            <div class="u-s-m-t-20" th:if="${isGuestView == true}" style="background-color: #fffaf0; border: 1px solid #feebc8; border-left: 4px solid #e02424; border-radius: 8px; padding: 14px; color: #742a2a; font-size: 13px; line-height: 1.5;">
+                                                <div style="font-weight: 700; margin-bottom: 6px; display: flex; align-items: center; color: #c53030;">
+                                                    <i class="fas fa-info-circle" style="margin-right: 6px;"></i> Thông báo
+                                                </div>
+                                                <span>Tài khoản của bạn vẫn là Guest. Vui lòng kiểm tra email để dùng mật khẩu tạm hoặc activation link khi bạn muốn kích hoạt tài khoản Member.</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Member Stats Widget -->
+                                    <div class="dash__box dash__box--bg-white dash__box--shadow dash__box--w" th:if="${isGuestView != true}">
+                                        <div class="dash__pad-1">
+                                            <ul class="dash__w-list">
+                                                <li>
+                                                    <div class="dash__w-wrap">
+                                                        <span class="dash__w-icon dash__w-icon-style-1"><i class="fas fa-cart-arrow-down"></i></span>
+                                                        <span class="dash__w-text" th:text="${orderPlaced}">0</span>
+                                                        <span class="dash__w-name">Đơn Hàng Đã Đặt</span>
+                                                    </div>
+                                                </li>
+                                                <li>
+                                                    <div class="dash__w-wrap">
+                                                        <span class="dash__w-icon dash__w-icon-style-2"><i class="fas fa-times"></i></span>
+                                                        <span class="dash__w-text" th:text="${cancelOrders}">0</span>
+                                                        <span class="dash__w-name">Đơn Hàng Đã Hủy</span>
+                                                    </div>
+                                                </li>
+                                                <li>
+                                                    <div class="dash__w-wrap">
+                                                        <span class="dash__w-icon dash__w-icon-style-3"><i class="far fa-heart"></i></span>
+                                                        <span class="dash__w-text" th:text="${wishlist}">0</span>
+                                                        <span class="dash__w-name">Yêu Thích</span>
+                                                    </div>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Main Form in Sidebar Layout -->
+                                <div class="col-lg-9 col-md-12">
+                                    <div class="dash__box dash__box--shadow dash__box--radius dash__box--bg-white">
+                                        <div class="dash__pad-2">
+                                            <h1 class="dash__h1 u-s-m-b-14">Theo Dõi Đơn Hàng</h1>
+                                            <span class="dash__text u-s-m-b-30">Để theo dõi đơn hàng, vui lòng nhập Mã đơn hàng và Email hoặc Số điện thoại đã sử dụng khi đặt hàng.</span>
+                                            
+                                            <!-- Alert error message -->
+                                            <div th:if="${loi != null}" class="alert alert-danger u-s-m-b-30" role="alert" style="color: #721c24; background-color: #f8d7da; border-color: #f5c6cb; padding: 12px 20px; border-radius: 8px; font-weight: 500;">
+                                                <i class="fas fa-exclamation-circle u-s-m-r-8"></i>
+                                                <span th:text="${loi}"></span>
+                                            </div>
+
+                                            <form class="dash-track-order" th:action="@{/user/track-order/submit}" method="post">
+                                                <div class="gl-inline">
+                                                    <div class="u-s-m-b-20" style="flex: 1;">
+                                                        <label class="gl-label" for="order-id">Mã Đơn Hàng *</label>
+                                                        <input class="input-text input-text--primary-style" name="orderId" type="text" id="order-id" required th:value="${orderId != null ? orderId : param.id}" placeholder="Xem mã trong email hoặc hóa đơn (Ví dụ: DHSVN20260626165646-C76AE4)">
+                                                    </div>
+                                                </div>
+
+                                                <!-- Verification contact info for all users -->
+                                                <div class="gl-inline">
+                                                    <div class="u-s-m-b-30" style="flex: 1;">
+                                                        <label class="gl-label" for="contact-info">Email hoặc Số điện thoại đặt hàng *</label>
+                                                        <input class="input-text input-text--primary-style" name="contactInfo" type="text" id="contact-info" required placeholder="Nhập email hoặc số điện thoại dùng khi đặt hàng">
+                                                    </div>
+                                                </div>
+
+                                                <button class="btn btn--e-brand-b-2" type="submit">THEO DÕI</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Case B: Public / Anonymous standalone layout (Centered, No Sidebar) -->
+                            <div class="row" th:if="${hasSidebar != true}">
+                                <div class="col-lg-8 col-md-10 offset-lg-2 offset-md-1">
+                                    <div class="dash__box dash__box--shadow dash__box--radius dash__box--bg-white">
+                                        <div class="dash__pad-2">
+                                            <h1 class="dash__h1 u-s-m-b-14">Theo Dõi Đơn Hàng</h1>
+                                            <span class="dash__text u-s-m-b-30">Để theo dõi đơn hàng, vui lòng nhập Mã đơn hàng và Email hoặc Số điện thoại đã sử dụng khi đặt hàng.</span>
+                                            
+                                            <!-- Alert error message -->
+                                            <div th:if="${loi != null}" class="alert alert-danger u-s-m-b-30" role="alert" style="color: #721c24; background-color: #f8d7da; border-color: #f5c6cb; padding: 12px 20px; border-radius: 8px; font-weight: 500;">
+                                                <i class="fas fa-exclamation-circle u-s-m-r-8"></i>
+                                                <span th:text="${loi}"></span>
+                                            </div>
+
+                                            <form class="dash-track-order" th:action="@{/user/track-order/submit}" method="post">
+                                                <div class="gl-inline">
+                                                    <div class="u-s-m-b-20" style="flex: 1;">
+                                                        <label class="gl-label" for="order-id-pub">Mã Đơn Hàng *</label>
+                                                        <input class="input-text input-text--primary-style" name="orderId" type="text" id="order-id-pub" required th:value="${orderId != null ? orderId : param.id}" placeholder="Xem mã trong email hoặc hóa đơn (Ví dụ: DHSVN20260626165646-C76AE4)">
+                                                    </div>
+                                                </div>
+
+                                                <!-- Verification contact info for all users -->
+                                                <div class="gl-inline">
+                                                    <div class="u-s-m-b-30" style="flex: 1;">
+                                                        <label class="gl-label" for="contact-info-pub">Email hoặc Số điện thoại đặt hàng *</label>
+                                                        <input class="input-text input-text--primary-style" name="contactInfo" type="text" id="contact-info-pub" required placeholder="Nhập email hoặc số điện thoại dùng khi đặt hàng">
+                                                    </div>
+                                                </div>
+
+                                                <button class="btn btn--e-brand-b-2" type="submit">THEO DÕI</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!--====== End - Section Content ======-->
+            </div>
+            <!--====== End - Section 2 ======-->
+        </div>
+        <!--====== End - App Content ======-->
+
+        <!--====== Main Footer ======-->
+        <footer>
+            <div th:replace="~{layout/footer :: footer}"></div>
+        </footer>
+    </div>
+    <!--====== End - Main App ======-->
+
+    <!--====== Google Analytics: change UA-XXXXX-Y to be your site's ID ======-->
+    <script>
+        window.ga = function() {
+            ga.q.push(arguments)
+        };
+        ga.q = [];
+        ga.l = +new Date;
+        ga('create', 'UA-XXXXX-Y', 'auto');
+        ga('send', 'pageview')
+    </script>
+    <script src="https://www.google-analytics.com/analytics.js" async defer></script>
+
+    <!--====== Vendor Js ======-->
+    <script th:src="@{/js/vendor.js}"></script>
+
+    <!--====== Plugin jQuery Shopnav ======-->
+    <script th:src="@{/js/jquery.shopnav.js}"></script>
+
+    <!--====== Ứng dụng ======-->
+    <script th:src="@{/js/app.js}"></script>
+
+    <!--====== Khi không hỗ trợ JavaScript ======-->
+    <noscript>
+        <div class="app-setting">
+            <div class="container">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="app-setting__wrap">
+                            <h1 class="app-setting__h1">Trình duyệt của bạn đã tắt JavaScript.</h1>
+                            <span class="app-setting__text">Vui lòng bật JavaScript trong cài đặt trình duyệt hoặc nâng cấp lên trình duyệt có hỗ trợ JavaScript.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </noscript>
+</body>
+</html>

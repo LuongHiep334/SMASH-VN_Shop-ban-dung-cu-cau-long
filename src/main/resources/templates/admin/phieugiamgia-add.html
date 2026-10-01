@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tạo Phiếu Giảm Giá Mới - Admin SmashVN</title>
+    
+    <!-- Bootstrap 5.3.0 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Admin Custom CSS -->
+    <link rel="stylesheet" th:href="@{/css/admin-custom.css(v='2.4')}">
+    <script th:src="@{/js/admin-layout-state.js(v='1.0')}"></script>
+    
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body class="admin-body">
+
+    <!-- Sidebar Layout Fragment -->
+    <div th:replace="~{admin/layout/sidebar :: sidebar('khuyenmai')}"></div>
+
+    <div class="admin-page">
+        <!-- Topbar Layout Fragment -->
+        <div th:replace="~{admin/layout/header :: header}"></div>
+
+        <!-- Main Content -->
+        <main class="admin-content">
+            <div class="container-fluid admin-container">
+
+                <!-- Page Header -->
+                <div class="admin-page-header">
+                    <div>
+                        <h1 class="admin-page-title"><i class="fas fa-ticket-alt text-brand me-2"></i>Tạo Phiếu Giảm Giá Mới</h1>
+                    </div>
+                    <div class="admin-toolbar">
+                        <a th:href="@{/admin/khuyen-mai}" class="admin-btn admin-btn-secondary">
+                            <i class="fas fa-arrow-left me-1"></i> Quay lại Khuyến Mãi
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Alert Messages -->
+                <div th:if="${loi != null}" class="alert alert-danger alert-dismissible fade show border-start border-danger border-4 rounded-3 shadow-sm mb-4" role="alert">
+                    <i class="fas fa-times-circle me-2"></i><span th:text="${loi}">Lỗi nhập liệu</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+
+                <!-- Form Card -->
+                <div class="row justify-content-center">
+                    <div class="col-lg-8">
+                        <div class="admin-card mb-5">
+                            <div class="admin-card-header">
+                                <h5 class="admin-card-title"><i class="fas fa-ticket-alt text-primary me-2"></i>Thông Tin Phiếu Giảm Giá</h5>
+                            </div>
+                            <div class="admin-card-body">
+                                <form th:action="@{/admin/khuyen-mai/phieu-giam-gia/them}" method="POST" id="voucherForm" onsubmit="return confirmSubmitForm(this, 'Bạn có chắc chắn muốn tạo mới phiếu giảm giá này không?');">
+                                    <div class="row g-4">
+                                        <!-- Voucher Code -->
+                                        <div class="col-md-12">
+                                            <label for="maPhieu" class="admin-form-label">Mã Phiếu Giảm Giá <span class="text-danger">*</span></label>
+                                            <input type="text" id="maPhieu" name="maPhieu" th:value="${maPhieu}" class="admin-form-control form-control font-monospace text-uppercase" placeholder="Ví dụ: WINTERSALE50" required style="letter-spacing: 0.1em;">
+                                            <div class="form-text">Mã viết liền không dấu, không khoảng cách, tự động in hoa.</div>
+                                            <input type="hidden" id="loaiGiamGia" name="loaiGiamGia" th:value="${loaiGiamGia != null ? loaiGiamGia : 'Giảm trực tiếp'}" />
+                                        </div>
+
+                                        <!-- Value -->
+                                        <div class="col-md-4">
+                                            <label for="giaTri" class="admin-form-label">Giá Trị Giảm <span class="text-danger">*</span></label>
+                                            <input type="number" id="giaTri" name="giaTri" th:value="${giaTri}" class="admin-form-control form-control" placeholder="Nhập số tiền hoặc %" min="1" step="any" required>
+                                            <div class="form-text text-danger fw-bold" id="giaTriHelper"><i class="fas fa-info-circle me-1"></i> Chọn đơn vị để xem giới hạn.</div>
+                                        </div>
+
+                                        <!-- Unit -->
+                                        <div class="col-md-4">
+                                            <label for="donVi" class="admin-form-label">Đơn Vị <span class="text-danger">*</span></label>
+                                            <select id="donVi" name="donVi" class="form-select admin-form-control" required>
+                                                <option value="VND" th:selected="${donVi == 'VNĐ' or donVi == 'VND'}">VNĐ</option>
+                                                <option value="%" th:selected="${donVi == '%'}">%</option>
+                                            </select>
+                                        </div>
+
+                                        <!-- Quantity -->
+                                        <div class="col-md-4">
+                                            <label for="soLuongConLai" class="admin-form-label">Số Lượng Phát Hành <span class="text-danger">*</span></label>
+                                            <input type="number" id="soLuongConLai" name="soLuongConLai" th:value="${soLuongConLai}" class="admin-form-control form-control" placeholder="Ví dụ: 100" min="1" required>
+                                        </div>
+
+                                        <!-- Min Order Value -->
+                                        <div class="col-md-6">
+                                            <label for="giaTriDonHangToiThieu" class="admin-form-label">Giá Trị Đơn Hàng Tối Thiểu <span class="text-danger">*</span></label>
+                                            <div class="input-group">
+                                                <input type="number" id="giaTriDonHangToiThieu" name="giaTriDonHangToiThieu" th:value="${giaTriDonHangToiThieu != null ? giaTriDonHangToiThieu : 0}" class="admin-form-control form-control" min="0" required>
+                                                <span class="input-group-text bg-light">VNĐ</span>
+                                            </div>
+                                            <div class="form-text">Áp dụng khi đơn hàng đạt hạn mức (0 = không giới hạn).</div>
+                                        </div>
+
+                                        <!-- Max Discount Cap -->
+                                        <div class="col-md-6" id="capGroup">
+                                            <label for="giaTriGiamToiDa" class="admin-form-label">
+                                                Giảm Tối Đa
+                                                <span class="admin-status admin-status-info ms-1">Chỉ cho %</span>
+                                            </label>
+                                            <div class="input-group">
+                                                <input type="number" id="giaTriGiamToiDa" name="giaTriGiamToiDa" th:value="${giaTriGiamToiDa}" class="admin-form-control form-control" min="1000" step="1000" placeholder="Số tiền tối đa">
+                                                <span class="input-group-text bg-light">VNĐ</span>
+                                            </div>
+                                            <div class="form-text">Số tiền giảm tối đa được áp dụng. Tối đa 100,000,000 VNĐ.</div>
+                                        </div>
+
+                                        <!-- Dates -->
+                                        <div class="col-md-6">
+                                            <label for="ngayBatDau" class="admin-form-label">Hiệu Lực Từ Ngày <span class="text-danger">*</span></label>
+                                            <input type="datetime-local" id="ngayBatDau" name="ngayBatDau" th:value="${ngayBatDau}" class="admin-form-control form-control" required>
+                                            <div class="form-text">Thời gian bắt đầu áp dụng voucher (không được trong quá khứ).</div>
+                                        </div>
+
+                                        <div class="col-md-6">
+                                            <label for="ngayKetThuc" class="admin-form-label">Hết Hạn Vào Ngày <span class="text-danger">*</span></label>
+                                            <input type="datetime-local" id="ngayKetThuc" name="ngayKetThuc" th:value="${ngayKetThuc}" class="admin-form-control form-control" required>
+                                            <div class="form-text">Thời điểm hết hạn của voucher (phải sau ngày bắt đầu).</div>
+                                        </div>
+
+                                        <div class="col-12 mt-4 pt-3 border-top d-flex justify-content-end gap-2">
+                                            <a th:href="@{/admin/khuyen-mai}" class="admin-btn admin-btn-secondary"><i class="fas fa-times me-1"></i> Hủy bỏ</a>
+                                            <button type="submit" class="admin-btn admin-btn-primary"><i class="fas fa-save me-1"></i> Tạo Phiếu Giảm Giá</button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const loaiGiamGiaInput = document.getElementById('loaiGiamGia');
+        const donViSelect = document.getElementById('donVi');
+        const maPhieuInput = document.getElementById('maPhieu');
+        const voucherForm = document.getElementById('voucherForm');
+        const capGroup = document.getElementById('capGroup');
+        const capInput = document.getElementById('giaTriGiamToiDa');
+
+        if (maPhieuInput) {
+            maPhieuInput.addEventListener('input', function() {
+                this.value = this.value.toUpperCase().replace(/[^A-Z0-9_]/g, '');
+            });
+        }
+
+        function updateCapVisibility() {
+            if (!donViSelect || !capGroup || !capInput) return;
+            const isPercent = donViSelect.value === '%';
+            if (isPercent) {
+                capGroup.style.display = '';
+                capInput.disabled = false;
+            } else {
+                capGroup.style.display = 'none';
+                capInput.disabled = true;
+                capInput.value = '';
+            }
+        }
+
+        function syncLoaiGiamGia() {
+            if (!donViSelect) return;
+            const giaTriHelper = document.getElementById('giaTriHelper');
+            if (donViSelect.value === 'VND') {
+                if (loaiGiamGiaInput) loaiGiamGiaInput.value = 'Giảm trực tiếp';
+                if (giaTriHelper) {
+                    giaTriHelper.innerHTML = '<i class="fas fa-info-circle me-1"></i> VNĐ: từ 1,000 VNĐ đến 100,000,000 VNĐ. Chỉ nhập số nguyên thô.';
+                }
+            } else if (donViSelect.value === '%') {
+                if (loaiGiamGiaInput) loaiGiamGiaInput.value = 'Giảm phần trăm';
+                if (giaTriHelper) {
+                    giaTriHelper.innerHTML = '<i class="fas fa-info-circle me-1"></i> %: từ 1% đến 100%. Chỉ nhập số nguyên thô.';
+                }
+            }
+            updateCapVisibility();
+        }
+
+        if (donViSelect) {
+            donViSelect.addEventListener('change', syncLoaiGiamGia);
+            syncLoaiGiamGia();
+        }
+
+        if (voucherForm) {
+            voucherForm.addEventListener('submit', function(e) {
+                const maPhieu = maPhieuInput.value.trim();
+                const donVi = donViSelect.value;
+                const ngayBatDauStr = document.getElementById('ngayBatDau').value;
+                const ngayKetThucStr = document.getElementById('ngayKetThuc').value;
+
+                if (!/^[A-Z0-9_]{2,50}$/.test(maPhieu)) {
+                    e.preventDefault();
+                    showToast('Mã phiếu chỉ được chứa chữ cái in hoa, số và dấu gạch dưới (từ 2 đến 50 ký tự)!', 'warning');
+                    maPhieuInput.focus();
+                    return;
+                }
+
+                const giaTriRaw = document.getElementById('giaTri').value.trim();
+                if (giaTriRaw.includes('.') || giaTriRaw.includes(',')) {
+                    e.preventDefault();
+                    showToast('Giá trị giảm phải là số nguyên, không được là số thập phân!', 'warning');
+                    document.getElementById('giaTri').focus();
+                    return;
+                }
+                const giaTri = parseFloat(giaTriRaw);
+                if (isNaN(giaTri) || giaTri <= 0) {
+                    e.preventDefault();
+                    showToast('Giá trị giảm phải lớn hơn 0!', 'warning');
+                    document.getElementById('giaTri').focus();
+                    return;
+                }
+                if (donVi === '%' && giaTri > 100) {
+                    e.preventDefault();
+                    showToast('Giá trị giảm % không được vượt quá 100%!', 'warning');
+                    document.getElementById('giaTri').focus();
+                    return;
+                }
+                if (donVi === 'VND' && giaTri > 100000000) {
+                    e.preventDefault();
+                    showToast('Giá trị giảm tiền không được vượt quá 100,000,000 VNĐ!', 'warning');
+                    document.getElementById('giaTri').focus();
+                    return;
+                }
+
+                const soLuongConLaiRaw = document.getElementById('soLuongConLai').value.trim();
+                if (soLuongConLaiRaw.includes('.') || soLuongConLaiRaw.includes(',')) {
+                    e.preventDefault();
+                    showToast('Số lượng voucher phải là số nguyên, không được là số thập phân!', 'warning');
+                    document.getElementById('soLuongConLai').focus();
+                    return;
+                }
+                const soLuongConLai = parseFloat(soLuongConLaiRaw);
+                if (isNaN(soLuongConLai) || soLuongConLai <= 0 || soLuongConLai > 1000000) {
+                    e.preventDefault();
+                    showToast('Số lượng phát hành phải lớn hơn 0 và tối đa 1,000,000!', 'warning');
+                    document.getElementById('soLuongConLai').focus();
+                    return;
+                }
+
+                if (!ngayBatDauStr || !ngayKetThucStr) {
+                    e.preventDefault();
+                    showToast('Vui lòng chọn đầy đủ thời gian hiệu lực và ngày hết hạn!', 'warning');
+                    return;
+                }
+
+                const ngayBatDau = new Date(ngayBatDauStr);
+                const ngayKetThuc = new Date(ngayKetThucStr);
+                const now = new Date(Date.now() - 60000); // 1 phút buffer
+
+                if (ngayBatDau < now) {
+                    e.preventDefault();
+                    showToast('Thời gian bắt đầu không được nằm trong quá khứ!', 'warning');
+                    document.getElementById('ngayBatDau').focus();
+                    return;
+                }
+
+                if (ngayBatDau >= ngayKetThuc) {
+                    e.preventDefault();
+                    showToast('Ngày bắt đầu phải xảy ra trước ngày kết thúc!', 'warning');
+                    document.getElementById('ngayBatDau').focus();
+                    return;
+                }
+            });
+        }
+    });
+    </script>
+
+    <!-- Bootstrap 5.3.0 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Admin Layout JS -->
+    <script th:src="@{/js/admin-layout.js(v='2.4')}"></script>
+</body>
+</html>

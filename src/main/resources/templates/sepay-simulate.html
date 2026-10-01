@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thanh Toán Qua Chuyển Khoản SePay - SmashVN</title>
+    
+    <!-- Meta tags for CSRF security -->
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script th:src="@{/js/notifications.js(v='1.0.0')}"></script>
+    
+    <style>
+        :root {
+            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            --glass-bg: rgba(30, 41, 59, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --brand-orange: #ff4500;
+            --brand-glow: rgba(255, 69, 0, 0.35);
+        }
+        
+        body {
+            background: var(--bg-gradient);
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            color: #f8fafc;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .simulator-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1.5px solid var(--glass-border);
+            border-radius: 24px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3), 0 0 50px rgba(99, 102, 241, 0.05);
+            max-width: 850px;
+            width: 100%;
+            overflow: hidden;
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .accent-bar {
+            height: 6px;
+            background: linear-gradient(90deg, #ff4500 0%, #6366f1 100%);
+        }
+
+        .header-section {
+            padding: 30px 40px 20px;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .gateway-logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            color: #f8fafc;
+        }
+
+        .logo-se { color: var(--brand-orange); }
+        .logo-pay { color: #6366f1; }
+
+        .simulator-badge {
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #f87171;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .main-content {
+            padding: 40px;
+        }
+
+        .qr-section {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1.5px dashed var(--glass-border);
+            border-radius: 18px;
+            padding: 25px;
+            text-align: center;
+        }
+
+        .qr-img {
+            width: 210px;
+            height: 210px;
+            object-fit: contain;
+            border-radius: 12px;
+            background: #ffffff;
+            padding: 8px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+        }
+
+        .credential-item {
+            background: rgba(15, 23, 42, 0.4);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 12px 18px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .credential-label {
+            font-size: 0.82rem;
+            color: #94a3b8;
+            font-weight: 500;
+        }
+
+        .credential-value {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #f1f5f9;
+        }
+
+        .amount-glow {
+            font-size: 1.55rem;
+            font-weight: 800;
+            color: var(--brand-orange);
+            text-shadow: 0 0 20px var(--brand-glow);
+        }
+
+        .btn-simulate-success {
+            background: var(--brand-orange);
+            border: none;
+            color: #ffffff;
+            font-weight: 700;
+            padding: 14px 28px;
+            border-radius: 14px;
+            box-shadow: 0 4px 15px var(--brand-glow);
+            transition: all 0.2s ease;
+        }
+
+        .btn-simulate-success:hover {
+            background: #ff571a;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px var(--brand-glow);
+        }
+
+        .btn-simulate-cancel {
+            background: transparent;
+            border: 1.5px solid var(--glass-border);
+            color: #94a3b8;
+            font-weight: 600;
+            padding: 14px 28px;
+            border-radius: 14px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-simulate-cancel:hover {
+            border-color: #ef4444;
+            color: #ef4444;
+            background: rgba(239, 68, 68, 0.05);
+        }
+
+        .status-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.9);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            border-radius: 24px;
+        }
+
+        .spinner-glow {
+            width: 3rem;
+            height: 3rem;
+            color: var(--brand-orange) !important;
+        }
+    </style>
+</head>
+<body>
+
+<div class="simulator-card position-relative">
+    <div class="accent-bar"></div>
+    
+    <!-- Status Loading Overlay -->
+    <div class="status-overlay" id="statusOverlay">
+        <div class="spinner-border spinner-glow mb-3" role="status">
+            <span class="visually-hidden">Đang tải...</span>
+        </div>
+        <h4 class="fw-bold text-white mb-1" id="overlayTitle">Đang kiểm tra giao dịch...</h4>
+        <p class="text-muted" id="overlayMsg">Hệ thống đang xác nhận thông tin thanh toán từ ngân hàng.</p>
+    </div>
+
+    <!-- Header -->
+    <div class="header-section d-flex justify-content-between align-items-center">
+        <div class="gateway-logo">
+            <i class="fas fa-university me-2 text-brand"></i>
+            <span class="logo-se">Se</span><span class="logo-pay">Pay</span>
+            <span class="text-white opacity-50 fw-light" style="font-size: 1rem;">| Chuyển khoản ngân hàng</span>
+        </div>
+    </div>
+
+    <div class="main-content" th:if="${error == null}">
+        <div class="row g-5">
+            <!-- Left Side: QR Code -->
+            <div class="col-lg-5 col-md-12 text-center d-flex flex-column justify-content-center">
+                <div class="qr-section">
+                    <img th:src="@{'https://qr.sepay.vn/img?acc=' + ${sepayBankAccount} + '&bank=' + ${sepayBankName} + '&amount=' + ${order.tongTien.longValue()} + '&des=' + ${(sepayMemoPrefix != null and !#strings.isEmpty(sepayMemoPrefix)) ? (sepayMemoPrefix + ' ' + order.maDonHang) : order.maDonHang}}" 
+                         alt="Mã QR Chuyển khoản" class="qr-img mb-3">
+                    <div style="font-size: 0.85rem; color: #94a3b8;" class="mb-2">
+                        <i class="fas fa-qrcode me-1"></i> Quét để tự động điền thông tin chuyển khoản
+                    </div>
+                    <div class="d-flex align-items-center justify-content-center gap-2" style="font-size: 0.88rem; color: #38bdf8; font-weight: 500;">
+                        <div class="spinner-grow spinner-grow-sm text-info" role="status" style="animation-duration: 1.2s; width: 0.8rem; height: 0.8rem;"></div>
+                        <span>Đang chờ bạn quét mã thanh toán...</span>
+                    </div>
+                    <div id="paymentCountdownBox" class="mt-3 p-2 rounded" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3);">
+                        <small style="color: #f87171;" class="fw-bold">
+                            <i class="fas fa-clock me-1"></i>Thời gian chờ thanh toán: <span id="timerCountdown">03:00</span>
+                        </small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Side: Order Info & Bank Credentials -->
+            <div class="col-lg-7 col-md-12 d-flex flex-column justify-content-between">
+                <div>
+                    <h5 class="fw-bold mb-4" style="color: #6366f1;">
+                        <i class="fas fa-file-invoice-dollar me-2"></i>THÔNG TIN THANH TOÁN GIAO DỊCH
+                    </h5>
+
+                    <div class="credential-item">
+                        <span class="credential-label">MÃ ĐƠN HÀNG</span>
+                        <span class="credential-value" th:text="${order.maDonHang}">DH123</span>
+                    </div>
+
+                    <div class="credential-item">
+                        <span class="credential-label">SỐ TIỀN THANH TOÁN</span>
+                        <span class="credential-value amount-glow" th:text="${#numbers.formatDecimal(order.tongTien, 0, 'COMMA', 0, 'POINT')} + ' đ'">100,000 đ</span>
+                    </div>
+
+                    <div class="credential-item">
+                        <span class="credential-label">TÊN NGÂN HÀNG HƯỞNG</span>
+                        <span class="credential-value" th:text="${sepayBankName}">Vietcombank</span>
+                    </div>
+
+                    <div class="credential-item">
+                        <span class="credential-label">TÊN TÀI KHOẢN HƯỞNG</span>
+                        <span class="credential-value text-uppercase">SMASHVN SHOP</span>
+                    </div>
+
+                    <div class="credential-item">
+                        <span class="credential-label">SỐ TÀI KHOẢN HƯỞNG</span>
+                        <span class="credential-value" th:text="${sepayBankAccount}">...</span>
+                    </div>
+
+                    <div class="credential-item" style="border-color: rgba(255, 69, 0, 0.25);">
+                        <span class="credential-label">NỘI DUNG CHUYỂN KHOẢN</span>
+                        <span class="credential-value" 
+                              th:text="${(sepayMemoPrefix != null and !#strings.isEmpty(sepayMemoPrefix)) ? (sepayMemoPrefix + ' ' + order.maDonHang) : order.maDonHang}" 
+                              style="color: var(--brand-orange); font-family: monospace; font-size: 1.05rem;">DH123</span>
+                    </div>
+                </div>
+
+                <!-- Navigation Buttons -->
+                <div class="d-flex flex-column flex-sm-row gap-3 mt-4">
+                    <button class="btn btn-simulate-cancel w-100" id="btnSimulateCancel">
+                        <i class="fas fa-arrow-left me-2"></i>Quay lại đơn hàng
+                    </button>
+                    <button class="btn btn-simulate-success w-100" id="btnSimulateSuccess">
+                        <i class="fas fa-check-circle me-2"></i>Mô phỏng thanh toán thành công
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Error Block -->
+    <div class="main-content text-center py-5" th:if="${error != null}">
+        <i class="fas fa-exclamation-circle text-danger fa-4x mb-4"></i>
+        <h3 class="fw-bold text-white mb-2">Lỗi Mô Phỏng</h3>
+        <p class="text-muted mb-4" th:text="${error}">Không tìm thấy đơn hàng cần thanh toán.</p>
+        <a href="/" class="btn btn-simulate-cancel px-5">Quay Lại Cửa Hàng</a>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script th:inline="javascript">
+    /*[<![CDATA[*/
+    const orderCode = /*[[${order != null ? order.maDonHang : ''}]]*/ '';
+    const amountVal = /*[[${order != null ? order.tongTien : 0}]]*/ 0;
+    const isGuestUser = /*[[${isGuest}]]*/ false;
+    const orderIdVal = /*[[${order != null ? order.id : 0}]]*/ 0;
+    /*]]>*/
+
+    // Force page reload when loaded from cache/history (e.g. Back button)
+    window.addEventListener('pageshow', function(event) {
+        if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
+            window.location.reload();
+        }
+    });
+
+    $(document).ready(function() {
+        // CSRF Setup
+        const token = $("meta[name='_csrf']").attr("content");
+        const header = $("meta[name='_csrf_header']").attr("content");
+        $.ajaxSetup({
+            beforeSend: function(xhr) {
+                if (header && token) {
+                    xhr.setRequestHeader(header, token);
+                }
+            }
+        });
+
+        // Trigger Success Simulation
+        $('#btnSimulateSuccess').on('click', function() {
+            const btn = $(this);
+            btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i>Đang xử lý...');
+            $.ajax({
+                url: '/payment/sepay/simulate/success',
+                type: 'POST',
+                data: {
+                    maDonHang: orderCode,
+                    amount: amountVal
+                },
+                success: function(response) {
+                    if (response.success) {
+                    } else {
+                        showToast('Mô phỏng thất bại: ' + response.message, 'error');
+                        btn.prop('disabled', false).html('<i class="fas fa-check-circle me-2"></i>Mô phỏng thanh toán thành công');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    showToast('Lỗi kết nối: ' + error, 'error');
+                    btn.prop('disabled', false).html('<i class="fas fa-check-circle me-2"></i>Mô phỏng thanh toán thành công');
+                }
+            });
+        });
+
+        // Trigger Cancel/Failure Simulation
+        $('#btnSimulateCancel').on('click', async function() {
+            if (await SmashNotify.confirm({
+                title: 'Hủy thanh toán?',
+                message: 'Đơn hàng của bạn sẽ được giữ ở trạng thái Chờ thanh toán.'
+            })) {
+                if (isGuestUser && orderIdVal) {
+                    window.location.href = '/user/manage-order/' + orderIdVal;
+                } else {
+                    window.location.href = '/user/my-order';
+                }
+            }
+        });
+
+        // Start 3-minute (180 seconds) countdown timer & polling for payment status
+        let pollInterval = null;
+        let countdownTimer = null;
+        let pollAttempts = 0;
+        const MAX_POLL_ATTEMPTS = 90; // 90 attempts * 2 seconds = 180 seconds
+        let secondsLeft = 180;
+
+        function stopPolling() {
+            if (pollInterval) {
+                clearInterval(pollInterval);
+                pollInterval = null;
+            }
+            if (countdownTimer) {
+                clearInterval(countdownTimer);
+                countdownTimer = null;
+            }
+        }
+
+        function handlePaymentExpired() {
+            stopPolling();
+            $('#timerCountdown').text('00:00');
+            $('#overlayTitle').text('Phiên thanh toán hết hạn');
+            $('#overlayMsg').text('Đã hết thời gian chờ thanh toán. Phiên thanh toán đã bị hủy. Đang quay lại giỏ hàng...');
+            $('#statusOverlay').css('display', 'flex');
+            setTimeout(function() {
+                window.location.href = '/gio-hang';
+            }, 2500);
+        }
+
+        function startTimer() {
+            countdownTimer = setInterval(function() {
+                secondsLeft--;
+                if (secondsLeft <= 0) {
+                    handlePaymentExpired();
+                    return;
+                }
+                const m = Math.floor(secondsLeft / 60);
+                const s = secondsLeft % 60;
+                const formattedTime = (m < 10 ? '0' + m : m) + ':' + (s < 10 ? '0' + s : s);
+                $('#timerCountdown').text(formattedTime);
+            }, 1000);
+        }
+
+        if (orderCode) {
+            stopPolling();
+            startTimer();
+
+            pollInterval = setInterval(function() {
+                pollAttempts++;
+                if (pollAttempts > MAX_POLL_ATTEMPTS) {
+                    handlePaymentExpired();
+                    return;
+                }
+
+                $.ajax({
+                    url: '/api/payment/sepay/query/' + encodeURIComponent(orderCode),
+                    type: 'GET',
+                    success: function(response) {
+                        window.simPollConsecutiveErrors = 0;
+                        if (response && response.success && (response.paymentStatus === 'paid' || response.paymentStatus === 'DA_THANH_TOAN')) {
+                            stopPolling();
+                            $('#overlayTitle').text('Thanh toán thành công!');
+                            $('#overlayMsg').text('Hệ thống đã nhận được thanh toán. Đang chuyển hướng...');
+                            $('#statusOverlay').css('display', 'flex');
+                            setTimeout(function() {
+                                if (isGuestUser || response.isGuest) {
+                                    const targetOrderId = response.orderId || orderIdVal;
+                                    window.location.href = '/user/manage-order/' + targetOrderId + '?payment=success';
+                                } else {
+                                    window.location.href = '/user/my-order?payment=success';
+                                }
+                            }, 1000);
+                        } else if (response && response.paymentStatus === 'expired') {
+                            handlePaymentExpired();
+                        } else if (response && response.success && response.paymentStatus === 'pending') {
+                            // Continue polling until payment arrives or 180s timeout triggers.
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        window.simPollConsecutiveErrors = (window.simPollConsecutiveErrors || 0) + 1;
+                        console.warn('Error polling payment status count:', window.simPollConsecutiveErrors);
+                        if (window.simPollConsecutiveErrors >= 5) {
+                            stopPolling();
+                            console.error('Stopped simulation payment polling after 5 consecutive network errors.');
+                        }
+                    }
+                });
+            }, 2000);
+        }
+
+        $('#btnSimulateCancel').off('click').on('click', function() {
+            stopPolling();
+            window.location.href = '/gio-hang';
+        });
+
+        $(window).on('beforeunload', function() {
+            stopPolling();
+        });
+    });
+</script>
+</body>
+</html>

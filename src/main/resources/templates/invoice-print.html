@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="'Hóa đơn ' + ${order.maDonHang}">Hóa đơn</title>
+    <!-- Use standard Outfit font for a premium look -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: #f8fafc;
+            color: #1e293b;
+            margin: 0;
+            padding: 40px 20px;
+        }
+        .invoice-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            padding: 40px;
+            border: 1px solid #e2e8f0;
+        }
+        .no-print-bar {
+            max-width: 800px;
+            margin: 0 auto 20px auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+        }
+        .btn-secondary {
+            background-color: #f1f5f9;
+            color: #475569;
+        }
+        .btn-secondary:hover {
+            background-color: #e2e8f0;
+        }
+        .btn-primary {
+            background-color: #e02424;
+            color: #ffffff;
+        }
+        .btn-primary:hover {
+            background-color: #c81e1e;
+        }
+        .invoice-header {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 2px solid #f1f5f9;
+            padding-bottom: 30px;
+            margin-bottom: 30px;
+        }
+        .shop-info h2 {
+            margin: 0 0 6px 0;
+            color: #e02424;
+            font-weight: 800;
+            font-size: 24px;
+        }
+        .shop-info p {
+            margin: 3px 0;
+            font-size: 13px;
+            color: #64748b;
+        }
+        .invoice-title-block {
+            text-align: right;
+        }
+        .invoice-title-block h1 {
+            margin: 0 0 8px 0;
+            font-size: 22px;
+            font-weight: 800;
+            color: #0f172a;
+        }
+        .invoice-title-block p {
+            margin: 4px 0;
+            font-size: 14px;
+            color: #334155;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        .info-card {
+            background-color: #f8fafc;
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #f1f5f9;
+        }
+        .info-card h3 {
+            margin: 0 0 12px 0;
+            font-size: 14px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #64748b;
+            letter-spacing: 0.5px;
+        }
+        .info-card p {
+            margin: 6px 0;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .product-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+        .product-table th {
+            background-color: #f8fafc;
+            color: #475569;
+            font-weight: 700;
+            text-align: left;
+            padding: 12px 16px;
+            font-size: 13px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        .product-table td {
+            padding: 16px;
+            font-size: 14px;
+            border-bottom: 1px solid #f1f5f9;
+            vertical-align: middle;
+        }
+        .product-img {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+        }
+        .total-section {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 40px;
+        }
+        .total-box {
+            width: 320px;
+        }
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 14px;
+            color: #475569;
+        }
+        .total-row.grand-total {
+            border-top: 2px solid #e2e8f0;
+            margin-top: 8px;
+            padding: 16px 0 0 0;
+            font-size: 18px;
+            font-weight: 800;
+            color: #e02424;
+        }
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 9999px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .badge-success {
+            background-color: #dcfce7;
+            color: #15803d;
+        }
+        .badge-warning {
+            background-color: #fef9c3;
+            color: #a16207;
+        }
+        .invoice-footer {
+            text-align: center;
+            border-top: 1px dashed #e2e8f0;
+            padding-top: 30px;
+            font-size: 13px;
+            color: #94a3b8;
+            line-height: 1.5;
+        }
+        @media screen {
+            .product-table-wrap {
+                overflow-x: auto;
+                margin-bottom: 30px;
+            }
+            .product-table-wrap .product-table {
+                margin-bottom: 0;
+            }
+        }
+        @media screen and (max-width: 767px) {
+            body { padding: 20px 12px; }
+            .invoice-container { padding: 20px 16px; }
+            .no-print-bar { flex-wrap: wrap; gap: 12px; }
+            .no-print-bar .btn { justify-content: center; }
+            .invoice-header { flex-direction: column; gap: 20px; }
+            .invoice-title-block { text-align: left; }
+            .info-grid { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+            .info-card { padding: 16px; min-width: 0; overflow-wrap: anywhere; }
+            .invoice-title-block p { overflow-wrap: anywhere; }
+            .product-table { min-width: 580px; }
+            .total-box { width: 100%; max-width: 320px; }
+            .total-row { gap: 12px; flex-wrap: wrap; }
+            .total-row > span:last-child { margin-left: auto; text-align: right; }
+        }
+        @media print {
+            body {
+                background-color: #ffffff;
+                padding: 0;
+            }
+            .invoice-container {
+                box-shadow: none;
+                border: none;
+                padding: 0;
+                max-width: 100%;
+            }
+            .no-print {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="no-print-bar no-print">
+        <a th:href="@{/user/manage-order(id=${order.id})}" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Quay lại chi tiết đơn hàng</a>
+        <button onclick="window.print()" class="btn btn-primary"><i class="fas fa-print"></i> In hóa đơn</button>
+    </div>
+
+    <div class="invoice-container">
+        <div class="invoice-header">
+            <div class="shop-info">
+                <h2>SMASH VN SHOP</h2>
+                <p><i class="fas fa-map-marker-alt me-1"></i> <span th:text="${shopAddress}">Địa chỉ kho</span></p>
+                <p><i class="fas fa-phone me-1"></i> Hotline: 0987.654.321</p>
+                <p><i class="fas fa-globe me-1"></i> Website: www.smashvn.com</p>
+            </div>
+            <div class="invoice-title-block">
+                <h1>HÓA ĐƠN BÁN HÀNG ONLINE</h1>
+                <p><strong>Mã đơn hàng:</strong> <span th:text="${order.maDonHang}">DHSVN...</span></p>
+                <p><strong>Mã nội bộ:</strong> <span th:text="'#' + ${order.id}">#123</span></p>
+                <p><strong>Ngày đặt hàng:</strong> <span th:text="${#temporals.format(order.ngayDat, 'dd/MM/yyyy HH:mm:ss')}">01/01/2026</span></p>
+            </div>
+        </div>
+
+        <div class="info-grid">
+            <div class="info-card">
+                <h3>Thông tin khách hàng &amp; Vận chuyển</h3>
+                <p><strong>Họ tên:</strong> <span th:text="${order.diaChiGiao.hoTen}">Nguyễn Văn A</span></p>
+                <p><strong>Số điện thoại:</strong> <span th:text="${order.diaChiGiao.soDienThoai}">0987654321</span></p>
+                <p><strong>Địa chỉ nhận:</strong> <span th:text="${order.diaChiGiao.diaChiDayDu}">123 Đường ABC...</span></p>
+                <p><strong>Đơn vị vận chuyển:</strong> <span th:text="${order.phuongThucVanChuyen}">GHN</span></p>
+            </div>
+            <div class="info-card">
+                <h3>Thông tin thanh toán</h3>
+                <p><strong>Phương thức:</strong> <span th:text="${order.phuongThucThanhToan}">SePay</span></p>
+                <p><strong>Trạng thái:</strong> 
+                    <span class="badge" th:classappend="${order.trangThaiThanhToan == 'DA_THANH_TOAN' ? 'badge-success' : 'badge-warning'}" th:text="${order.trangThaiThanhToan == 'DA_THANH_TOAN' ? 'Đã thanh toán' : 'Chờ thanh toán'}">Đã thanh toán</span>
+                </p>
+                <p th:if="${order.maGiaoDich != null and !#strings.isEmpty(order.maGiaoDich)}">
+                    <strong>Mã giao dịch:</strong> <code th:text="${order.maGiaoDich}">SIM_0C3...</code>
+                </p>
+                <p th:if="${order.transactionId != null and !#strings.isEmpty(order.transactionId)}">
+                    <strong>Transaction ID:</strong> <code th:text="${order.transactionId}">SIM_0C3...</code>
+                </p>
+            </div>
+        </div>
+
+        <div class="product-table-wrap" role="region" aria-label="Sản phẩm trong hóa đơn" tabindex="0">
+        <table class="product-table">
+            <thead>
+                <tr>
+                    <th style="width: 70px; text-align: center;">Ảnh</th>
+                    <th>Sản phẩm</th>
+                    <th style="width: 60px; text-align: center;">SL</th>
+                    <th style="text-align: right; width: 120px;">Đơn giá</th>
+                    <th style="text-align: right; width: 140px;">Thành tiền</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="item : ${orderItems}">
+                    <td style="text-align: center;">
+                        <img th:src="@{${item.sanPhamChiTiet.hinhAnhUrl}}" alt="Hình ảnh sản phẩm" class="product-img" onerror="this.onerror=null; this.src='/images/placeholder.png';">
+                    </td>
+                    <td>
+                        <strong th:text="${item.tenSanPhamSnapshot}">Tên sản phẩm</strong>
+                        <div th:if="${item.thuocTinhSnapshot != null and item.thuocTinhSnapshot != 'Mặc định' and !#strings.isEmpty(item.thuocTinhSnapshot)}">
+                            <small class="text-muted" th:text="${#strings.replace(item.thuocTinhSnapshot, 'Mức cảng:', 'Sức căng khuyến nghị:')}">Phân loại</small>
+                        </div>
+                    </td>
+                    <td style="text-align: center;" th:text="${item.soLuong}">1</td>
+                    <td style="text-align: right;" th:text="${#numbers.formatDecimal(item.donGia, 0, 'COMMA', 0, 'POINT')} + ' đ'">1.000 đ</td>
+                    <td style="text-align: right; font-weight: 600;" th:text="${#numbers.formatDecimal(item.donGia * item.soLuong, 0, 'COMMA', 0, 'POINT')} + ' đ'">1.000 đ</td>
+                </tr>
+            </tbody>
+        </table>
+        </div>
+
+        <div class="total-section">
+            <div class="total-box">
+                <div class="total-row">
+                    <span>Tạm tính:</span>
+                    <span th:text="${#numbers.formatDecimal(order.tongTien - order.phiVanChuyen + order.soTienGiamVoucher, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</span>
+                </div>
+                <div class="total-row" th:if="${order.soTienGiamVoucher > 0}">
+                    <span>Voucher giảm giá:</span>
+                    <span style="color: #10b981;" th:text="'-' + ${#numbers.formatDecimal(order.soTienGiamVoucher, 0, 'COMMA', 0, 'POINT')} + ' đ'">-0 đ</span>
+                </div>
+                <div class="total-row">
+                    <span>Phí vận chuyển:</span>
+                    <span th:text="${#numbers.formatDecimal(order.phiVanChuyen, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</span>
+                </div>
+                <div class="total-row grand-total">
+                    <span>Tổng thanh toán:</span>
+                    <span th:text="${#numbers.formatDecimal(order.tongTien, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="invoice-footer">
+            <p>Cảm ơn quý khách đã tin tưởng và mua sắm tại <strong>SMASH VN SHOP</strong>!</p>
+            <p style="font-size: 11px; margin-top: 10px;">Hóa đơn được sinh tự động bởi hệ thống cửa hàng Smash VN</p>
+        </div>
+    </div>
+</body>
+</html>

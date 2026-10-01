@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf" th:content="${_csrf != null ? _csrf.token : ''}" />
+    <meta name="_csrf_header" th:content="${_csrf != null ? _csrf.headerName : 'X-CSRF-TOKEN'}" />
+    <title>Quản Lý Danh Mục &amp; Thương Hiệu - Admin SmashVN</title>
+    
+    <!-- Bootstrap 5.3.0 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Admin Custom CSS -->
+    <link rel="stylesheet" th:href="@{/css/admin-custom.css(v='2.4')}">
+    <script th:src="@{/js/admin-layout-state.js(v='1.0')}"></script>
+    
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body class="admin-body">
+
+    <!-- Sidebar Layout Fragment -->
+    <div th:replace="~{admin/layout/sidebar :: sidebar('danhmuc')}"></div>
+
+    <div class="admin-page">
+        <!-- Topbar Layout Fragment -->
+        <div th:replace="~{admin/layout/header :: header}"></div>
+
+        <!-- Main Content -->
+        <main class="admin-content">
+            <div class="container-fluid admin-container">
+
+                <!-- Page Header -->
+                <div class="admin-page-header">
+                    <div>
+                        <h1 class="admin-page-title"><i class="fas fa-folder-open text-brand me-2"></i>Quản Lý Danh Mục &amp; Hãng</h1>
+                    </div>
+                </div>
+
+                <!-- Messages -->
+                <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show border-start border-success border-4 rounded-3 shadow-sm mb-4" role="alert">
+                    <i class="fas fa-check-circle me-2"></i><span th:text="${successMessage}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show border-start border-danger border-4 rounded-3 shadow-sm mb-4" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i><span th:text="${errorMessage}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+
+                <div class="row g-4">
+                    <!-- Column Left: Category Management -->
+                    <div class="col-lg-6">
+                        <!-- Card Add Category -->
+                        <div class="admin-card mb-4">
+                            <div class="admin-card-header">
+                                <h5 class="admin-card-title"><i class="fas fa-plus-circle text-primary me-2"></i>Thêm Danh Mục Mới</h5>
+                            </div>
+                            <div class="admin-card-body">
+                                <form th:action="@{/admin/danh-muc/them}" method="POST" id="formThemDanhMuc" novalidate>
+                                    <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                                    <div th:if="${loiDanhMuc != null}" class="text-danger mb-2 fw-semibold" th:text="${loiDanhMuc}"></div>
+                                    <div class="mb-3">
+                                        <label for="tenDanhMuc" class="admin-form-label">Tên Danh Mục *</label>
+                                        <input type="text" id="tenDanhMuc" name="tenDanhMuc" class="admin-form-control form-control" placeholder="VD: Vợt Cầu Lông, Giày..." maxlength="100" autocomplete="off" required>
+                                        <div id="errDanhMuc" class="invalid-feedback text-danger mt-1" style="display:none;"></div>
+                                    </div>
+
+                                    <!-- Attribute Config Box -->
+                                    <div class="mb-3">
+                                        <label class="admin-form-label"><i class="fas fa-sliders-h me-1 text-primary"></i>Thuộc Tính Biến Thể Của Danh Mục</label>
+                                        <div class="text-muted small mb-2">Chọn các loại thuộc tính mà sản phẩm thuộc danh mục này sẽ sử dụng:</div>
+                                        <div id="addThuocTinhBox" class="p-3 border rounded bg-white mb-2 shadow-sm d-flex flex-wrap gap-2">
+                                            <div class="form-check me-2 mb-1" th:each="tt : ${listThuocTinh}">
+                                                <input class="form-check-input" type="checkbox" name="thuocTinhIds" th:value="${tt.id}" th:id="'tt_add_' + ${tt.id}">
+                                                <label class="form-check-label fw-semibold text-secondary small" th:for="'tt_add_' + ${tt.id}" th:text="${tt.tenThuocTinh}"></label>
+                                            </div>
+                                        </div>
+                                        <div class="input-group input-group-sm">
+                                            <input type="text" id="newTypeAddInput" class="form-control" placeholder="Nhập tên thuộc tính mới (VD: Độ dày...)" maxlength="50">
+                                            <button type="button" class="btn btn-outline-primary" onclick="createNewAttributeType('addThuocTinhBox', 'newTypeAddInput', 'thuocTinhIds')">
+                                                <i class="fas fa-plus me-1"></i>Thêm loại thuộc tính
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <button class="admin-btn admin-btn-primary px-4 mt-2" type="submit" id="btnThemDanhMuc">
+                                        <i class="fas fa-plus me-1"></i>Thêm Mới Danh Mục
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- Card Category List -->
+                        <div class="admin-card">
+                            <div class="admin-card-header">
+                                <h5 class="admin-card-title"><i class="fas fa-list text-primary me-2"></i>Danh Sách Danh Mục</h5>
+                                <span class="admin-status admin-status-info" th:text="${listDanhMuc.size()} + ' danh mục'"></span>
+                            </div>
+                            <div class="admin-card-body p-0">
+                                <div class="admin-table-wrapper">
+                                    <table class="admin-table">
+                                        <thead>
+                                            <tr>
+                                                <th style="width: 45px;" class="text-center">STT</th>
+                                                <th>Tên Danh Mục &amp; Thuộc Tính</th>
+                                                <th class="text-center" style="width: 95px;">Trạng Thái</th>
+                                                <th class="text-center" style="width: 90px;">Hành Động</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tbodyDanhMuc">
+                                            <tr th:each="dm, iterStat : ${listDanhMuc}" th:attr="data-id=${dm.id}">
+                                                <td class="text-center" th:text="${iterStat.count}">1</td>
+                                                <td>
+                                                    <div class="fw-semibold dm-name text-dark" th:text="${dm.tenDanhMuc}">Vợt Cầu Lông</div>
+                                                    <div class="mt-1 small">
+                                                        <span class="admin-status admin-status-neutral me-1 mb-1" th:each="tt : ${dm.thuocTinhList}" th:text="${tt.tenThuocTinh}"></span>
+                                                        <span class="text-muted small" th:if="${dm.thuocTinhList.isEmpty()}">Chưa có thuộc tính</span>
+                                                    </div>
+                                                </td>
+                                                <td class="text-center">
+                                                    <span th:if="${dm.trangThai}" class="admin-status admin-status-success">Hiển thị</span>
+                                                    <span th:unless="${dm.trangThai}" class="admin-status admin-status-neutral">Đã ẩn</span>
+                                                </td>
+                                                <td class="text-center text-nowrap">
+                                                    <button type="button" class="admin-btn admin-btn-icon" th:attr="data-id=${dm.id},data-ten=${dm.tenDanhMuc}" onclick="moModalSuaDanhMuc(this)" title="Sửa">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                    <form th:action="@{/admin/danh-muc/an/{id}(id=${dm.id})}" method="POST" style="display:inline;" onsubmit="return confirmSubmitForm(this, 'Bạn có chắc chắn muốn thay đổi trạng thái ẩn/hiện danh mục này không?');">
+                                                        <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                                                        <button type="submit" th:if="${dm.trangThai}" class="admin-btn admin-btn-icon danger ms-1" title="Ẩn danh mục khỏi người dùng">
+                                                            <i class="fas fa-eye-slash"></i>
+                                                        </button>
+                                                        <button type="submit" th:unless="${dm.trangThai}" class="admin-btn admin-btn-icon ms-1 text-success" title="Hiển thị danh mục">
+                                                            <i class="fas fa-eye"></i>
+                                                        </button>
+                                                    </form>
+                                                </td>
+                                            </tr>
+                                            <tr th:if="${listDanhMuc.isEmpty()}">
+                                                <td colspan="4" class="text-center text-muted py-4">Chưa có danh mục nào.</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Column Right: Brand Management -->
+                    <div class="col-lg-6">
+                        <!-- Card Add Brand -->
+                        <div class="admin-card mb-4">
+                            <div class="admin-card-header">
+                                <h5 class="admin-card-title"><i class="fas fa-plus-circle text-primary me-2"></i>Thêm Hãng Vợt (Thương Hiệu) Mới</h5>
+                            </div>
+                            <div class="admin-card-body">
+                                <form th:action="@{/admin/danh-muc/thuong-hieu/them}" method="POST" id="formThemThuongHieu" novalidate>
+                                    <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                                    <div th:if="${loiThuongHieu != null}" class="text-danger mb-2 fw-semibold" th:text="${loiThuongHieu}"></div>
+                                    <div class="input-group">
+                                        <input type="text" id="tenThuongHieu" name="tenThuongHieu" class="admin-form-control form-control" placeholder="VD: Yonex, Li-Ning, Victor..." maxlength="100" autocomplete="off">
+                                        <button class="admin-btn admin-btn-primary px-4" type="submit" id="btnThemThuongHieu">
+                                            <i class="fas fa-plus me-1"></i>Thêm Mới
+                                        </button>
+                                    </div>
+                                    <div id="errThuongHieu" class="invalid-feedback text-danger mt-1" style="display:none;"></div>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- Card Brand List -->
+                        <div class="admin-card">
+                            <div class="admin-card-header">
+                                <h5 class="admin-card-title"><i class="fas fa-copyright text-primary me-2"></i>Danh Sách Thương Hiệu</h5>
+                                <span class="admin-status admin-status-info" th:text="${listThuongHieu.size()} + ' hãng'"></span>
+                            </div>
+                            <div class="admin-card-body p-0">
+                                <div class="admin-table-wrapper">
+                                    <table class="admin-table">
+                                        <thead>
+                                            <tr>
+                                                <th style="width: 45px;" class="text-center">STT</th>
+                                                <th>Tên Hãng / Thương Hiệu</th>
+                                                <th class="text-center" style="width: 95px;">Trạng Thái</th>
+                                                <th class="text-center" style="width: 90px;">Hành Động</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tbodyThuongHieu">
+                                            <tr th:each="th, iterStat : ${listThuongHieu}" th:attr="data-id=${th.id}">
+                                                <td class="text-center" th:text="${iterStat.count}">1</td>
+                                                <td class="fw-semibold th-name text-dark" th:text="${th.tenThuongHieu}">Yonex</td>
+                                                <td class="text-center">
+                                                    <span th:if="${th.trangThai}" class="admin-status admin-status-success">Hiển thị</span>
+                                                    <span th:unless="${th.trangThai}" class="admin-status admin-status-neutral">Đã ẩn</span>
+                                                </td>
+                                                <td class="text-center text-nowrap">
+                                                    <button type="button" class="admin-btn admin-btn-icon" th:attr="data-id=${th.id},data-ten=${th.tenThuongHieu}" onclick="moModalSuaThuongHieu(this)" title="Sửa">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                    <form th:action="@{/admin/danh-muc/thuong-hieu/an/{id}(id=${th.id})}" method="POST" style="display:inline;" onsubmit="return confirmSubmitForm(this, 'Bạn có chắc chắn muốn thay đổi trạng thái ẩn/hiện thương hiệu này không?');">
+                                                        <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                                                        <button type="submit" th:if="${th.trangThai}" class="admin-btn admin-btn-icon danger ms-1" title="Ẩn thương hiệu">
+                                                            <i class="fas fa-eye-slash"></i>
+                                                        </button>
+                                                        <button type="submit" th:unless="${th.trangThai}" class="admin-btn admin-btn-icon ms-1 text-success" title="Hiển thị thương hiệu">
+                                                            <i class="fas fa-eye"></i>
+                                                        </button>
+                                                    </form>
+                                                </td>
+                                            </tr>
+                                            <tr th:if="${listThuongHieu.isEmpty()}">
+                                                <td colspan="4" class="text-center text-muted py-4">Chưa có thương hiệu nào.</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Sửa Danh Mục -->
+    <div class="modal fade" id="modalSuaDanhMuc" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content admin-modal-content">
+                <div class="modal-header admin-modal-header">
+                    <h5 class="modal-title admin-modal-title"><i class="fas fa-edit me-2 text-primary"></i>Sửa Danh Mục &amp; Thuộc Tính</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="formSuaDanhMuc" method="POST" novalidate onsubmit="return confirmSubmitForm(this, 'Bạn có chắc chắn muốn lưu các thay đổi cho danh mục này không?');">
+                    <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                    <input type="hidden" id="capNhatThuocTinh" name="capNhatThuocTinh" value="false">
+                    <div class="modal-body admin-modal-body">
+                        <div class="mb-3">
+                            <label for="editTenDanhMuc" class="admin-form-label">Tên Danh Mục *</label>
+                            <input type="text" id="editTenDanhMuc" name="tenDanhMuc" class="admin-form-control form-control" maxlength="100" autocomplete="off" required>
+                            <div id="errEditDanhMuc" class="invalid-feedback text-danger mt-1" style="display:none;"></div>
+                        </div>
+
+                        <!-- Cấu hình Thuộc Tính Biến Thể -->
+                        <div class="mb-3">
+                            <label class="admin-form-label"><i class="fas fa-sliders-h me-1 text-primary"></i>Thuộc Tính Biến Thể Của Danh Mục</label>
+                            <div class="text-muted small mb-2">Chọn các loại thuộc tính mà sản phẩm thuộc danh mục này sẽ sử dụng:</div>
+                            <div id="editThuocTinhBox" class="p-3 border rounded bg-white mb-2 shadow-sm d-flex flex-wrap gap-2">
+                                <div class="form-check me-2 mb-1" th:each="tt : ${listThuocTinh}">
+                                    <input class="form-check-input edit-tt-cb" type="checkbox" name="thuocTinhIds" th:value="${tt.id}" th:id="'tt_edit_' + ${tt.id}">
+                                    <label class="form-check-label fw-semibold text-secondary small" th:for="'tt_edit_' + ${tt.id}" th:text="${tt.tenThuocTinh}"></label>
+                                </div>
+                            </div>
+                            <div class="input-group input-group-sm">
+                                <input type="text" id="newTypeEditInput" class="form-control" placeholder="Nhập tên thuộc tính mới..." maxlength="50">
+                                <button type="button" class="btn btn-outline-primary" onclick="createNewAttributeType('editThuocTinhBox', 'newTypeEditInput', 'thuocTinhIds')">
+                                    <i class="fas fa-plus me-1"></i>Thêm loại thuộc tính
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer admin-modal-footer">
+                        <button type="button" class="admin-btn admin-btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                        <button type="submit" class="admin-btn admin-btn-primary" id="btnSuaDanhMuc"><i class="fas fa-save me-1"></i>Lưu Thay Đổi</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Sửa Thương Hiệu -->
+    <div class="modal fade" id="modalSuaThuongHieu" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content admin-modal-content">
+                <div class="modal-header admin-modal-header">
+                    <h5 class="modal-title admin-modal-title"><i class="fas fa-edit me-2 text-primary"></i>Sửa Thương Hiệu</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="formSuaThuongHieu" method="POST" novalidate onsubmit="return confirmSubmitForm(this, 'Bạn có chắc chắn muốn lưu thông tin thương hiệu này không?');">
+                    <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                    <div class="modal-body admin-modal-body">
+                        <div class="mb-3">
+                            <label for="editTenThuongHieu" class="admin-form-label">Tên Thương Hiệu *</label>
+                            <input type="text" id="editTenThuongHieu" name="tenThuongHieu" class="admin-form-control form-control" maxlength="100" autocomplete="off" required>
+                            <div id="errEditThuongHieu" class="invalid-feedback text-danger mt-1" style="display:none;"></div>
+                        </div>
+                    </div>
+                    <div class="modal-footer admin-modal-footer">
+                        <button type="button" class="admin-btn admin-btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                        <button type="submit" class="admin-btn admin-btn-primary" id="btnSuaThuongHieu"><i class="fas fa-save me-1"></i>Lưu Thay Đổi</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+
+        function clientNormalize(s) {
+            if (!s) return '';
+            return s.replace(/<[^>]*>/g, '').trim().replace(/\s+/g, ' ').toLowerCase();
+        }
+        function existingDanhMucNames() {
+            return Array.from(document.querySelectorAll('#tbodyDanhMuc .dm-name')).map(el => clientNormalize(el.textContent));
+        }
+        function existingThuongHieuNames() {
+            return Array.from(document.querySelectorAll('#tbodyThuongHieu .th-name')).map(el => clientNormalize(el.textContent));
+        }
+        function showErr(errEl, btnEl, msg) {
+            if (errEl) { errEl.textContent = msg; errEl.style.display = 'block'; }
+            if (btnEl) { btnEl.disabled = true; }
+        }
+        function clearErr(errEl, btnEl) {
+            if (errEl) { errEl.textContent = ''; errEl.style.display = 'none'; }
+            if (btnEl) { btnEl.disabled = false; }
+        }
+
+        // CREATE NEW ATTRIBUTE TYPE VIA REST API
+        function createNewAttributeType(containerId, inputId, inputName) {
+            const input = document.getElementById(inputId);
+            if (!input) return;
+            const val = input.value.trim();
+            if (!val) {
+                if (typeof showToast !== 'undefined') {
+                    showToast("Vui lòng nhập tên loại thuộc tính mới!", "warning");
+                } else {
+                    showToast("Vui lòng nhập tên loại thuộc tính mới!", "warning");
+                }
+                return;
+            }
+
+            const csrfMeta = document.querySelector('meta[name="_csrf"]');
+            const csrfHeaderMeta = document.querySelector('meta[name="_csrf_header"]');
+            const headers = { 'Content-Type': 'application/json' };
+            if (csrfMeta && csrfHeaderMeta) {
+                headers[csrfHeaderMeta.content] = csrfMeta.content;
+            }
+
+            fetch('/api/attributes', {
+                method: 'POST',
+                headers: headers,
+                body: JSON.stringify({ tenThuocTinh: val })
+            })
+                .then(res => {
+                    if (!res.ok) {
+                        return res.json().then(data => { throw new Error(data.error || 'Không thể thêm loại thuộc tính.'); });
+                    }
+                    return res.json();
+                })
+                .then(data => {
+                    const box = document.getElementById(containerId);
+                    if (!box) return;
+
+                    let existingCb = box.querySelector(`input[value="${data.id}"]`);
+                    if (existingCb) {
+                        existingCb.checked = true;
+                    } else {
+                        const id = containerId + "_tt_" + data.id;
+                        const div = document.createElement("div");
+                        div.className = "form-check me-2 mb-1";
+                        div.innerHTML = `<input class="form-check-input" type="checkbox" name="${inputName}" value="${data.id}" id="${id}" checked>
+                             <label class="form-check-label fw-semibold text-secondary small" for="${id}">${data.tenThuocTinh}</label>`;
+                        box.appendChild(div);
+                    }
+                    input.value = "";
+                })
+                .catch(err => {
+                    const fallback = "Không thể kết nối đến máy chủ. Vui lòng thử lại sau.";
+                    let msg = (err && err.message) || fallback;
+                    if (msg.includes('Failed to fetch') || msg.includes('NetworkError') || msg.includes('Internal Server Error')) {
+                        msg = fallback;
+                    }
+                    if (typeof showToast !== 'undefined') {
+                        showToast(msg, "error");
+                    } else {
+                        showToast(msg, 'error');
+                    }
+                });
+        }
+
+        // ADD CATEGORY
+        (function () {
+            var input = document.getElementById('tenDanhMuc');
+            var btn = document.getElementById('btnThemDanhMuc');
+            var err = document.getElementById('errDanhMuc');
+            function validate() {
+                var raw = input ? input.value : '', val = clientNormalize(raw);
+                if (!val) return showErr(err, btn, 'Tên danh mục không được để trống!');
+                if (val.length < 2) return showErr(err, btn, 'Tên danh mục phải có ít nhất 2 ký tự!');
+                if (raw.length > 100) return showErr(err, btn, 'Tên danh mục không được vượt quá 100 ký tự!');
+                if (existingDanhMucNames().indexOf(val) >= 0) return showErr(err, btn, 'Danh mục này đã tồn tại!');
+                clearErr(err, btn);
+            }
+            if (input) {
+                input.addEventListener('input', validate);
+                input.addEventListener('blur', validate);
+                const form = document.getElementById('formThemDanhMuc');
+                if (form) form.addEventListener('submit', function (e) { validate(); if (btn.disabled) e.preventDefault(); });
+            }
+        })();
+
+        // ADD BRAND
+        (function () {
+            var input = document.getElementById('tenThuongHieu');
+            var btn = document.getElementById('btnThemThuongHieu');
+            var err = document.getElementById('errThuongHieu');
+            function validate() {
+                var raw = input ? input.value : '', val = clientNormalize(raw);
+                if (!val) return showErr(err, btn, 'Tên thương hiệu không được để trống!');
+                if (val.length < 2) return showErr(err, btn, 'Tên thương hiệu phải có ít nhất 2 ký tự!');
+                if (raw.length > 100) return showErr(err, btn, 'Tên thương hiệu không được vượt quá 100 ký tự!');
+                if (existingThuongHieuNames().indexOf(val) >= 0) return showErr(err, btn, 'Thương hiệu này đã tồn tại!');
+                clearErr(err, btn);
+            }
+            if (input) {
+                input.addEventListener('input', validate);
+                input.addEventListener('blur', validate);
+                const form = document.getElementById('formThemThuongHieu');
+                if (form) form.addEventListener('submit', function (e) { validate(); if (btn.disabled) e.preventDefault(); });
+            }
+        })();
+
+        // EDIT CATEGORY
+        var editDanhMucId = null;
+        function moModalSuaDanhMuc(btn) {
+            editDanhMucId = btn.dataset.id;
+            document.getElementById('formSuaDanhMuc').action = '/admin/danh-muc/sua/' + editDanhMucId;
+            document.getElementById('editTenDanhMuc').value = btn.dataset.ten;
+            document.getElementById('capNhatThuocTinh').value = 'false';
+
+            document.querySelectorAll('#editThuocTinhBox .edit-tt-cb').forEach(cb => cb.checked = false);
+
+            fetch('/api/categories/' + editDanhMucId + '/attributes')
+                .then(res => res.json())
+                .then(attrs => {
+                    const assignedIds = new Set(attrs.map(a => a.id));
+                    document.querySelectorAll('#editThuocTinhBox .edit-tt-cb').forEach(cb => {
+                        if (assignedIds.has(parseInt(cb.value))) {
+                            cb.checked = true;
+                        }
+                    });
+                    document.getElementById('capNhatThuocTinh').value = 'true';
+                })
+                .catch(err => {
+                    console.error(err);
+                    showToast('Không thể tải danh sách thuộc tính của danh mục. Vui lòng thử lại.', 'error');
+                });
+
+            clearErr(document.getElementById('errEditDanhMuc'), document.getElementById('btnSuaDanhMuc'));
+            new bootstrap.Modal(document.getElementById('modalSuaDanhMuc')).show();
+        }
+
+        (function () {
+            var input = document.getElementById('editTenDanhMuc');
+            var btn = document.getElementById('btnSuaDanhMuc');
+            var err = document.getElementById('errEditDanhMuc');
+            function validate() {
+                var raw = input ? input.value : '', val = clientNormalize(raw);
+                if (!val) return showErr(err, btn, 'Tên danh mục không được để trống!');
+                if (val.length < 2) return showErr(err, btn, 'Tên danh mục phải có ít nhất 2 ký tự!');
+                if (raw.length > 100) return showErr(err, btn, 'Tên danh mục không được vượt quá 100 ký tự!');
+                var row = document.querySelector('#tbodyDanhMuc tr[data-id="' + editDanhMucId + '"]');
+                var ownName = row ? clientNormalize(row.querySelector('.dm-name').textContent) : '';
+                var others = existingDanhMucNames().filter(function (n) { return n !== ownName; });
+                if (others.indexOf(val) >= 0) return showErr(err, btn, 'Danh mục này đã tồn tại!');
+                clearErr(err, btn);
+            }
+            if (input) {
+                input.addEventListener('input', validate);
+                input.addEventListener('blur', validate);
+                const form = document.getElementById('formSuaDanhMuc');
+                if (form) form.addEventListener('submit', function (e) { validate(); if (btn.disabled) e.preventDefault(); });
+            }
+        })();
+
+        // EDIT BRAND
+        var editThuongHieuId = null;
+        function moModalSuaThuongHieu(btn) {
+            editThuongHieuId = btn.dataset.id;
+            document.getElementById('formSuaThuongHieu').action = '/admin/danh-muc/thuong-hieu/sua/' + editThuongHieuId;
+            document.getElementById('editTenThuongHieu').value = btn.dataset.ten;
+            clearErr(document.getElementById('errEditThuongHieu'), document.getElementById('btnSuaThuongHieu'));
+            new bootstrap.Modal(document.getElementById('modalSuaThuongHieu')).show();
+        }
+        (function () {
+            var input = document.getElementById('editTenThuongHieu');
+            var btn = document.getElementById('btnSuaThuongHieu');
+            var err = document.getElementById('errEditThuongHieu');
+            function validate() {
+                var raw = input ? input.value : '', val = clientNormalize(raw);
+                if (!val) return showErr(err, btn, 'Tên thương hiệu không được để trống!');
+                if (val.length < 2) return showErr(err, btn, 'Tên thương hiệu phải có ít nhất 2 ký tự!');
+                if (raw.length > 100) return showErr(err, btn, 'Tên thương hiệu không được vượt quá 100 ký tự!');
+                var row = document.querySelector('#tbodyThuongHieu tr[data-id="' + editThuongHieuId + '"]');
+                var ownName = row ? clientNormalize(row.querySelector('.th-name').textContent) : '';
+                var others = existingThuongHieuNames().filter(function (n) { return n !== ownName; });
+                if (others.indexOf(val) >= 0) return showErr(err, btn, 'Thương hiệu này đã tồn tại!');
+                clearErr(err, btn);
+            }
+            if (input) {
+                input.addEventListener('input', validate);
+                input.addEventListener('blur', validate);
+                const form = document.getElementById('formSuaThuongHieu');
+                if (form) form.addEventListener('submit', function (e) { validate(); if (btn.disabled) e.preventDefault(); });
+            }
+        })();
+        /*]]>*/
+    </script>
+
+    <!-- Bootstrap 5.3.0 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Admin Layout JS -->
+    <script th:src="@{/js/admin-layout.js(v='2.4')}"></script>
+</body>
+</html>

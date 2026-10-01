@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link th:href="@{/images/favicon.png}" rel="shortcut icon">
+    <title>Smash VN - Hồ Sơ Của Tôi</title>
+
+    <!--====== Phông chữ Google ======-->
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,600,700,800" rel="stylesheet">
+
+    <!--====== CSS Nhà cung cấp ======-->
+    <link rel="stylesheet" th:href="@{/css/vendor.css}">
+
+    <!--====== Tiện ích khoảng cách ======-->
+    <link rel="stylesheet" th:href="@{/css/utility.css}">
+
+    <!--====== Ứng dụng ======-->
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body class="config">
+    <div class="preloader is-active">
+        <div class="preloader__wrap">
+
+            <img class="preloader__img" th:src="@{/images/preloader.svg}" alt="Đang tải" width="64" height="64"></div>
+    </div>
+
+    <!--====== Ứng dụng chính ======-->
+    <div id="app">
+
+        <!--====== Tiêu đề chính ======-->
+        <header class="header--style-1">
+            <div th:replace="~{layout/header :: header}"></div>
+        </header>
+        <!--====== End - Main Header ======-->
+
+
+        <!--====== App Content ======-->
+        <div class="app-content">
+
+            <!--====== Section 1 ======-->
+            <div class="u-s-p-y-60">
+
+                <!--====== Section Content ======-->
+                <div class="section__content">
+                    <div class="container">
+                        <div class="breadcrumb">
+                            <div class="breadcrumb__wrap">
+                                <ul class="breadcrumb__list">
+                                    <li class="has-separator">
+
+                                        <a th:href="@{/}">Trang chủ</a></li>
+                                    <li class="is-marked">
+
+                                        <a th:href="@{/user/profile}">Tài khoản của tôi</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!--====== End - Section 1 ======-->
+
+
+            <!--====== Section 2 ======-->
+            <div class="u-s-p-b-60">
+
+                <!--====== Section Content ======-->
+                <div class="section__content">
+                    <div class="dash">
+                        <div class="container">
+                            <div class="row">
+                                <div class="col-lg-3 col-md-12">
+
+                                    <!--====== Dashboard Features ======-->
+                                    <div class="dash__box dash__box--bg-white dash__box--shadow u-s-m-b-30">
+                                        <div class="dash__pad-1">
+
+                                            <span class="dash__text u-s-m-b-16" th:text="'Hello, ' + ${kh.hoKh} + ' ' + ${kh.tenKh}"></span>
+                                            <ul class="dash__f-list">
+                                                <li>
+
+                                                    <a th:href="@{/user/dashboard}">Quản lý tài khoản</a></li>
+                                                <li>
+
+                                                    <a class="dash-active" th:href="@{/user/profile}">Thông tin cá nhân</a></li>
+                                                <li>
+
+                                                    <a th:href="@{/user/address}">Địa chỉ</a></li>
+                                                <li>
+
+                                                    <a th:href="@{/user/track-order}">Theo dõi đơn hàng</a></li>
+                                                <li>
+
+                                                    <a th:href="@{/user/my-order}">Đơn hàng</a></li>
+                                                <li>
+
+                                                    <a th:href="@{/user/payment-option}">Các tùy chọn thanh toán</a></li>
+                                                <li>
+
+                                                     <a th:href="@{/user/cancellation}">Chính sách hoàn trả hàng</a></li>
+                                                <li>
+                                                     <a th:href="@{/user/notifications}">Thông báo</a></li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <div class="dash__box dash__box--bg-white dash__box--shadow dash__box--w">
+                                        <div class="dash__pad-1">
+                                            <ul class="dash__w-list">
+                                                <li>
+                                                    <div class="dash__w-wrap">
+                                                        <span class="dash__w-icon dash__w-icon-style-1"><i class="fas fa-cart-arrow-down"></i></span>
+                                                        <span class="dash__w-text" th:text="${orderPlaced}">0</span>
+                                                        <span class="dash__w-name">Đơn Hàng Đã Đặt</span>
+                                                    </div>
+                                                </li>
+                                                <li>
+                                                    <div class="dash__w-wrap">
+                                                        <span class="dash__w-icon dash__w-icon-style-2"><i class="fas fa-times"></i></span>
+                                                        <span class="dash__w-text" th:text="${cancelOrders}">0</span>
+                                                        <span class="dash__w-name">Đơn Hàng Đã Hủy</span>
+                                                    </div>
+                                                </li>
+                                                <li>
+                                                    <div class="dash__w-wrap">
+                                                        <span class="dash__w-icon dash__w-icon-style-3"><i class="far fa-heart"></i></span>
+                                                        <span class="dash__w-text" th:text="${wishlist}">0</span>
+                                                        <span class="dash__w-name">Yêu Thích</span>
+                                                    </div>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <!--====== End - Dashboard Features ======-->
+                                </div>
+                                <div class="col-lg-9 col-md-12">
+                                    <div class="dash__box dash__box--bg-white dash__box--shadow u-s-m-b-30">
+									    <div class="dash__pad-2">
+									        <h2 class="dash__h2 u-s-m-b-8">THÔNG TIN CÁ NHÂN</h2>
+									        <div th:if="${param.capNhatThanhCong}" class="alert alert-success mt-2 mb-4">
+									            <i class="fas fa-check-circle"></i> Cập nhật hồ sơ thành công!
+									        </div>
+									
+									        <div class="row">
+									            <div class="col-lg-4 u-s-m-b-30">
+									                <span class="dash__text-2">Họ và Tên</span>
+									                <span class="dash__text fw-bold" th:text="${kh.hoKh + ' ' + kh.tenKh}">John Doe</span>
+									            </div>
+									            <div class="col-lg-4 u-s-m-b-30">
+									                <span class="dash__text-2">Email đăng nhập</span>
+									                <span class="dash__text" th:text="${kh.taiKhoan?.username ?: 'Không có tài khoản'}">johndoe@domain.com</span>
+									            </div>
+									            <div class="col-lg-4 u-s-m-b-30">
+									                <span class="dash__text-2">Số điện thoại</span>
+									                <span class="dash__text text-danger" th:if="${kh.soDienThoaiKh == null or kh.soDienThoaiKh == ''}">Chưa cập nhật</span>
+									                <span class="dash__text" th:if="${kh.soDienThoaiKh != null and kh.soDienThoaiKh != ''}" th:text="${kh.soDienThoaiKh}">098xxxxxxx</span>
+									            </div>
+									        </div>
+									        <a class="dash__custom-link btn--e-brand-b-2" th:href="@{/user/profile/edit}">SỬA HỒ SƠ</a>
+									    </div>
+									</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!--====== End - Section Content ======-->
+            </div>
+            <!--====== End - Section 2 ======-->
+        </div>
+        <!--====== End - App Content ======-->
+
+
+        <!--====== Main Footer ======-->
+        <footer>
+            <div th:replace="~{layout/footer :: footer}"></div>
+        </footer>
+
+        <!--====== Modal Section ======-->
+
+
+        <!--====== Unsubscribe or Subscribe Newsletter ======-->
+        <div class="modal fade" id="dash-newsletter">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content modal--shadow">
+                    <div class="modal-body">
+                        <form class="d-modal__form">
+                            <div class="u-s-m-b-15">
+                                <h1 class="gl-modal-h1">Đăng ký Nhận Bản tin</h1>
+
+                                <span class="gl-modal-text">Tôi đã đọc và đồng ý với</span>
+
+                                <a class="d_modal__link" href="#">Chính sách Bảo mật của Smash VN</a>
+                            </div>
+                            <div class="gl-modal-btn-group">
+
+                                <button class="btn btn--e-brand-b-2" type="submit">ĐĂNG KÝ</button>
+
+                                <button class="btn btn--e-grey-b-2" type="button" data-dismiss="modal">HỦY BỎ</button></div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!--====== Unsubscribe or Subscribe Newsletter ======-->
+        <!--====== End - Modal Section ======-->
+    </div>
+    <!--====== End - Main App ======-->
+
+
+    <!--====== Google Analytics: change UA-XXXXX-Y to be your site's ID ======-->
+    <script>
+        window.ga = function() {
+            ga.q.push(arguments)
+        };
+        ga.q = [];
+        ga.l = +new Date;
+        ga('create', 'UA-XXXXX-Y', 'auto');
+        ga('send', 'pageview')
+    </script>
+    <script src="https://www.google-analytics.com/analytics.js" async defer></script>
+
+    <!--====== Vendor Js ======-->
+    <script th:src="@{/js/vendor.js}"></script>
+
+    <!--====== Plugin jQuery Shopnav ======-->
+    <script th:src="@{/js/jquery.shopnav.js}"></script>
+
+    <!--====== Ứng dụng ======-->
+    <script th:src="@{/js/app.js}"></script>
+
+    <!--====== Khi không hỗ trợ JavaScript ======-->
+    <noscript>
+        <div class="app-setting">
+            <div class="container">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="app-setting__wrap">
+                            <h1 class="app-setting__h1">Trình duyệt của bạn đã tắt JavaScript.</h1>
+
+                            <span class="app-setting__text">Vui lòng bật JavaScript trong cài đặt trình duyệt hoặc nâng cấp lên trình duyệt có hỗ trợ JavaScript.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </noscript>
+</body>
+</html>

@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Lý Đánh Giá - Admin SmashVN</title>
+    
+    <!-- Bootstrap 5.3.0 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Admin Custom CSS -->
+    <link rel="stylesheet" th:href="@{/css/admin-custom.css(v='2.4')}">
+    <script th:src="@{/js/admin-layout-state.js(v='1.0')}"></script>
+    
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        .audit-info {
+            font-size: 0.75rem; color: var(--admin-text-muted);
+            background-color: var(--admin-bg); border-radius: 4px;
+            padding: 4px 8px; margin-top: 4px; border-left: 3px solid #cbd5e1;
+        }
+        .audit-info-red { border-left-color: #dc2626; background-color: #fef2f2; color: #dc2626; }
+        .audit-info-green { border-left-color: #16a34a; background-color: #f0fdf4; color: #16a34a; }
+        .comment-text { max-width: 250px; word-wrap: break-word; white-space: normal; }
+        .review-thumb-button { border: 0; background: transparent; padding: 0; line-height: 0; }
+        .review-thumb-img {
+            width: 48px; height: 48px; object-fit: cover; border-radius: 6px;
+            border: 1px solid var(--admin-border); cursor: pointer; transition: transform 0.15s ease;
+        }
+        .review-thumb-img:hover { transform: scale(1.05); }
+        .review-image-modal {
+            position: fixed; inset: 0; z-index: 1080; display: none;
+            align-items: center; justify-content: center; padding: 24px;
+            background: rgba(15, 18, 25, 0.88);
+        }
+        .review-image-modal.is-open { display: flex; }
+        .review-image-modal img {
+            max-width: min(92vw, 1100px); max-height: 88vh; border-radius: 8px;
+            background: #fff; box-shadow: 0 16px 48px rgba(0, 0, 0, 0.35); object-fit: contain;
+        }
+        .review-image-modal-close {
+            position: absolute; top: 18px; right: 22px; width: 42px; height: 42px;
+            border: 0; border-radius: 50%; background: rgba(255, 255, 255, 0.95);
+            color: #111827; font-size: 28px; line-height: 1; cursor: pointer;
+        }
+    </style>
+</head>
+<body class="admin-body">
+
+    <!-- Sidebar Layout Fragment -->
+    <div th:replace="~{admin/layout/sidebar :: sidebar('danhgia')}"></div>
+
+    <div class="admin-page">
+        <!-- Topbar Layout Fragment -->
+        <div th:replace="~{admin/layout/header :: header}"></div>
+
+        <!-- Main Content -->
+        <main class="admin-content">
+            <div class="container-fluid admin-container">
+
+                <!-- Page Header -->
+                <div class="admin-page-header">
+                    <div>
+                        <h1 class="admin-page-title"><i class="fas fa-star text-brand me-2"></i>Quản Lý Đánh Giá &amp; Kiểm Duyệt</h1>
+                    </div>
+                    <div class="admin-toolbar">
+                        <span class="admin-status admin-status-info" th:text="${listDanhGia.size()} + ' Đánh giá'">0 Đánh giá</span>
+                    </div>
+                </div>
+
+                <!-- Alert Messages -->
+                <div th:if="${successMsg != null}" class="alert alert-success alert-dismissible fade show border-start border-success border-4 rounded-3 shadow-sm mb-4" role="alert">
+                    <i class="fas fa-check-circle me-2"></i>
+                    <span th:text="${successMsg}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                <div th:if="${errorMsg != null}" class="alert alert-danger alert-dismissible fade show border-start border-danger border-4 rounded-3 shadow-sm mb-4" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <span th:text="${errorMsg}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+
+                <!-- Reviews Table Card -->
+                <div class="admin-card">
+                    <div class="admin-card-header">
+                        <h5 class="admin-card-title"><i class="fas fa-list text-primary me-2"></i>Danh Sách Đánh Giá &amp; Lịch Sử Kiểm Duyệt</h5>
+                    </div>
+                    <div class="admin-card-body p-0">
+                        <div class="admin-table-wrapper">
+                            <table class="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 60px;" class="text-center">STT</th>
+                                        <th>Mã ĐG</th>
+                                        <th>Sản Phẩm</th>
+                                        <th>Khách Hàng</th>
+                                        <th>Đánh Giá</th>
+                                        <th>Nội Dung</th>
+                                        <th>Hình Ảnh</th>
+                                        <th>Ngày Gửi</th>
+                                        <th>Trạng Thái</th>
+                                        <th class="text-center">Hành Động</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="dg, iterStat : ${listDanhGia}">
+                                        <td class="text-center" th:text="${iterStat.count}">1</td>
+                                        <td class="fw-bold text-dark">
+                                            <span th:text="'ĐG' + ${dg.id}">ĐG1</span>
+                                            <div th:if="${dg.daXoa}" class="admin-status admin-status-danger mt-1">Đã xóa</div>
+                                            
+                                            <div th:if="${dg.daXoa}" class="audit-info audit-info-red mt-1">
+                                                <div><i class="fas fa-trash-alt me-1"></i>Xóa bởi:</div>
+                                                <div class="fw-bold" th:text="${dg.nguoiXoa != null ? dg.nguoiXoa.username : 'Hệ thống'}">admin</div>
+                                                <div th:text="${#temporals.format(dg.ngayXoa, 'dd/MM/yyyy HH:mm')}">16/06/2026</div>
+                                            </div>
+                                        </td>
+                                        
+                                        <td>
+                                            <a th:href="@{'/san-pham/' + ${dg.sanPham.id}}" target="_blank" th:text="${dg.sanPham.tenSanPham}" class="fw-semibold text-primary">Tên sản phẩm</a>
+                                        </td>
+                                        
+                                        <td th:text="${dg.khachHang.hoKh} + ' ' + ${dg.khachHang.tenKh}">John Doe</td>
+                                        
+                                        <td>
+                                            <div class="text-warning">
+                                                <i th:each="i : ${#numbers.sequence(1, 5)}" th:class="${i <= dg.soSao} ? 'fas fa-star' : 'far fa-star'"></i>
+                                            </div>
+                                        </td>
+                                        
+                                        <td>
+                                            <div class="comment-text">
+                                                <div th:text="${dg.binhLuan != null and dg.binhLuan != '' ? dg.binhLuan : '[Bình luận trống]'}" th:style="${dg.anBinhLuan ? 'text-decoration: line-through; color: #94a3b8;' : ''}">Nội dung</div>
+                                                
+                                                <div th:if="${dg.anBinhLuan}" class="text-danger small mt-1 italic"><i class="fas fa-eye-slash me-1"></i>Đang bị ẩn phía khách hàng</div>
+                                                
+                                                <div th:if="${dg.nguoiAnBinhLuan != null}" class="audit-info mt-1">
+                                                    <div><i class="fas fa-user-edit me-1"></i>Ẩn bởi: <span class="fw-semibold" th:text="${dg.nguoiAnBinhLuan.username}"></span></div>
+                                                    <div th:text="${#temporals.format(dg.ngayAnBinhLuan, 'dd/MM/yyyy HH:mm')}"></div>
+                                                </div>
+                                                <div th:if="${dg.nguoiHienBinhLuan != null}" class="audit-info audit-info-green mt-1">
+                                                    <div><i class="fas fa-user-check me-1"></i>Phục hồi bởi: <span class="fw-semibold" th:text="${dg.nguoiHienBinhLuan.username}"></span></div>
+                                                    <div th:text="${#temporals.format(dg.ngayHienBinhLuan, 'dd/MM/yyyy HH:mm')}"></div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        
+                                        <td>
+                                            <div th:if="${dg.danhSachAnh != null and !dg.danhSachAnh.isEmpty()}" class="d-flex flex-wrap gap-1">
+                                                <div th:each="img : ${dg.danhSachAnh}">
+                                                    <th:block th:with="
+                                                        rawPath=${img.duongDan != null ? img.duongDan : ''},
+                                                        cleanPath=${#strings.startsWith(rawPath, '/') ? rawPath : '/' + rawPath},
+                                                        imagePath=${#strings.startsWith(cleanPath, '/uploads/') ? cleanPath : '/uploads/reviews/' + rawPath}">
+                                                        <button type="button"
+                                                                class="review-thumb-button review-image-trigger"
+                                                                th:data-image-src="@{${imagePath}}"
+                                                                title="Xem ảnh đánh giá">
+                                                            <img th:src="@{${imagePath}}" class="review-thumb-img" alt="Ảnh đánh giá"/>
+                                                        </button>
+                                                    </th:block>
+                                                </div>
+                                            </div>
+                                            <span th:unless="${dg.danhSachAnh != null and !dg.danhSachAnh.isEmpty()}" class="text-muted italic small">[Không có ảnh]</span>
+                                            
+                                            <div th:if="${dg.anHinhAnh}" class="text-danger small mt-1 italic"><i class="fas fa-eye-slash me-1"></i>Ảnh đang bị ẩn</div>
+                                            
+                                            <div th:if="${dg.nguoiAnHinhAnh != null}" class="audit-info mt-1">
+                                                <div><i class="fas fa-user-edit me-1"></i>Ẩn bởi: <span class="fw-semibold" th:text="${dg.nguoiAnHinhAnh.username}"></span></div>
+                                                <div th:text="${#temporals.format(dg.ngayAnHinhAnh, 'dd/MM/yyyy HH:mm')}"></div>
+                                            </div>
+                                            <div th:if="${dg.nguoiHienHinhAnh != null}" class="audit-info audit-info-green mt-1">
+                                                <div><i class="fas fa-user-check me-1"></i>Phục hồi bởi: <span class="fw-semibold" th:text="${dg.nguoiHienHinhAnh.username}"></span></div>
+                                                <div th:text="${#temporals.format(dg.ngayHienHinhAnh, 'dd/MM/yyyy HH:mm')}"></div>
+                                            </div>
+                                        </td>
+                                        
+                                        <td>
+                                            <div th:text="${#temporals.format(dg.ngayDanhGia, 'dd/MM/yyyy HH:mm')}">16/06/2026</div>
+                                            <div th:if="${dg.ngayCapNhat != null}" class="text-muted small mt-1">
+                                                <i class="fas fa-history me-1"></i>Sửa: <span th:text="${#temporals.format(dg.ngayCapNhat, 'dd/MM/yyyy HH:mm')}"></span>
+                                            </div>
+                                        </td>
+                                        
+                                        <td>
+                                            <span th:if="${dg.daXoa}" class="admin-status admin-status-danger">Đã Xóa</span>
+                                            <span th:unless="${dg.daXoa}" class="admin-status admin-status-success">Đang Hoạt Động</span>
+                                        </td>
+                                        
+                                        <td class="text-center text-nowrap">
+                                            <div class="d-flex flex-column gap-1">
+                                                <form th:if="${!dg.daXoa and !dg.anBinhLuan}" th:action="@{'/admin/danh-gia/an-binh-luan/' + ${dg.id}}" method="post">
+                                                    <button type="submit" class="admin-btn admin-btn-sm admin-btn-secondary w-100" style="font-size: 0.75rem;">
+                                                        <i class="fas fa-comment-slash me-1"></i>Ẩn Chữ
+                                                    </button>
+                                                </form>
+                                                <form th:if="${!dg.daXoa and dg.anBinhLuan}" th:action="@{'/admin/danh-gia/hien-binh-luan/' + ${dg.id}}" method="post">
+                                                    <button type="submit" class="admin-btn admin-btn-sm admin-btn-primary w-100" style="font-size: 0.75rem;">
+                                                        <i class="fas fa-comment me-1"></i>Hiện Chữ
+                                                    </button>
+                                                </form>
+
+                                                <form th:if="${!dg.daXoa and !dg.anHinhAnh and dg.danhSachAnh != null and !dg.danhSachAnh.isEmpty()}" th:action="@{'/admin/danh-gia/an-hinh-anh/' + ${dg.id}}" method="post">
+                                                    <button type="submit" class="admin-btn admin-btn-sm admin-btn-secondary w-100" style="font-size: 0.75rem;">
+                                                        <i class="fas fa-image me-1"></i>Ẩn Ảnh
+                                                    </button>
+                                                </form>
+                                                <form th:if="${!dg.daXoa and dg.anHinhAnh and dg.danhSachAnh != null and !dg.danhSachAnh.isEmpty()}" th:action="@{'/admin/danh-gia/hien-hinh-anh/' + ${dg.id}}" method="post">
+                                                    <button type="submit" class="admin-btn admin-btn-sm admin-btn-primary w-100" style="font-size: 0.75rem;">
+                                                        <i class="fas fa-image me-1"></i>Hiện Ảnh
+                                                    </button>
+                                                </form>
+
+                                                 <form th:if="${!dg.daXoa}" th:action="@{'/admin/danh-gia/xoa/' + ${dg.id}}" method="post" 
+                                                       onsubmit="return confirmSubmitForm(this, 'Bạn có chắc chắn muốn xóa đánh giá này không? Khách hàng sẽ không nhìn thấy điểm số và bình luận nữa.');">
+                                                    <button type="submit" class="admin-btn admin-btn-sm admin-btn-danger w-100" style="font-size: 0.75rem;">
+                                                        <i class="fas fa-trash me-1"></i>Xóa
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr th:if="${listDanhGia.isEmpty()}">
+                                        <td colspan="10" class="text-center text-muted py-4">Chưa có đánh giá nào từ khách hàng.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Image Preview Modal -->
+    <div id="reviewImageModal" class="review-image-modal" aria-hidden="true">
+        <button type="button" class="review-image-modal-close" aria-label="Đóng">&times;</button>
+        <img id="reviewImagePreview" src="" alt="Ảnh đánh giá phóng to">
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const modal = document.getElementById('reviewImageModal');
+            const preview = document.getElementById('reviewImagePreview');
+            const closeButton = modal ? modal.querySelector('.review-image-modal-close') : null;
+
+            function closeModal() {
+                if (!modal || !preview) return;
+                modal.classList.remove('is-open');
+                modal.setAttribute('aria-hidden', 'true');
+                preview.removeAttribute('src');
+                document.body.style.overflow = '';
+            }
+
+            document.addEventListener('click', function (event) {
+                const trigger = event.target.closest('.review-image-trigger');
+                if (!trigger || !modal || !preview) return;
+
+                const imageSrc = trigger.getAttribute('data-image-src');
+                if (!imageSrc) return;
+
+                preview.src = imageSrc;
+                modal.classList.add('is-open');
+                modal.setAttribute('aria-hidden', 'false');
+                document.body.style.overflow = 'hidden';
+            });
+
+            if (closeButton) closeButton.addEventListener('click', closeModal);
+            if (modal) {
+                modal.addEventListener('click', function (event) {
+                    if (event.target === modal) closeModal();
+                });
+            }
+            document.addEventListener('keydown', function (event) {
+                if (event.key === 'Escape' && modal && modal.classList.contains('is-open')) {
+                    closeModal();
+                }
+            });
+        });
+    </script>
+
+    <!-- Bootstrap 5.3.0 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Admin Layout JS -->
+    <script th:src="@{/js/admin-layout.js(v='2.4')}"></script>
+</body>
+</html>

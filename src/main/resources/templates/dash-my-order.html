@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link th:href="@{/images/favicon.png}" rel="shortcut icon">
+    <title>Smash VN - Đơn Hàng Của Tôi</title>
+
+    <!--====== Phông chữ Google ======-->
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,600,700,800" rel="stylesheet">
+
+    <!--====== CSS Nhà cung cấp ======-->
+    <link rel="stylesheet" th:href="@{/css/vendor.css}">
+
+    <!--====== Tiện ích khoảng cách ======-->
+    <link rel="stylesheet" th:href="@{/css/utility.css}">
+
+    <!--====== Ứng dụng ======-->
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+    <style>
+        /* ===== Badge Trạng thái ===== */
+        .manage-o__badge {
+            width: auto !important;
+            min-width: 5.9375rem !important;
+            white-space: nowrap !important;
+            padding: 6px 14px !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+        /* ===== Badge Trạng thái ===== */
+        .badge--pending   { background-color: #fff3cd !important; color: #856404 !important; }
+        .badge--warning   { background-color: #ffeeb3 !important; color: #856404 !important; }
+        .badge--processing{ background-color: #cce5ff !important; color: #004085 !important; }
+        .badge--confirmed { background-color: #d0f0fd !important; color: #005f7a !important; }
+        .badge--shipping  { background-color: #d1ecf1 !important; color: #0c5460 !important; }
+        .badge--delivered { background-color: #d4edda !important; color: #155724 !important; }
+        .badge--cancelled { background-color: #f8d7da !important; color: #721c24 !important; }
+        .badge--conflict  { background-color: #ffe5b4 !important; color: #7a4500 !important; }
+
+        /* ===== Table Responsive Fixes ===== */
+        .dash__table-2-wrap {
+            overflow-x: auto !important;
+            overflow-y: auto !important;
+        }
+        .dash__table-2 {
+            width: 100% !important;
+            min-width: 720px !important;
+            border-collapse: collapse !important;
+            table-layout: auto !important;
+        }
+        .dash__table-2 th, .dash__table-2 td {
+            padding: 12px 10px !important;
+            min-width: auto !important;
+            vertical-align: middle !important;
+        }
+        .dash__table-2 th:nth-child(1), .dash__table-2 td:nth-child(1) { width: 15%; white-space: nowrap; }
+        .dash__table-2 th:nth-child(2), .dash__table-2 td:nth-child(2) { width: 17%; white-space: nowrap; }
+        .dash__table-2 th:nth-child(3), .dash__table-2 td:nth-child(3) { width: 33%; }
+        .dash__table-2 th:nth-child(4), .dash__table-2 td:nth-child(4) { width: 12%; white-space: nowrap; }
+        .dash__table-2 th:nth-child(5), .dash__table-2 td:nth-child(5) { width: 13%; white-space: nowrap; }
+        .dash__table-2 th:nth-child(6), .dash__table-2 td:nth-child(6) { width: 10%; white-space: nowrap; text-align: center; }
+    </style>
+</head>
+<body class="config">
+    <div class="preloader is-active">
+        <div class="preloader__wrap">
+
+            <img class="preloader__img" th:src="@{/images/preloader.svg}" alt="Đang tải" width="64" height="64"></div>
+    </div>
+
+    <!--====== Ứng dụng chính ======-->
+    <div id="app">
+
+        <!--====== Tiêu đề chính ======-->
+        <header class="header--style-1">
+            <div th:replace="~{layout/header :: header}"></div>
+        </header>
+        <!--====== End - Main Header ======-->
+
+
+        <!--====== App Content ======-->
+        <div class="app-content">
+
+            <!--====== Section 1 ======-->
+            <div class="u-s-p-y-60">
+
+                <!--====== Section Content ======-->
+                <div class="section__content">
+                    <div class="container">
+                        <div class="breadcrumb">
+                            <div class="breadcrumb__wrap">
+                                <ul class="breadcrumb__list">
+                                    <li class="has-separator">
+
+                                        <a th:href="@{/}">Trang chủ</a></li>
+                                    <li class="is-marked">
+
+                                        <a th:href="@{/user/my-order}">Đơn hàng của tôi</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!--====== End - Section 1 ======-->
+
+
+            <!--====== Section 2 ======-->
+            <div class="u-s-p-b-60">
+
+                <!--====== Section Content ======-->
+                <div class="section__content">
+                    <div class="dash">
+                        <div class="container">
+                            <div class="row">
+                                <div class="col-lg-3 col-md-12">
+
+                                    <!--====== Dashboard Features ======-->
+                                    <div class="dash__box dash__box--bg-white dash__box--shadow u-s-m-b-30">
+                                        <div class="dash__pad-1">
+
+                                            <span class="dash__text u-s-m-b-16" th:text="'Hello, ' + (${kh != null} ? (${kh.hoKh} + ' ' + ${kh.tenKh}) : 'Quý khách')"></span>
+                                            <ul class="dash__f-list" th:if="${isGuestView != true}">
+                                                <li>
+                                                    <a th:href="@{/user/dashboard}">Quản lý tài khoản</a></li>
+                                                <li>
+                                                    <a th:href="@{/user/profile}">Thông tin cá nhân</a></li>
+                                                <li>
+                                                    <a th:href="@{/user/address}">Địa chỉ</a></li>
+                                                <li>
+                                                    <a th:href="@{/user/track-order}">Theo dõi đơn hàng</a></li>
+                                                <li>
+                                                    <a class="dash-active" th:href="@{/user/my-order}">Đơn hàng</a></li>
+                                                <li>
+                                                    <a th:href="@{/user/payment-option}">Các tùy chọn thanh toán</a></li>
+                                                <li>
+                                                    <a th:href="@{/user/cancellation}">Chính sách hoàn trả hàng</a></li>
+                                                <li>
+                                                    <a th:href="@{/user/notifications}">Thông báo</a></li>
+                                            </ul>
+                                            <ul class="dash__f-list" th:if="${isGuestView == true}">
+                                                <li>
+                                                    <a th:href="@{/}">Trang chủ cửa hàng</a></li>
+                                                <li>
+                                                    <a class="dash-active" th:href="@{/user/my-order}">Đơn hàng của bạn</a></li>
+                                                <li>
+                                                    <a th:href="@{/user/track-order}">Theo dõi đơn hàng khác</a></li>
+                                            </ul>
+                                            <div class="u-s-m-t-20" th:if="${isGuestView == true}" style="background-color: #fff5f5; border: 1px solid #fed7d7; border-radius: 8px; padding: 14px; color: #9b2c2c; font-size: 13px; line-height: 1.5;">
+                                                <div style="font-weight: 700; margin-bottom: 6px; display: flex; align-items: center; color: #c53030;">
+                                                    <i class="fas fa-info-circle" style="margin-right: 6px;"></i> Thông báo
+                                                </div>
+                                                <span>Tài khoản của bạn vẫn là Guest. Vui lòng kiểm tra email để dùng mật khẩu tạm hoặc activation link khi bạn muốn kích hoạt tài khoản Member.</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="dash__box dash__box--bg-white dash__box--shadow dash__box--w" th:if="${isGuestView != true}">
+                                        <div class="dash__pad-1">
+                                            <ul class="dash__w-list">
+                                                <li>
+                                                    <div class="dash__w-wrap">
+
+                                                        <span class="dash__w-icon dash__w-icon-style-1"><i class="fas fa-cart-arrow-down"></i></span>
+
+                                                        <span class="dash__w-text" th:text="${orderPlaced}">4</span>
+
+                                                        <span class="dash__w-name">Đơn Hàng Đã Đặt</span></div>
+                                                </li>
+                                                <li>
+                                                    <div class="dash__w-wrap">
+
+                                                        <span class="dash__w-icon dash__w-icon-style-2"><i class="fas fa-times"></i></span>
+
+                                                        <span class="dash__w-text" th:text="${cancelOrders}">0</span>
+
+                                                        <span class="dash__w-name">Đơn Hàng Đã Hủy</span></div>
+                                                </li>
+                                                <li>
+                                                    <div class="dash__w-wrap">
+
+                                                        <span class="dash__w-icon dash__w-icon-style-3"><i class="far fa-heart"></i></span>
+
+                                                        <span class="dash__w-text" th:text="${wishlist}">0</span>
+
+                                                        <span class="dash__w-name">Yêu Thích</span></div>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <!--====== End - Dashboard Features ======-->
+                                </div>
+                                <div class="col-lg-9 col-md-12">
+                                    <div class="dash__box dash__box--shadow dash__box--radius dash__box--bg-white u-s-m-b-30">
+                                        <div class="dash__pad-2">
+                                            <h1 class="dash__h1 u-s-m-b-14">Đơn Hàng Của Tôi</h1>
+
+                                            <span class="dash__text u-s-m-b-30">Dưới đây là danh sách tất cả các đơn đặt hàng của bạn.</span>
+                                            <form class="m-order u-s-m-b-30">
+                                                <div class="m-order__select-wrapper">
+
+                                                    <label class="u-s-m-r-8" for="my-order-sort">Hiển thị:</label><select class="select-box select-box--primary-style" id="my-order-sort">
+                                                        <option selected>5 đơn hàng gần nhất</option>
+                                                        <option>15 ngày gần nhất</option>
+                                                        <option>30 ngày gần nhất</option>
+                                                        <option>6 tháng gần nhất</option>
+                                                        <option>Tất cả đơn hàng</option>
+                                                    </select></div>
+                                            </form>
+                                            <div class="dash__table-2-wrap gl-scroll" style="max-height: 520px; overflow-y: auto; border: 1px solid #eee; border-radius: 8px;">
+                                                <table class="dash__table-2">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Mã đơn hàng</th>
+                                                            <th>Ngày đặt</th>
+                                                            <th>Sản phẩm</th>
+                                                            <th>Tổng tiền</th>
+                                                            <th>Trạng thái</th>
+                                                            <th class="text-center">Thao tác</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <tr th:each="order, iterStat : ${orders}">
+                                                            <td>
+                                                                <div style="display: inline-flex; align-items: center; gap: 6px;">
+                                                                    <span class="manage-o__text-2 u-c-secondary"
+                                                                          th:text="${order.maDonHang != null ? order.maDonHang : '#' + order.id}"
+                                                                          th:data-code="${order.maDonHang != null ? order.maDonHang : '#' + order.id}"
+                                                                          onclick="copyOrderCodeToClipboard(this.getAttribute('data-code'), this)"
+                                                                          th:title="'Click để sao chép: ' + ${order.maDonHang != null ? order.maDonHang : '#' + order.id}"
+                                                                          style="cursor: pointer; font-weight: 700;">DHSVN...</span>
+                                                                    <button type="button"
+                                                                            class="btn-copy-code"
+                                                                            th:data-code="${order.maDonHang != null ? order.maDonHang : '#' + order.id}"
+                                                                            onclick="copyOrderCodeToClipboard(this.getAttribute('data-code'), this)"
+                                                                            title="Sao chép mã đơn hàng"
+                                                                            style="background: none; border: none; padding: 2px 4px; cursor: pointer; color: #888; font-size: 13px; display: inline-flex; align-items: center; justify-content: center; border-radius: 4px; transition: all 0.2s;">
+                                                                        <i class="far fa-copy"></i>
+                                                                    </button>
+                                                                </div>
+                                                            </td>
+                                                            <td>
+                                                                <span class="manage-o__text u-c-silver" th:text="${order.date}">26 Oct 2016 09:08:37</span>
+                                                            </td>
+                                                            <td>
+                                                                 <div class="manage-o__products-list">
+                                                                     <div class="manage-o__product-item" th:each="item : ${order.items}" style="display: flex; align-items: center; margin-bottom: 6px; gap: 10px;">
+                                                                         <img th:src="@{${item.imageUrl != null and !#strings.isEmpty(item.imageUrl) ? item.imageUrl : (item.image != null ? item.image : '/images/placeholder.png')}}" onerror="this.onerror=null; this.src='/images/placeholder.png';" alt="Ảnh sản phẩm" style="width: 40px; height: 40px; object-fit: cover; border-radius: 6px; border: 1px solid #eee; flex-shrink: 0;">
+                                                                         <div style="display: flex; flex-direction: column; min-width: 0;">
+                                                                             <span th:text="${item.title}" th:title="${item.title}" style="font-size: 13px; font-weight: 600; color: #333; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Tên sản phẩm</span>
+                                                                             <span style="font-size: 12px; color: #888;" th:text="'Số lượng: ' + ${item.quantity}">Số lượng: 1</span>
+                                                                         </div>
+                                                                     </div>
+                                                                     <div th:if="${order.items == null or #lists.isEmpty(order.items)}" style="font-size: 12px; color: #94a3b8; font-style: italic;">
+                                                                         Chi tiết đơn hàng
+                                                                     </div>
+                                                                 </div>
+                                                            </td>
+                                                            <td>
+                                                                <span class="manage-o__text-2 u-c-secondary" th:text="${#numbers.formatDecimal(order.total, 0, 'COMMA', 0, 'POINT')} + ' đ'">16.000 đ</span>
+                                                            </td>
+                                                            <td>
+                                                                <span class="manage-o__badge" 
+                                                                      th:classappend="${order.trangThaiHoanHang == 'REFUNDED' or order.trangThaiHoanHang == 'RETURNED' or order.trangThaiHoanHang == 'EXCHANGED' ? 'badge--delivered' :
+                                                                                      (order.trangThaiHoanHang == 'REJECTED' ? 'badge--cancelled' :
+                                                                                      (order.trangThaiHoanHang != null ? 'badge--processing' :
+                                                                                      (order.rawStatus == 'cho_thanh_toan' ? 'badge--pending' :
+                                                                                      (order.rawStatus == 'cho_xac_nhan'  ? 'badge--processing' :
+                                                                                      (order.rawStatus == 'da_xac_nhan'   ? 'badge--confirmed' :
+                                                                                      (order.rawStatus == 'dang_chuan_bi_hang' ? 'badge--processing' :
+                                                                                      (order.rawStatus == 'san_sang_giao' ? 'badge--confirmed' :
+                                                                                      (order.rawStatus == 'da_tao_van_don_ghn' ? 'badge--shipping' :
+                                                                                      (order.rawStatus == 'da_ban_giao_ghn' ? 'badge--shipping' :
+                                                                                      (order.rawStatus == 'dang_lay_hang' ? 'badge--confirmed' :
+                                                                                      (order.rawStatus == 'dang_giao'     ? 'badge--shipping' :
+                                                                                      (order.rawStatus == 'da_giao'       ? 'badge--delivered' :
+                                                                                      (order.rawStatus == 'da_huy'        ? 'badge--cancelled' :
+                                                                                      (order.rawStatus == 'stock_conflict'? 'badge--conflict'  : 'badge--processing'))))))))))))))}" 
+                                                                      th:text="${order.trangThaiHoanHang == 'REFUNDED' ? 'Đã Hoàn Tiền' :
+                                                                                (order.trangThaiHoanHang == 'RETURNED' ? 'Đã Trả Hàng' :
+                                                                                (order.trangThaiHoanHang == 'EXCHANGED' ? 'Đã Đổi Hàng' :
+                                                                                (order.trangThaiHoanHang == 'REJECTED' ? 'Từ Chối Trả Hàng' :
+                                                                                (order.trangThaiHoanHang != null ? ('Trả hàng: ' + order.trangThaiHoanHangLabel) :
+                                                                                (order.rawStatus == 'cho_thanh_toan' ? 'Chờ thanh toán' :
+                                                                                (order.rawStatus == 'cho_xac_nhan'  ? 'Chờ xác nhận' :
+                                                                                (order.rawStatus == 'da_xac_nhan'   ? 'Đã xác nhận' :
+                                                                                (order.rawStatus == 'dang_chuan_bi_hang' ? 'Đang chuẩn bị hàng' :
+                                                                                (order.rawStatus == 'san_sang_giao' ? 'Sẵn sàng giao' :
+                                                                                 (order.rawStatus == 'da_tao_van_don_ghn' ? 'Đã tạo vận đơn' :
+                                                                                 (order.rawStatus == 'da_ban_giao_ghn' ? 'Đã lấy hàng' :
+                                                                                (order.rawStatus == 'dang_lay_hang' ? 'Đang lấy hàng' :
+                                                                                (order.rawStatus == 'dang_giao'     ? 'Đang giao' :
+                                                                                (order.rawStatus == 'da_giao'       ? 'Đã giao' :
+                                                                                (order.rawStatus == 'da_huy'        ? 'Đã hủy' :
+                                                                                (order.rawStatus == 'stock_conflict'? 'Trùng kho' : order.rawStatus))))))))))))))))}"
+                                                                >Đang xử lý</span>
+                                                            </td>
+                                                             <td class="text-center" style="white-space: nowrap;">
+                                                                 <a th:if="${order.rawStatus == 'cho_thanh_toan' and order.paymentMethod == 'sepay'}"
+                                                                    class="address-book-edit btn--e-brand-b-2 u-s-m-r-8" 
+                                                                    th:href="@{/payment/sepay/simulate(maDonHang=${order.maDonHang})}"
+                                                                    style="padding: 6px 12px; font-size: 12px; border-radius: 6px; color: white; background-color: #ff4500; border: none; font-weight: 600; text-decoration: none;">
+                                                                     Thanh toán
+                                                                 </a>
+                                                                 <a class="address-book-edit btn--e-transparent-platinum-b-2" th:href="@{/user/manage-order(id=${order.id})}" style="padding: 6px 12px; font-size: 12px; border-radius: 6px;">Chi tiết</a>
+                                                             </td>
+                                                        </tr>
+                                                        <tr th:if="${orders.isEmpty()}">
+                                                            <td colspan="6" class="text-center text-muted py-4">
+                                                                Bạn chưa có đơn hàng nào.
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!--====== End - Section Content ======-->
+            </div>
+            <!--====== End - Section 2 ======-->
+        </div>
+        <!--====== End - App Content ======-->
+
+
+        <!--====== Main Footer ======-->
+        <footer>
+            <div th:replace="~{layout/footer :: footer}"></div>
+        </footer>
+    </div>
+    <!--====== End - Main App ======-->
+
+
+    <!--====== Google Analytics: change UA-XXXXX-Y to be your site's ID ======-->
+    <script>
+        window.ga = function() {
+            ga.q.push(arguments)
+        };
+        ga.q = [];
+        ga.l = +new Date;
+        ga('create', 'UA-XXXXX-Y', 'auto');
+        ga('send', 'pageview')
+    </script>
+    <script src="https://www.google-analytics.com/analytics.js" async defer></script>
+
+    <!--====== Vendor Js ======-->
+    <script th:src="@{/js/vendor.js}"></script>
+
+    <!--====== Plugin jQuery Shopnav ======-->
+    <script th:src="@{/js/jquery.shopnav.js}"></script>
+
+    <!--====== Ứng dụng ======-->
+    <script th:src="@{/js/app.js}"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('payment') === 'success') {
+                showToast('Thanh toán đơn hàng thành công!', 'success');
+                // Remove parameter from URL
+                const newUrl = window.location.pathname;
+                window.history.replaceState({}, document.title, newUrl);
+            }
+
+            // --- Order filter selector logic ---
+            const sortSelect = document.getElementById("my-order-sort");
+            if (sortSelect) {
+                const tableBody = document.querySelector(".dash__table-2 tbody");
+                if (tableBody) {
+                    const rows = Array.from(tableBody.querySelectorAll("tr:not(.no-orders-row)"));
+                    if (rows.length > 0) {
+                        function parseOrderDate(dateStr) {
+                            const months = {
+                                "Jan": 0, "Feb": 1, "Mar": 2, "Apr": 3, "May": 4, "Jun": 5,
+                                "Jul": 6, "Aug": 7, "Sep": 8, "Oct": 9, "Nov": 10, "Dec": 11
+                            };
+                            const parts = dateStr.trim().split(/\s+/);
+                            if (parts.length < 4) return new Date();
+                            const day = parseInt(parts[0], 10);
+                            const month = months[parts[1]] !== undefined ? months[parts[1]] : 0;
+                            const year = parseInt(parts[2], 10);
+                            const timeParts = parts[3].split(":");
+                            const hour = timeParts[0] ? parseInt(timeParts[0], 10) : 0;
+                            const minute = timeParts[1] ? parseInt(timeParts[1], 10) : 0;
+                            const second = timeParts[2] ? parseInt(timeParts[2], 10) : 0;
+                            return new Date(year, month, day, hour, minute, second);
+                        }
+
+                        sortSelect.addEventListener("change", function () {
+                            const optionValue = sortSelect.value.trim();
+                            const now = new Date();
+
+                            rows.forEach(function (row, index) {
+                                let show = true;
+                                const dateSpan = row.querySelector("td:nth-child(2) span");
+                                const dateStr = dateSpan ? dateSpan.textContent : "";
+                                const orderDate = parseOrderDate(dateStr);
+
+                                if (optionValue === "5 đơn hàng gần nhất") {
+                                    show = index < 5;
+                                } else if (optionValue === "15 ngày gần nhất") {
+                                    const diffTime = Math.abs(now - orderDate);
+                                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                                    show = diffDays <= 15;
+                                } else if (optionValue === "30 ngày gần nhất") {
+                                    const diffTime = Math.abs(now - orderDate);
+                                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                                    show = diffDays <= 30;
+                                } else if (optionValue === "6 tháng gần nhất") {
+                                    const diffTime = Math.abs(now - orderDate);
+                                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                                    show = diffDays <= 180;
+                                } else if (optionValue === "Tất cả đơn hàng") {
+                                    show = true;
+                                }
+
+                                row.style.display = show ? "" : "none";
+                            });
+
+                            const visibleRows = rows.filter(r => r.style.display !== "none");
+                            let noOrdersRow = tableBody.querySelector(".no-orders-row");
+                            if (visibleRows.length === 0) {
+                                if (!noOrdersRow) {
+                                    noOrdersRow = document.createElement("tr");
+                                    noOrdersRow.className = "no-orders-row";
+                                    noOrdersRow.innerHTML = `<td colspan="6" class="text-center text-muted py-4">Không có đơn hàng nào khớp bộ lọc</td>`;
+                                    tableBody.appendChild(noOrdersRow);
+                                } else {
+                                    noOrdersRow.style.display = "";
+                                }
+                            } else {
+                                if (noOrdersRow) {
+                                    noOrdersRow.style.display = "none";
+                                }
+                            }
+                        });
+
+                        // Run once on load to show 5 latest orders by default
+                        sortSelect.dispatchEvent(new Event("change"));
+                    }
+                }
+            }
+        });
+
+        function copyOrderCodeToClipboard(text, el) {
+            if (!text) return;
+            navigator.clipboard.writeText(text).then(function() {
+                const icon = el ? (el.querySelector ? (el.querySelector('i') || el) : el) : null;
+                const oldClass = icon ? icon.className : '';
+                if (icon) icon.className = 'fas fa-check text-success';
+                
+                showToast('Đã sao chép mã đơn hàng: ' + text, 'success');
+                
+                if (icon && oldClass) {
+                    setTimeout(function() {
+                        icon.className = oldClass;
+                    }, 1500);
+                }
+            }).catch(function(err) {
+                console.error('Lỗi khi sao chép:', err);
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                document.body.appendChild(textArea);
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    showToast('Đã sao chép mã đơn hàng: ' + text, 'success');
+                } catch(e) {}
+                document.body.removeChild(textArea);
+            });
+        }
+    </script>
+
+    <!--====== Khi không hỗ trợ JavaScript ======-->
+    <noscript>
+        <div class="app-setting">
+            <div class="container">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="app-setting__wrap">
+                            <h1 class="app-setting__h1">Trình duyệt của bạn đã tắt JavaScript.</h1>
+
+                            <span class="app-setting__text">Vui lòng bật JavaScript trong cài đặt trình duyệt hoặc nâng cấp lên trình duyệt có hỗ trợ JavaScript.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </noscript>
+</body>
+</html>

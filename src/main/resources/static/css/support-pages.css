@@ -1,0 +1,56 @@
+/* Use the shop's breadcrumb, section heading and product tabs from app.css.
+   Long-form content stays on the same white page as the existing public pages. */
+.support-page { background: #fff; color: #333; }
+.support-page a:focus-visible, .support-page summary:focus-visible, .support-skip:focus-visible { outline: 3px solid #ff4500; outline-offset: 4px; }
+.support-intro .section__heading { text-transform: uppercase; }
+.support-intro p { color: #7f7f7f; }
+.support-tabs .pd-tab__list { display: flex; flex-wrap: wrap; list-style: none; padding: 0; }
+.support-tabs .nav-link { display: block; }
+.support-layout { display: grid; grid-template-columns: 255px minmax(0,1fr); gap: 30px; align-items: start; }
+.support-toc { position: sticky; top: 24px; font-size: 13px; }
+.support-toc .blog-w__h { line-height: normal; }
+.support-toc ol { padding-left: 20px; margin: 0; }
+.support-toc li { padding-bottom: 12px; line-height: 1.6; }
+.support-toc a { color: #333; }
+.support-toc a:hover { color: #ff4500; }
+.support-toc > a { display: block; margin-top: 14px; line-height: 1.6; }
+.support-article { min-width: 0; font-size: 16px; line-height: 2; }
+.support-article section { padding: 30px 0; border-bottom: 1px solid #eee; scroll-margin-top: 24px; }
+.support-article section:last-child { border-bottom: 0; padding-bottom: 0; }
+.support-article h2 { font-size: 22px; font-weight: 600; line-height: 1.5; color: #333; margin-bottom: 16px; }
+.support-article h3 { font-size: 16px; font-weight: 600; line-height: 1.5; color: #333; margin: 20px 0 8px; }
+.support-article p { font-size: inherit; line-height: inherit; margin-bottom: 14px; }
+.support-article li { margin-bottom: 10px; }
+.support-article ul, .support-article ol { padding-left: 24px; }
+.support-article a, .support-contact-links a { color: #ff4500; text-decoration: underline; text-underline-offset: 3px; }
+.support-article a:hover, .support-contact-links a:hover { color: #fa4400; }
+.support-note { line-height: 1.8; margin-bottom: 14px; }
+.support-article > .support-note { padding-bottom: 24px; margin-bottom: 0; border-bottom: 1px solid #eee; }
+.support-cards { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 30px; margin-bottom: 16px; }
+.support-cards h3 { margin-top: 0; }
+.support-cards p:last-child { margin-bottom: 0; }
+.support-figure { margin: 20px 0 0; }
+.support-figure img { display: block; width: 100%; height: auto; }
+.support-figure figcaption { font-size: 13px; line-height: 1.7; padding: 12px 0; color: #7f7f7f; }
+.support-formula { padding: 16px 0; border-top: 1px solid #eee; border-bottom: 1px solid #eee; margin-bottom: 18px; font-weight: 600; }
+.support-faq details { border-top: 1px solid #eee; padding: 16px 0; }
+.support-faq summary { cursor: pointer; font-weight: 600; color: #333; }
+.support-faq details p { margin-top: 14px; margin-bottom: 0; }
+.support-contact { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 30px; padding-top: 30px; border-top: 1px solid #eee; margin-top: 46px; scroll-margin-top: 24px; }
+.support-contact h2 { font-size: 22px; font-weight: 600; line-height: 1.5; margin-bottom: 12px; color: #333; }
+.support-contact-links { display: flex; flex-direction: column; gap: 16px; justify-content: center; font-size: 14px; font-weight: 600; overflow-wrap: anywhere; }
+.support-skip { position: absolute; left: 16px; top: -80px; z-index: 10000; padding: 12px 18px; background: #fff; color: #ff4500; }
+.support-skip:focus { top: 16px; }
+@media (max-width: 991px) {
+    .support-layout { grid-template-columns: minmax(0,1fr); gap: 30px; }
+    .support-toc { position: static; }
+    .support-toc ol { columns: 2; column-gap: 30px; }
+    .support-toc li { break-inside: avoid; }
+    .support-contact { grid-template-columns: minmax(0,1fr); gap: 20px; }
+}
+@media (max-width: 575px) {
+    .support-article h2 { font-size: 20px; }
+    .support-cards { grid-template-columns: minmax(0,1fr); gap: 20px; }
+    .support-toc ol { columns: 1; }
+    .support-tabs .pd-tab__list > li + li { margin-left: 24px; }
+}

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html class="no-js" lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>404 - Không tìm thấy trang | Smash VN</title>
+    <meta name="description" content="Rất tiếc, trang bạn đang tìm kiếm không tồn tại hoặc đã được di chuyển.">
+    <meta name="robots" content="noindex, nofollow">
+    
+    <link th:href="@{/images/favicon.png}" rel="shortcut icon">
+
+    <!--====== Google Font ======-->
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,600,700,800" rel="stylesheet">
+
+    <!--====== Vendor Css ======-->
+    <link rel="stylesheet" th:href="@{/css/vendor.css}">
+
+    <!--====== Utility-Spacing ======-->
+    <link rel="stylesheet" th:href="@{/css/utility.css}">
+
+    <!--====== App ======-->
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body class="config">
+    <div class="preloader is-active">
+        <div class="preloader__wrap">
+            <img class="preloader__img" th:src="@{/images/preloader.svg}" alt="Đang tải..." width="64" height="64">
+        </div>
+    </div>
+
+    <!--====== Main App ======-->
+    <div id="app">
+        <!--====== Main Header ======-->
+        <header class="header--style-1">
+            <div th:replace="~{layout/header :: header}"></div>
+        </header>
+
+        <!--====== App Content ======-->
+        <div class="app-content">
+            <!--====== Section 1: Breadcrumb ======-->
+            <div class="u-s-p-y-60">
+                <div class="section__content">
+                    <div class="container">
+                        <div class="breadcrumb">
+                            <div class="breadcrumb__wrap">
+                                <ul class="breadcrumb__list">
+                                    <li class="has-separator">
+                                        <a th:href="@{/}">Trang chủ</a>
+                                    </li>
+                                    <li class="is-marked">
+                                        <a href="#">Lỗi 404</a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!--====== Section 2: 404 Content ======-->
+            <div class="u-s-p-b-90">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <div class="about-page-wrap" style="text-align: center; padding: 60px 20px; background: #fff; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.02); border: 1px solid #f0f0f0;">
+                                <h1 style="font-size: 8rem; color: #ff4500; font-weight: 800; line-height: 1; margin-bottom: 20px;">404</h1>
+                                <h2 style="font-size: 2rem; color: #15171c; font-weight: 700; margin-bottom: 15px;">Rất tiếc! Không tìm thấy trang</h2>
+                                <p style="color: #666; font-size: 1.1rem; line-height: 1.6; max-width: 550px; margin: 0 auto 35px;">
+                                    Đường dẫn bạn truy cập có thể đã hết hạn hoặc không tồn tại. Vui lòng kiểm tra lại địa chỉ URL hoặc quay trở lại cửa hàng của chúng tôi để mua sắm dụng cụ cầu lông.
+                                </p>
+                                <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+                                    <a th:href="@{/}" class="btn btn--e-brand-b-2" style="display: inline-block; font-weight: 700; padding: 12px 28px; border-radius: 30px; text-decoration: none;">QUAY VỀ TRANG CHỦ</a>
+                                    <a th:href="@{/shop}" class="btn btn--e-secondary" style="display: inline-block; font-weight: 700; padding: 12px 28px; border-radius: 30px; text-decoration: none;">CỬA HÀNG SẢN PHẨM</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--====== End - App Content ======-->
+
+        <!--====== Main Footer ======-->
+        <footer th:replace="~{layout/footer :: footer}"></footer>
+
+        <!--====== Modal Section ======-->
+        <div th:replace="~{layout/modals :: all-modals}"></div>
+    </div>
+
+    <!--====== Vendor Js ======-->
+    <script th:src="@{/js/vendor.js}"></script>
+
+    <!--====== jQuery Shopnav plugin ======-->
+    <script th:src="@{/js/jquery.shopnav.js}"></script>
+
+    <!--====== App ======-->
+    <script th:src="@{/js/app.js}"></script>
+</body>
+</html>

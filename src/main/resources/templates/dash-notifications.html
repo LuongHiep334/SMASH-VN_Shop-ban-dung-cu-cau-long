@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link th:href="@{/images/favicon.png}" rel="shortcut icon">
+    <title>Smash VN - Thông Báo Của Tôi</title>
+
+    <!--====== Phông chữ Google ======-->
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,600,700,800" rel="stylesheet">
+
+    <!--====== CSS Nhà cung cấp ======-->
+    <link rel="stylesheet" th:href="@{/css/vendor.css}">
+
+    <!--====== Tiện ích khoảng cách ======-->
+    <link rel="stylesheet" th:href="@{/css/utility.css}">
+
+    <!--====== Ứng dụng ======-->
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+    
+    <style>
+        .notification-card {
+            border-left: 4px solid #17a2b8;
+            padding: 20px;
+            margin-bottom: 20px;
+            background-color: #f8f9fa;
+            border-radius: 6px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        .notification-card.unread {
+            border-left: 4px solid #dc3545;
+            background-color: #fff8f8;
+        }
+        .notification-title {
+            overflow-wrap: anywhere;
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        .notification-card.unread .notification-title {
+            color: #dc3545;
+        }
+        .notification-time {
+            font-size: 0.75rem;
+            color: #888;
+            margin-bottom: 8px;
+        }
+        .notification-content {
+            overflow-wrap: anywhere;
+            font-size: 0.9rem;
+            color: #555;
+            line-height: 1.6;
+        }
+        .mark-read-btn {
+            display: inline-block;
+            margin-top: 12px;
+            padding: 0;
+            background-color: transparent;
+            border: none;
+            color: #ff4500;
+            font-size: 0.8rem;
+            cursor: pointer;
+            font-weight: 600;
+            transition: color 0.2s;
+        }
+        .mark-read-btn:hover {
+            color: #cc3700;
+        }
+    </style>
+</head>
+<body class="config">
+    <div class="preloader is-active">
+        <div class="preloader__wrap">
+            <img class="preloader__img" th:src="@{/images/preloader.svg}" alt="Đang tải" width="64" height="64">
+        </div>
+    </div>
+
+    <!--====== Ứng dụng chính ======-->
+    <div id="app">
+        <!--====== Tiêu đề chính ======-->
+        <header class="header--style-1">
+            <div th:replace="~{layout/header :: header}"></div>
+        </header>
+        <!--====== End - Main Header ======-->
+
+        <!--====== App Content ======-->
+        <div class="app-content">
+            <!--====== Section 1 ======-->
+            <div class="u-s-p-y-60">
+                <!--====== Section Content ======-->
+                <div class="section__content">
+                    <div class="container">
+                        <div class="breadcrumb">
+                            <div class="breadcrumb__wrap">
+                                <ul class="breadcrumb__list">
+                                    <li class="has-separator"><a th:href="@{/}">Trang chủ</a></li>
+                                    <li class="is-marked"><a th:href="@{/user/notifications}">Thông báo</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!--====== End - Section 1 ======-->
+
+            <!--====== Section 2 ======-->
+            <div class="u-s-p-b-60">
+                <!--====== Section Content ======-->
+                <div class="section__content">
+                    <div class="dash">
+                        <div class="container">
+                            <div class="row">
+                                <div class="col-lg-3 col-md-12">
+                                    <!--====== Dashboard Features ======-->
+                                    <div class="dash__box dash__box--bg-white dash__box--shadow u-s-m-b-30">
+                                        <div class="dash__pad-1">
+                                            <span class="dash__text u-s-m-b-16" th:text="'Hello, ' + ${kh.hoKh} + ' ' + ${kh.tenKh}"></span>
+                                            <ul class="dash__f-list">
+                                                <li><a th:href="@{/user/dashboard}">Quản lý tài khoản</a></li>
+                                                <li><a th:href="@{/user/profile}">Thông tin cá nhân</a></li>
+                                                <li><a th:href="@{/user/address}">Địa chỉ</a></li>
+                                                <li><a th:href="@{/user/track-order}">Theo dõi đơn hàng</a></li>
+                                                <li><a th:href="@{/user/my-order}">Đơn hàng</a></li>
+                                                <li><a th:href="@{/user/payment-option}">Các tùy chọn thanh toán</a></li>
+                                                <li><a th:href="@{/user/cancellation}">Chính sách hoàn trả hàng</a></li>
+                                                <li><a class="dash-active" th:href="@{/user/notifications}">Thông báo</a></li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <div class="dash__box dash__box--bg-white dash__box--shadow dash__box--w">
+                                        <div class="dash__pad-1">
+                                            <ul class="dash__w-list">
+                                                <li>
+                                                    <div class="dash__w-wrap">
+                                                        <span class="dash__w-icon dash__w-icon-style-1"><i class="fas fa-cart-arrow-down"></i></span>
+                                                        <span class="dash__w-text" th:text="${orderPlaced}">0</span>
+                                                        <span class="dash__w-name">Đơn Hàng Đã Đặt</span>
+                                                    </div>
+                                                </li>
+                                                <li>
+                                                    <div class="dash__w-wrap">
+                                                        <span class="dash__w-icon dash__w-icon-style-2"><i class="fas fa-times"></i></span>
+                                                        <span class="dash__w-text" th:text="${cancelOrders}">0</span>
+                                                        <span class="dash__w-name">Đơn Hàng Đã Hủy</span>
+                                                    </div>
+                                                </li>
+                                                <li>
+                                                    <div class="dash__w-wrap">
+                                                        <span class="dash__w-icon dash__w-icon-style-3"><i class="far fa-heart"></i></span>
+                                                        <span class="dash__w-text" th:text="${wishlist}">0</span>
+                                                        <span class="dash__w-name">Yêu Thích</span>
+                                                    </div>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <!--====== End - Dashboard Features ======-->
+                                </div>
+                                <div class="col-lg-9 col-md-12">
+                                    <div class="dash__box dash__box--bg-white dash__box--shadow u-s-m-b-30">
+                                        <div class="dash__pad-2">
+                                            <h1 class="dash__h1 u-s-m-b-14">Thông báo của tôi</h1>
+                                            <span class="dash__text u-s-m-b-30">Tại đây hiển thị các thông báo từ hệ thống về tài khoản, đơn hàng và hoạt động của bạn.</span>
+                                            
+                                            <div th:if="${listThongBao != null and !listThongBao.isEmpty()}">
+                                                <div th:each="tb : ${listThongBao}" th:class="${tb.daDoc} ? 'notification-card' : 'notification-card unread'">
+                                                    <div class="notification-title">
+                                                        <i th:class="${tb.daDoc} ? 'far fa-bell me-2' : 'fas fa-bell me-2 text-danger'"></i>
+                                                        <span th:text="${tb.tieuDe}">Tiêu đề thông báo</span>
+                                                    </div>
+                                                    <div class="notification-time" th:text="${#temporals.format(tb.ngayTao, 'dd/MM/yyyy HH:mm')}">
+                                                        16/06/2026 14:00
+                                                    </div>
+                                                    <div class="notification-content" th:text="${tb.noiDung}">
+                                                        Nội dung thông báo chi tiết
+                                                    </div>
+                                                    
+                                                    <!-- Form Đánh dấu đã đọc -->
+                                                    <form th:if="${!tb.daDoc}" th:action="@{'/user/notifications/read/' + ${tb.id}}" method="POST" style="margin: 0;">
+                                                        <button type="submit" class="mark-read-btn"><i class="fas fa-check-double me-1"></i>Đánh dấu đã đọc</button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                            
+                                            <div th:if="${listThongBao == null or listThongBao.isEmpty()}" class="text-center py-5">
+                                                <i class="far fa-bell fa-4x text-muted mb-3" style="font-size: 4rem;"></i>
+                                                <p class="text-muted">Bạn chưa có thông báo nào.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--====== End - App Content ======-->
+
+        <!--====== Main Footer ======-->
+        <footer>
+            <div th:replace="~{layout/footer :: footer}"></div>
+        </footer>
+
+        <!--====== Modal Section ======-->
+        <div th:replace="~{layout/modals :: all-modals}"></div>
+    </div>
+
+    <!--====== Vendor JS ======-->
+    <script th:src="@{/js/vendor.js}"></script>
+    <!--====== Plugin jQuery Shopnav ======-->
+    <script th:src="@{/js/jquery.shopnav.js}"></script>
+    <!--====== Active JS ======-->
+    <script th:src="@{/js/app.js}"></script>
+</body>
+</html>

@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link th:href="@{/images/favicon.png}" rel="shortcut icon">
+    <title>Smash VN</title>
+
+    <!--====== Phông chữ Google ======-->
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,600,700,800" rel="stylesheet">
+
+    <!--====== CSS Nhà cung cấp ======-->
+    <link rel="stylesheet" th:href="@{/css/vendor.css}">
+
+    <!--====== Tiện ích khoảng cách ======-->
+    <link rel="stylesheet" th:href="@{/css/utility.css}">
+
+    <!--====== Ứng dụng ======-->
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body class="config">
+    <div class="preloader is-active">
+        <div class="preloader__wrap">
+
+            <img class="preloader__img" th:src="@{/images/preloader.svg}" alt="Đang tải" width="64" height="64"></div>
+    </div>
+
+    <!--====== Ứng dụng chính ======-->
+    <div id="app">
+
+        <!--====== Tiêu đề chính ======-->
+        <header class="header--style-1">
+            <div th:replace="~{layout/header :: header}"></div>
+        </header>
+        <!--====== End - Main Header ======-->
+
+
+        <!--====== App Content ======-->
+        <div class="app-content">
+
+            <!--====== Section 1 ======-->
+            <div class="u-s-p-y-60">
+
+                <!--====== Section Content ======-->
+                <div class="section__content">
+                    <div class="container">
+                        <div class="breadcrumb">
+                            <div class="breadcrumb__wrap">
+                                <ul class="breadcrumb__list">
+                                    <li class="has-separator">
+
+                                        <a th:href="@{/}">Trang chủ</a></li>
+                                    <li class="is-marked">
+
+                                        <a th:href="@{/user/dashboard}">Tài khoản</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!--====== End - Section 1 ======-->
+
+
+            <!--====== Section 2 ======-->
+            <div class="u-s-p-b-60">
+
+                <!--====== Section Content ======-->
+                <div class="section__content">
+                    <div class="dash">
+                        <div class="container">
+                            <div class="row">
+                                <div class="col-lg-3 col-md-12">
+
+                                    <!--====== Dashboard Features ======-->
+                                    <div class="dash__box dash__box--bg-white dash__box--shadow u-s-m-b-30">
+                                        <div class="dash__pad-1">
+
+                                            <span class="dash__text u-s-m-b-16" th:text="'Hello, ' + ${kh.hoKh} + ' ' + ${kh.tenKh}"></span>
+                                            <ul class="dash__f-list">
+                                                <li>
+
+                                                    <a class="dash-active" th:href="@{/user/dashboard}">Quản lý tài khoản</a></li>
+                                                <li>
+
+                                                    <a th:href="@{/user/profile}">Thông tin cá nhân</a></li>
+                                                <li>
+
+                                                    <a th:href="@{/user/address}">Địa chỉ</a></li>
+                                                <li>
+
+                                                    <a th:href="@{/user/track-order}">Theo dõi đơn hàng</a></li>
+                                                <li>
+
+                                                    <a th:href="@{/user/my-order}">Đơn hàng</a></li>
+                                                <li>
+
+                                                    <a th:href="@{/user/payment-option}">Các tùy chọn thanh toán</a></li>
+                                                <li>
+
+                                                    <a th:href="@{/user/cancellation}">Chính sách hoàn trả hàng</a></li>
+                                                <li>
+
+                                                    <a th:href="@{/user/notifications}">Thông báo</a></li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <div class="dash__box dash__box--bg-white dash__box--shadow dash__box--w">
+                                        <div class="dash__pad-1">
+                                            <ul class="dash__w-list">
+                                                <li>
+                                                    <div class="dash__w-wrap">
+                                                        <span class="dash__w-icon dash__w-icon-style-1"><i class="fas fa-cart-arrow-down"></i></span>
+                                                        <span class="dash__w-text" th:text="${orderPlaced}">0</span>
+                                                        <span class="dash__w-name">Đơn Hàng Đã Đặt</span>
+                                                    </div>
+                                                </li>
+                                                <li>
+                                                    <div class="dash__w-wrap">
+                                                        <span class="dash__w-icon dash__w-icon-style-2"><i class="fas fa-times"></i></span>
+                                                        <span class="dash__w-text" th:text="${cancelOrders}">0</span>
+                                                        <span class="dash__w-name">Đơn Hàng Đã Hủy</span>
+                                                    </div>
+                                                </li>
+                                                <li>
+                                                    <div class="dash__w-wrap">
+                                                        <span class="dash__w-icon dash__w-icon-style-3"><i class="far fa-heart"></i></span>
+                                                        <span class="dash__w-text" th:text="${wishlist}">0</span>
+                                                        <span class="dash__w-name">Yêu Thích</span>
+                                                    </div>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <!--====== End - Dashboard Features ======-->
+                                </div>
+                                <div class="col-lg-9 col-md-12">
+                                    <div class="dash__box dash__box--shadow dash__box--radius dash__box--bg-white u-s-m-b-30">
+                                        <div class="dash__pad-2">
+                                            <h1 class="dash__h1 u-s-m-b-14">Quản lý tài khoản</h1>
+                                            <span class="dash__text u-s-m-b-30">Từ trang Tổng quan Tài khoản của tôi, bạn có thể xem tóm tắt hoạt động gần đây của tài khoản và cập nhật thông tin tài khoản. Chọn liên kết bên dưới để xem hoặc chỉnh sửa thông tin.</span>
+                                            
+                                            <div class="row">
+                                                <div class="col-lg-4 u-s-m-b-30">
+                                                    <div class="dash__box dash__box--bg-grey dash__box--shadow-2 u-h-100">
+                                                        <div class="dash__pad-3">
+                                                            <h2 class="dash__h2 u-s-m-b-8">THÔNG TIN CÁ NHÂN</h2>
+                                                            <div class="dash__link dash__link--secondary u-s-m-b-8">
+                                                                <a th:href="@{/user/profile/edit}">Sửa</a>
+                                                            </div>
+                                                            <span class="dash__text fw-bold" th:text="${kh.hoKh} + ' ' + ${kh.tenKh}"></span>
+                                                            <span id="user-email" class="dash__text" th:text="${kh.taiKhoan?.username ?: ''}"></span>
+                                                            <div class="dash__link dash__link--secondary u-s-m-t-8" id="newsletter-btn-container">
+                                                                <a th:if="${!nhanBanTin}" data-modal="modal" data-modal-id="#dash-newsletter" id="btn-newsletter-subscribe">Đăng ký nhận tin tức mới</a>
+                                                                <a th:if="${nhanBanTin}" href="javascript:void(0)" id="btn-newsletter-unsubscribe" style="color: #ff4500;">Hủy đăng ký nhận tin tức</a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="col-lg-4 u-s-m-b-30">
+                                                    <div class="dash__box dash__box--bg-grey dash__box--shadow-2 u-h-100">
+                                                        <div class="dash__pad-3">
+                                                            <h2 class="dash__h2 u-s-m-b-8">ĐỊA CHỈ</h2>
+                                                            <span class="dash__text-2 u-s-m-b-8">Địa chỉ giao hàng mặc định</span>
+                                                            <div class="dash__link dash__link--secondary u-s-m-b-8">
+                                                                <a th:href="@{/user/address}">Sửa</a>
+                                                            </div>
+                                                            <div th:if="${defaultShipping != null}">
+                                                                <span class="dash__text" th:text="${defaultShipping.hoNguoiNhan} + ' ' + ${defaultShipping.tenNguoiNhan}"></span>
+                                                                 <span class="dash__text" th:text="${defaultShipping.diaChiCuThe} + (${defaultShipping.wardName != null and !defaultShipping.wardName.isEmpty()} ? ', ' + ${defaultShipping.wardName} : '') + (${defaultShipping.districtName != null and !defaultShipping.districtName.isEmpty()} ? ', ' + ${defaultShipping.districtName} : '') + ', ' + ${defaultShipping.provinceName}"></span>
+                                                                <span class="dash__text" th:text="${defaultShipping.sdtNguoiNhan}"></span>
+                                                            </div>
+                                                            <div th:if="${defaultShipping == null}">
+                                                                <span class="dash__text text-muted">Chưa thiết lập địa chỉ mặc định</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="col-lg-4 u-s-m-b-30">
+                                                    <div class="dash__box dash__box--bg-grey dash__box--shadow-2 u-h-100">
+                                                        <div class="dash__pad-3">
+                                                            <h2 class="dash__h2 u-s-m-b-8">ĐỊA CHỈ THANH TOÁN</h2>
+                                                            <span class="dash__text-2 u-s-m-b-8">Địa chỉ thanh toán mặc định</span>
+                                                            <div class="dash__link dash__link--secondary u-s-m-b-8">
+                                                                <a th:href="@{/user/address}">Sửa</a>
+                                                            </div>
+                                                            <div th:if="${defaultBilling != null}">
+                                                                <span class="dash__text" th:text="${defaultBilling.hoNguoiNhan} + ' ' + ${defaultBilling.tenNguoiNhan}"></span>
+                                                                 <span class="dash__text" th:text="${defaultBilling.diaChiCuThe} + (${defaultBilling.wardName != null and !defaultBilling.wardName.isEmpty()} ? ', ' + ${defaultBilling.wardName} : '') + (${defaultBilling.districtName != null and !defaultBilling.districtName.isEmpty()} ? ', ' + ${defaultBilling.districtName} : '') + ', ' + ${defaultBilling.provinceName}"></span>
+                                                                <span class="dash__text" th:text="${defaultBilling.sdtNguoiNhan}"></span>
+                                                            </div>
+                                                            <div th:if="${defaultBilling == null}">
+                                                                <span class="dash__text text-muted">Chưa thiết lập địa chỉ mặc định</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="dash__box dash__box--shadow dash__box--bg-white dash__box--radius">
+                                        <h2 class="dash__h2 u-s-p-xy-20">ĐƠN HÀNG GẦN ĐÂY</h2>
+                                        <div class="dash__table-wrap gl-scroll">
+                                            <table class="dash__table">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Mã đơn #</th>
+                                                        <th>Ngày đặt</th>
+                                                        <th>Sản phẩm</th>
+                                                        <th>Tổng thanh toán</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr th:each="order, iterStat : ${orders}">
+                                                        <td class="fw-bold" th:text="'#' + ${iterStat.count}"></td>
+                                                        <td th:text="${order.date}"></td>
+                                                        <td>
+                                                            <div class="d-flex align-items-center gap-2 flex-wrap">
+                                                                <div class="dash__table-img-wrap" th:each="item : ${order.items}">
+                                                                    <img class="u-img-fluid" th:src="${item.image}" alt="" onerror="this.src='/images/product9.jpg'">
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            <div class="dash__table-total">
+                                                                <span class="fw-bold text-danger" th:text="${#numbers.formatDecimal(order.total, 0, 'COMMA', 0, 'POINT')} + ' đ'"></span>
+                                                                <div class="dash__link dash__link--brand">
+                                                                    <a th:href="@{/user/manage-order(id=${order.id})}">QUẢN LÝ</a>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                    <tr th:if="${orders.isEmpty()}">
+                                                        <td colspan="4" class="text-center text-muted py-4">Bạn chưa có đơn đặt hàng nào trong hệ thống.</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!--====== End - Section Content ======-->
+            </div>
+            <!--====== End - Section 2 ======-->
+        </div>
+        <!--====== End - App Content ======-->
+
+
+        <!--====== Main Footer ======-->
+        <footer>
+            <div th:replace="~{layout/footer :: footer}"></div>
+        </footer>
+
+        <!--====== Modal Section ======-->
+
+
+        <!--====== Unsubscribe or Subscribe Newsletter ======-->
+        <div class="modal fade" id="dash-newsletter">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content modal--shadow">
+                    <div class="modal-body">
+                        <form class="d-modal__form" id="newsletter-modal-form">
+                            <div class="u-s-m-b-15">
+                                <h1 class="gl-modal-h1">Đăng ký Nhận Bản tin</h1>
+
+                                <span class="gl-modal-text">Tôi đã đọc và đồng ý với</span>
+
+                                <a class="d_modal__link" th:href="@{/user/dashboard}">Chính sách Bảo mật của Smash VN</a>
+                            </div>
+                            <div class="gl-modal-btn-group">
+
+                                <button class="btn btn--e-brand-b-2" type="submit">ĐĂNG KÝ</button>
+
+                                <button class="btn btn--e-grey-b-2" type="button" data-dismiss="modal">HỦY BỎ</button></div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!--====== Unsubscribe or Subscribe Newsletter ======-->
+        <!--====== End - Modal Section ======-->
+    </div>
+    <!--====== End - Main App ======-->
+
+
+    <!--====== Google Analytics: change UA-XXXXX-Y to be your site's ID ======-->
+    <script>
+        window.ga = function() {
+            ga.q.push(arguments)
+        };
+        ga.q = [];
+        ga.l = +new Date;
+        ga('create', 'UA-XXXXX-Y', 'auto');
+        ga('send', 'pageview')
+    </script>
+    <script src="https://www.google-analytics.com/analytics.js" async defer></script>
+
+    <!--====== Vendor Js ======-->
+    <script th:src="@{/js/vendor.js}"></script>
+
+    <!--====== Plugin jQuery Shopnav ======-->
+    <script th:src="@{/js/jquery.shopnav.js}"></script>
+
+    <!--====== Ứng dụng ======-->
+    <script th:src="@{/js/app.js}"></script>
+
+    <!--====== Khi không hỗ trợ JavaScript ======-->
+    <noscript>
+        <div class="app-setting">
+            <div class="container">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="app-setting__wrap">
+                            <h1 class="app-setting__h1">Trình duyệt của bạn đã tắt JavaScript.</h1>
+
+                            <span class="app-setting__text">Vui lòng bật JavaScript trong cài đặt trình duyệt hoặc nâng cấp lên trình duyệt có hỗ trợ JavaScript.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </noscript>
+    <script>
+        $(document).ready(function() {
+            function notify(title, message, type) {
+                if (typeof showToast === 'function') {
+                    showToast(title, message, type);
+                } else {
+                    showToast(title + ": " + message, type || 'info');
+                }
+            }
+
+            $(document).on('submit', '#newsletter-modal-form', function(e) {
+                e.preventDefault();
+                var email = $('#user-email').text().trim();
+                if (!email) {
+                    notify("Lỗi", "Không tìm thấy email tài khoản của bạn!", "error");
+                    return;
+                }
+
+                var submitBtn = $(this).find('button[type="submit"]');
+                var originalText = submitBtn.text();
+                submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> ĐANG GỬI...');
+
+                fetch('/api/newsletter/subscribe', {
+                    method: 'POST',
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ email: email, gioiTinh: null })
+                })
+                .then(function(response) {
+                    return response.json();
+                })
+                .then(function(data) {
+                    submitBtn.prop('disabled', false).text(originalText);
+                    if (data.success) {
+                        notify("Thành công", data.message || "Đăng ký nhận bản tin thành công!", "success");
+                        $('#dash-newsletter').modal('hide');
+                        $('#newsletter-btn-container').html(
+                            '<a href="javascript:void(0)" id="btn-newsletter-unsubscribe" style="color: #ff4500;">Hủy đăng ký nhận tin tức</a>'
+                        );
+                    } else {
+                        notify("Thông báo", data.message || "Có lỗi xảy ra, vui lòng thử lại.", "warning");
+                    }
+                })
+                .catch(function(err) {
+                    submitBtn.prop('disabled', false).text(originalText);
+                    notify("Lỗi", "Không thể kết nối đến máy chủ.", "error");
+                    console.error(err);
+                });
+            });
+
+            $(document).on('click', '#btn-newsletter-unsubscribe', async function(e) {
+                e.preventDefault();
+                if (!(await SmashNotify.confirm({
+                    title: 'Hủy đăng ký nhận tin?',
+                    message: 'Bạn có chắc chắn muốn hủy đăng ký nhận tin tức mới từ Smash VN?'
+                }))) {
+                    return;
+                }
+
+                var email = $('#user-email').text().trim();
+                if (!email) {
+                    notify("Lỗi", "Không tìm thấy email tài khoản của bạn!", "error");
+                    return;
+                }
+
+                var unsubscribeBtn = $(this);
+                unsubscribeBtn.css('pointer-events', 'none').css('opacity', '0.6');
+
+                fetch('/api/newsletter/unsubscribe-ajax', {
+                    method: 'POST',
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ email: email })
+                })
+                .then(function(response) {
+                    return response.json();
+                })
+                .then(function(data) {
+                    unsubscribeBtn.css('pointer-events', 'auto').css('opacity', '1');
+                    if (data.success) {
+                        notify("Thành công", data.message || "Hủy đăng ký nhận bản tin thành công!", "success");
+                        $('#newsletter-btn-container').html(
+                            '<a data-modal="modal" data-modal-id="#dash-newsletter" id="btn-newsletter-subscribe">Đăng ký nhận tin tức mới</a>'
+                        );
+                    } else {
+                        notify("Thông báo", data.message || "Có lỗi xảy ra, vui lòng thử lại.", "warning");
+                    }
+                })
+                .catch(function(err) {
+                    unsubscribeBtn.css('pointer-events', 'auto').css('opacity', '1');
+                    notify("Lỗi", "Không thể kết nối đến máy chủ.", "error");
+                    console.error(err);
+                });
+            });
+        });
+    </script>
+</body>
+</html>

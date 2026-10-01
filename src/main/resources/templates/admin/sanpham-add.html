@@ -1,0 +1,1364 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thêm Sản Phẩm Mới - Admin SmashVN</title>
+    
+    <!-- Bootstrap 5.3.0 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Admin Custom CSS -->
+    <link rel="stylesheet" th:href="@{/css/admin-custom.css(v='2.4')}">
+    <script th:src="@{/js/admin-layout-state.js(v='1.0')}"></script>
+    
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <!-- Load local CKEditor -->
+    <script th:src="@{/vendor/ckeditor/ckeditor.js}"></script>
+    <script th:src="@{/vendor/ckeditor/translations/vi.js}"></script>
+    <style>
+        .ck-editor__editable_inline { min-height: 200px; max-height: 400px; }
+        .ck-powered-by, .ck.ck-powered-by, [class*="ck-powered-by"] { display: none !important; visibility: hidden !important; height: 0 !important; }
+    </style>
+</head>
+<body class="admin-body">
+
+    <!-- Sidebar Layout Fragment -->
+    <div th:replace="~{admin/layout/sidebar :: sidebar('sanpham')}"></div>
+
+    <div class="admin-page">
+        <!-- Topbar Layout Fragment -->
+        <div th:replace="~{admin/layout/header :: header}"></div>
+
+        <!-- Main Content -->
+        <main class="admin-content">
+            <div class="container-fluid admin-container">
+
+                <!-- Page Header -->
+                <div class="admin-page-header">
+                    <div>
+                        <h1 class="admin-page-title"><i class="fas fa-plus-circle text-brand me-2"></i>Thêm Mới Sản Phẩm &amp; Sinh Biến Thể</h1>
+                    </div>
+                    <div class="admin-toolbar">
+                        <a th:href="@{/admin/san-pham}" class="admin-btn admin-btn-secondary">
+                            <i class="fas fa-arrow-left me-1"></i> Quay lại Sản Phẩm
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Alert Error Banner -->
+                <div th:if="${loi != null or error != null or errorMsg != null}" class="alert alert-danger alert-dismissible fade show border-start border-danger border-4 rounded-3 shadow-sm mb-4" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <span th:text="${loi != null ? loi : (error != null ? error : errorMsg)}">Đã xảy ra lỗi!</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+
+                <!-- Server Error Holder for Auto-Popup -->
+                <div id="serverErrorMessageHolder" 
+                     th:if="${loi != null or error != null or errorMsg != null}" 
+                     th:data-message="${loi != null ? loi : (error != null ? error : errorMsg)}" 
+                     style="display:none;"></div>
+
+                <!-- Form Card -->
+                <div class="admin-card mb-5">
+                    <div class="admin-card-header">
+                        <h5 class="admin-card-title"><i class="fas fa-box text-primary me-2"></i>Thông Tin Cấu Hình Sản Phẩm Mới</h5>
+                    </div>
+                    <div class="admin-card-body">
+                        <form th:action="@{/admin/san-pham/them}" method="post" enctype="multipart/form-data" id="addProductForm">
+                            
+                            <!-- SECTION 1: THÔNG TIN SẢN PHẨM GỐC -->
+                            <h6 class="text-primary border-bottom pb-2 mb-3 fw-bold"><i class="fas fa-info-circle me-2"></i>1. Thông Tin Sản Phẩm Gốc</h6>
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <label class="admin-form-label">Tên Sản Phẩm <span class="text-danger">*</span></label>
+                                    <input type="text" name="tenSanPham" class="admin-form-control form-control" th:value="${requestDto != null ? requestDto.tenSanPham : ''}" required oninvalid="this.setCustomValidity('Vui lòng nhập tên sản phẩm!')" oninput="this.setCustomValidity('')" placeholder="VD: Vợt Yonex Astrox 88D Pro...">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="admin-form-label">Danh Mục <span class="text-danger">*</span></label>
+                                    <select name="idDanhMuc" id="selectDanhMuc" class="form-select admin-form-control" required oninvalid="this.setCustomValidity('Vui lòng chọn danh mục sản phẩm!')" oninput="this.setCustomValidity('')">
+                                        <option value="">-- Chọn Danh Mục --</option>
+                                        <option th:each="dm : ${listDanhMuc}" th:value="${dm.id}" th:text="${dm.tenDanhMuc}" th:selected="${requestDto != null &amp;&amp; requestDto.idDanhMuc == dm.id}"></option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="admin-form-label">Thương Hiệu <span class="text-danger">*</span></label>
+                                    <select name="idThuongHieu" class="form-select admin-form-control" required oninvalid="this.setCustomValidity('Vui lòng chọn thương hiệu sản phẩm!')" oninput="this.setCustomValidity('')">
+                                        <option value="">-- Chọn Thương Hiệu --</option>
+                                        <option th:each="th : ${listThuongHieu}" th:value="${th.id}" th:text="${th.tenThuongHieu}" th:selected="${requestDto != null &amp;&amp; requestDto.idThuongHieu == th.id}"></option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="admin-form-label">Mô tả sản phẩm</label>
+                                <textarea name="moTa" id="moTa" class="admin-form-control form-control" rows="4" placeholder="Nhập mô tả giới thiệu chi tiết dòng sản phẩm này..." th:text="${requestDto != null ? requestDto.moTa : ''}"></textarea>
+                            </div>
+
+                            <!-- SECTION 2: CẤU HÌNH ẢNH SẢN PHẨM & GIÁ -->
+                            <h6 class="text-primary border-bottom pb-2 mb-3 fw-bold"><i class="fas fa-image me-2"></i>2. Cấu Hình Ảnh Sản Phẩm &amp; Giá Bán</h6>
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-6">
+                                    <label class="admin-form-label">Hình ảnh sản phẩm gốc <span class="text-danger">*</span></label>
+                                    <input type="file" name="fileAnh" id="mainFileAnh" class="admin-form-control form-control" accept="image/jpeg, image/png, image/webp" required oninvalid="this.setCustomValidity('Vui lòng chọn hình ảnh đại diện cho sản phẩm!')" oninput="this.setCustomValidity('')">
+                                    <div class="form-text text-muted small mt-1">Định dạng hỗ trợ: JPG, JPEG, PNG, WEBP. Dung lượng tối đa: <strong>5MB</strong>.</div>
+                                    <div id="mainFileError" class="text-danger small mt-1 fw-semibold d-none"></div>
+                                    <div id="mainFilePreviewWrap" class="mt-2 d-none">
+                                        <img id="mainFilePreviewImg" src="" alt="Xem trước ảnh gốc" class="rounded border p-1" style="max-height: 120px; max-width: 160px; object-fit: contain;">
+                                    </div>
+                                </div>
+                                <div class="col-md-6" id="boxGiaMacDinh">
+                                    <label class="admin-form-label">Giá bán áp dụng chung <small class="text-muted fw-normal">(tùy chọn / để trống nếu nhập theo từng biến thể)</small></label>
+                                    <input type="number" name="giaBanDefault" id="giaBanDefault" class="admin-form-control form-control" min="1000" step="1000" placeholder="VD: 2500000" oninvalid="this.setCustomValidity('Giá bán áp dụng chung tối thiểu là 1.000 VNĐ!')" oninput="this.setCustomValidity('')">
+                                    <input type="hidden" name="soLuongTonDefault" id="soLuongTonDefault" value="0">
+                                </div>
+                            </div>
+
+                            <!-- SECTION 3: CHECKBOX THUỘC TÍNH -->
+                            <h6 class="text-primary border-bottom pb-2 mb-3 fw-bold" id="sectionAttributeTitle"><i class="fas fa-sliders-h me-2"></i>3. Chọn Các Thuộc Tính Để Tự Động Nhân Biến Thể</h6>
+                            <div class="row g-3 mb-4" id="sectionAttributeBox">
+                                <!-- Dynamic attribute type cards rendered via JS REST API -->
+                            </div>
+
+                            <!-- SECTION 4: XEM TRƯỚC VÀ HIỆU CHỈNH BẢNG MA TRẬN BIẾN THỂ -->
+                            <h6 class="text-primary border-bottom pb-2 mb-3 fw-bold"><i class="fas fa-table me-2"></i>4. Danh Sách Biến Thể Chi Tiết</h6>
+                            <div id="previewCount" class="fw-bold mb-2 text-warning fs-6">Vui lòng chọn danh mục để bắt đầu thiết lập.</div>
+                            <div id="limitWarning" class="alert alert-danger d-none fw-bold mb-3" role="alert">
+                                <i class="fas fa-exclamation-triangle me-2"></i>Tổng số biến thể vượt quá giới hạn an toàn 100 phân loại! Vui lòng bỏ bớt thuộc tính để đảm bảo hiệu năng.
+                            </div>
+
+                            <!-- Datalists gợi ý cho các ô nhập tay -->
+                            <datalist id="listMauSacDatalist">
+                                <option th:each="mau : ${listMauSac}" th:value="${mau}"></option>
+                            </datalist>
+                            <datalist id="listSizeWeightDatalist">
+                                <option th:each="trong : ${listTrongLuong}" th:value="${trong}"></option>
+                                <option th:each="sizeG : ${listKichThuocGiay}" th:value="${sizeG}"></option>
+                                <option th:each="sizeTP : ${listKichThuocTrangPhuc}" th:value="${sizeTP}"></option>
+                            </datalist>
+
+                            <div class="admin-table-wrapper mb-3">
+                                <table class="admin-table d-none" id="previewTable">
+                                    <thead>
+                                        <tr>
+                                            <th style="width: 25%;" id="thAttr1">Màu Sắc *</th>
+                                            <th style="width: 25%;" id="thAttr2">Kích Thước / Trọng Lượng</th>
+                                            <th style="width: 15%;">Giá Nhập</th>
+                                            <th style="width: 15%;">Giá Bán *</th>
+                                            <th style="width: 10%;">Số Lượng *</th>
+                                            <th style="width: 10%;" class="text-center">Thao Tác</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="previewTbody">
+                                        <!-- Rendered dynamically -->
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Thêm 1 dòng biến thể thủ công -->
+                            <div class="mb-4">
+                                <button type="button" class="admin-btn admin-btn-secondary admin-btn-sm d-none" id="btnAddManualRow">
+                                    <i class="fas fa-plus-circle me-1"></i>Thêm 1 Dòng Biến Thể Thủ Công
+                                </button>
+                            </div>
+
+                            <!-- SECTION 5: THIẾT LẬP ẢNH THEO MÀU SẮC -->
+                            <h6 class="text-primary border-bottom pb-2 mb-3 fw-bold"><i class="fas fa-images me-2"></i>5. Thiết Lập Ảnh Cho Từng Màu Sắc</h6>
+                            <div class="row g-3 mb-4" id="colorImagesContainer">
+                                <div class="col-12 text-muted small">Vui lòng chọn hoặc nhập màu sắc để thiết lập ảnh.</div>
+                            </div>
+
+                            <div class="border-top pt-4 mt-4 d-flex justify-content-end gap-2">
+                                <a th:href="@{/admin/san-pham}" class="admin-btn admin-btn-secondary"><i class="fas fa-times me-1"></i> Hủy bỏ</a>
+                                <button type="submit" class="admin-btn admin-btn-primary" id="btnSubmit">
+                                    <i class="fas fa-save me-1"></i> Lưu Sản Phẩm &amp; Tất Cả Biến Thể
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        const CATEGORY_TYPES = /*[[${categoryTypes}]]*/ {};
+        const WHITELIST_SHOE_SIZES = /*[[${listKichThuocGiay}]]*/ ["36", "37", "38", "39", "40", "41", "42", "43", "44", "45", "46"];
+        const WHITELIST_CLOTHING_SIZES = /*[[${listKichThuocTrangPhuc}]]*/ ["XS", "S", "M", "L", "XL", "2XL", "3XL"];
+        const WHITELIST_WEIGHTS = /*[[${listTrongLuong}]]*/ ["3U", "4U", "5U"];
+        const WHITELIST_COLORS = /*[[${listMauSac}]]*/ ["Đỏ", "Xanh dương", "Xanh lá", "Đen", "Trắng", "Vàng", "Cam", "Tím"];
+        const PRESET_TENSIONS = ["20 - 28 lbs", "22 - 30 lbs", "24 - 32 lbs"];
+        /*]]>*/
+
+        let moTaEditorInstance = null;
+
+        document.addEventListener("DOMContentLoaded", function() {
+            const moTaElement = document.getElementById("moTa");
+            if (moTaElement && typeof ClassicEditor !== "undefined") {
+                ClassicEditor
+                    .create(moTaElement, {
+                        toolbar: [
+                            'heading', '|', 
+                            'bold', 'italic', 'link', 'bulletedList', 'numberedList', 'blockQuote', '|',
+                            'insertTable', '|',
+                            'undo', 'redo'
+                        ],
+                        language: 'vi'
+                    })
+                    .then(editor => {
+                        moTaEditorInstance = editor;
+                    })
+                    .catch(error => {
+                        console.error('Lỗi khi khởi tạo CKEditor cho mô tả sản phẩm:', error);
+                    });
+            }
+
+            const selectDanhMuc = document.getElementById("selectDanhMuc");
+            const previewTbody = document.getElementById("previewTbody");
+            const previewTable = document.getElementById("previewTable");
+            const previewCount = document.getElementById("previewCount");
+            const limitWarning = document.getElementById("limitWarning");
+            const btnSubmit = document.getElementById("btnSubmit");
+            const giaBanDefaultInput = document.getElementById("giaBanDefault");
+            const colorImagesContainer = document.getElementById("colorImagesContainer");
+            const btnAddManualRow = document.getElementById("btnAddManualRow");
+
+            const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024; // 5MB per image
+            const MAX_TOTAL_IMAGES_SIZE_BYTES = 10 * 1024 * 1024; // 10MB total payload safe limit
+            const ALLOWED_IMAGE_EXTENSIONS = ["jpg", "jpeg", "png", "webp"];
+
+            function compressImageFile(file, maxDimension = 1600, quality = 0.82) {
+                return new Promise((resolve) => {
+                    if (!file || !file.type || !file.type.startsWith('image/')) {
+                        resolve(file);
+                        return;
+                    }
+                    if (file.size <= 300 * 1024) {
+                        resolve(file);
+                        return;
+                    }
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const img = new Image();
+                        img.onload = function() {
+                            let width = img.width;
+                            let height = img.height;
+
+                            if (width > maxDimension || height > maxDimension) {
+                                if (width > height) {
+                                    height = Math.round((height * maxDimension) / width);
+                                    width = maxDimension;
+                                } else {
+                                    width = Math.round((width * maxDimension) / height);
+                                    height = maxDimension;
+                                }
+                            }
+
+                            const canvas = document.createElement('canvas');
+                            canvas.width = width;
+                            canvas.height = height;
+                            const ctx = canvas.getContext('2d');
+                            ctx.drawImage(img, 0, 0, width, height);
+
+                            const mimeType = (file.type === 'image/webp') ? 'image/webp' : 'image/jpeg';
+                            canvas.toBlob((blob) => {
+                                if (blob && blob.size < file.size) {
+                                    const origName = file.name.replace(/\.[^/.]+$/, "");
+                                    const ext = (mimeType === 'image/webp') ? '.webp' : '.jpg';
+                                    const compressedFile = new File([blob], origName + ext, {
+                                        type: mimeType,
+                                        lastModified: Date.now()
+                                    });
+                                    resolve(compressedFile);
+                                } else {
+                                    resolve(file);
+                                }
+                            }, mimeType, quality);
+                        };
+                        img.onerror = () => resolve(file);
+                        img.src = e.target.result;
+                    };
+                    reader.onerror = () => resolve(file);
+                    reader.readAsDataURL(file);
+                });
+            }
+
+            async function validateSingleImageFile(fileInput, errorEl, previewWrapEl, previewImgEl, fieldLabel = "hình ảnh") {
+                if (errorEl) {
+                    errorEl.textContent = "";
+                    errorEl.classList.add("d-none");
+                }
+                if (previewWrapEl) {
+                    previewWrapEl.classList.add("d-none");
+                }
+                if (previewImgEl) {
+                    previewImgEl.src = "";
+                }
+
+                let file = fileInput.files && fileInput.files[0];
+                if (!file) return true;
+
+                const fileName = file.name || "";
+                const ext = fileName.toLowerCase().split('.').pop();
+
+                // 1. Kiểm tra định dạng ảnh
+                if (!ALLOWED_IMAGE_EXTENSIONS.includes(ext)) {
+                    const msg = `Định dạng tệp "${fileName}" không hợp lệ. Chỉ chấp nhận các tệp ảnh: JPG, JPEG, PNG, WEBP.`;
+                    if (errorEl) {
+                        errorEl.textContent = msg;
+                        errorEl.classList.remove("d-none");
+                    }
+                    fileInput.value = "";
+                    if (window.Swal && typeof window.Swal.fire === 'function') {
+                        window.Swal.fire({
+                            icon: 'warning',
+                            title: 'Định dạng ảnh không hỗ trợ!',
+                            text: msg,
+                            confirmButtonColor: '#f97316'
+                        });
+                    } else if (window.SmashNotify && typeof window.SmashNotify.warning === 'function') {
+                        window.SmashNotify.warning(msg);
+                    } else if (typeof showToast === 'function') {
+                        showToast(msg, 'warning');
+                    }
+                    return false;
+                }
+
+                // 2. Kiểm tra dung lượng tệp gốc (> 5MB phải báo lỗi ngay lập tức)
+                if (file.size > MAX_IMAGE_SIZE_BYTES) {
+                    const sizeInMB = (file.size / (1024 * 1024)).toFixed(2);
+                    const msg = `Kích thước ${fieldLabel} "${fileName}" là ${sizeInMB} MB, vượt quá giới hạn tối đa 5.0 MB cho phép! Vui lòng chọn ảnh khác có dung lượng nhỏ hơn 5MB.`;
+                    if (errorEl) {
+                        errorEl.textContent = msg;
+                        errorEl.classList.remove("d-none");
+                    }
+                    fileInput.value = "";
+                    if (window.Swal && typeof window.Swal.fire === 'function') {
+                        window.Swal.fire({
+                            icon: 'error',
+                            title: 'Ảnh vượt quá dung lượng (Tối đa 5.0 MB)!',
+                            html: `
+                                <div style="font-size: 14px; text-align: left; padding: 4px;">
+                                    <p class="mb-2">Tệp <strong>${fileName}</strong> có dung lượng là <span class="text-danger fw-bold fs-6">${sizeInMB} MB</span>.</p>
+                                    <div class="alert alert-danger py-2 px-3 mb-2 small border-0 rounded-3">
+                                        <i class="fas fa-exclamation-triangle me-1"></i>
+                                        Hệ thống quy định mỗi hình ảnh không được vượt quá <strong>5.0 MB</strong>.
+                                    </div>
+                                    <p class="text-muted small mb-0">Vui lòng chọn tệp ảnh khác có dung lượng nhỏ hơn để đảm bảo tốc độ tải và lưu trữ an toàn.</p>
+                                </div>
+                            `,
+                            confirmButtonText: 'Tôi đã hiểu & chọn lại',
+                            confirmButtonColor: '#dc3545'
+                        });
+                    } else if (window.SmashNotify && typeof window.SmashNotify.error === 'function') {
+                        window.SmashNotify.error(msg);
+                    } else if (typeof showToast === 'function') {
+                        showToast(msg, 'error');
+                    }
+                    return false;
+                }
+
+                // 3. Tự động tối ưu nhẹ đối với file hợp lệ (300KB - 5MB) để tăng tốc độ upload
+                if (file.size > 300 * 1024) {
+                    try {
+                        const compressed = await compressImageFile(file);
+                        if (compressed && compressed.size < file.size) {
+                            try {
+                                const dt = new DataTransfer();
+                                dt.items.add(compressed);
+                                fileInput.files = dt.files;
+                                file = compressed;
+                            } catch (e) {
+                                // DataTransfer fallback
+                            }
+                        }
+                    } catch (err) {
+                        console.warn("Tối ưu hóa ảnh:", err);
+                    }
+                }
+
+                if (previewWrapEl && previewImgEl) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        previewImgEl.src = e.target.result;
+                        previewWrapEl.classList.remove("d-none");
+                    };
+                    reader.readAsDataURL(file);
+                }
+
+                return true;
+            }
+
+            const mainFileAnh = document.getElementById("mainFileAnh");
+            const mainFileError = document.getElementById("mainFileError");
+            const mainFilePreviewWrap = document.getElementById("mainFilePreviewWrap");
+            const mainFilePreviewImg = document.getElementById("mainFilePreviewImg");
+
+            if (mainFileAnh) {
+                mainFileAnh.addEventListener("change", async function() {
+                    await validateSingleImageFile(this, mainFileError, mainFilePreviewWrap, mainFilePreviewImg, "ảnh sản phẩm gốc");
+                });
+            }
+
+            function updateSizeWeightDatalist(catType) {
+                const datalist = document.getElementById("listSizeWeightDatalist");
+                if (!datalist) return;
+                let items = [];
+                if (catType === 'GIAY') items = WHITELIST_SHOE_SIZES;
+                else if (catType === 'TRANG_PHUC') items = WHITELIST_CLOTHING_SIZES;
+                else if (catType === 'VOT') items = WHITELIST_WEIGHTS;
+
+                datalist.innerHTML = items.map(val => `<option value="${val}"></option>`).join("");
+            }
+
+            function handleCategoryChange() {
+                const categoryId = selectDanhMuc.value;
+                const boxContainer = document.getElementById("sectionAttributeBox");
+                if (!boxContainer) return;
+
+                boxContainer.innerHTML = "";
+                previewTbody.innerHTML = "";
+
+                if (!categoryId) {
+                    updateSizeWeightDatalist("OTHER");
+                    updatePreview();
+                    return;
+                }
+
+                const catType = CATEGORY_TYPES[categoryId] || "OTHER";
+                updateSizeWeightDatalist(catType);
+
+                fetch('/api/categories/' + categoryId + '/attributes')
+                    .then(res => res.json())
+                    .then(attributes => {
+                        boxContainer.innerHTML = "";
+
+                        const thAttr1 = document.getElementById('thAttr1');
+                        const thAttr2 = document.getElementById('thAttr2');
+
+                        if (!attributes || attributes.length === 0) {
+                            boxContainer.innerHTML = `<div class="col-12 text-muted fst-italic">Danh mục này chưa được cấu hình loại thuộc tính nào. Bạn vẫn có thể thêm biến thể thủ công bên dưới.</div>`;
+                            if (thAttr1) thAttr1.textContent = 'Màu Sắc / Thuộc Tính *';
+                            if (thAttr2) {
+                                thAttr2.textContent = 'Kích Thước / Thuộc Tính 2';
+                                thAttr2.classList.add('d-none');
+                            }
+                            updatePreview();
+                            return;
+                        }
+
+                        if (attributes.length === 1) {
+                            if (thAttr1) thAttr1.textContent = attributes[0].tenThuocTinh + ' *';
+                            if (thAttr2) thAttr2.classList.add('d-none');
+                        } else {
+                            if (thAttr1) thAttr1.textContent = attributes[0].tenThuocTinh + ' *';
+                            if (thAttr2) {
+                                if (catType === 'GIAY') thAttr2.textContent = 'Size Giày';
+                                else if (catType === 'TRANG_PHUC') thAttr2.textContent = 'Size Trang Phục';
+                                else if (catType === 'VOT') thAttr2.textContent = 'Trọng Lượng Vợt';
+                                else thAttr2.textContent = attributes[1] ? attributes[1].tenThuocTinh : 'Thuộc Tính 2';
+                            }
+                        }
+
+                        attributes.forEach((att, idx) => {
+                            const attName = att.tenThuocTinh;
+                            const lowerName = attName.toLowerCase();
+                            const cardDiv = document.createElement("div");
+                            cardDiv.className = "col-md-4 attr-card";
+                            cardDiv.dataset.attrName = attName;
+                            cardDiv.dataset.attrId = att.id;
+
+                            let presetItems = [];
+                            let displayTitle = attName;
+                            let cardPlaceholder = `Thêm ${attName.toLowerCase()} mới...`;
+
+                            if (lowerName.includes("màu")) {
+                                displayTitle = "Màu sắc";
+                                presetItems = WHITELIST_COLORS;
+                                cardPlaceholder = "Thêm màu sắc mới (VD: Cam, Tím)...";
+                            } else if (lowerName.includes("size") || lowerName.includes("kích thước")) {
+                                if (catType === 'GIAY') {
+                                    displayTitle = "Size giày (36 - 46)";
+                                    presetItems = WHITELIST_SHOE_SIZES;
+                                    cardPlaceholder = "Thêm size giày mới (VD: 42)...";
+                                } else if (catType === 'TRANG_PHUC') {
+                                    displayTitle = "Size trang phục (XS - 3XL)";
+                                    presetItems = WHITELIST_CLOTHING_SIZES;
+                                    cardPlaceholder = "Thêm size trang phục mới (VD: L)...";
+                                } else {
+                                    displayTitle = "Kích thước";
+                                    presetItems = [];
+                                    cardPlaceholder = "Thêm kích thước mới...";
+                                }
+                            } else if (lowerName.includes("trọng lượng")) {
+                                if (catType === 'VOT') {
+                                    displayTitle = "Trọng lượng vợt (3U - 5U)";
+                                    presetItems = WHITELIST_WEIGHTS;
+                                    cardPlaceholder = "Thêm trọng lượng mới (VD: 4U)...";
+                                } else {
+                                    displayTitle = "Trọng lượng";
+                                    presetItems = [];
+                                }
+                            } else if (lowerName.includes("sức căng")) {
+                                displayTitle = "Sức căng khuyến nghị";
+                                presetItems = PRESET_TENSIONS;
+                            }
+
+                            let checkboxesHtml = "";
+                            presetItems.forEach((item, itemIdx) => {
+                                const cbId = `attr_cb_${att.id}_${itemIdx}`;
+                                checkboxesHtml += `
+                                    <div class="form-check my-2">
+                                        <input class="form-check-input filter-checkbox dynamic-attr-cb" type="checkbox" value="${item}" id="${cbId}" data-attr-name="${attName}">
+                                        <label class="form-check-label fw-semibold text-secondary" for="${cbId}">${item}</label>
+                                    </div>
+                                `;
+                            });
+
+                            cardDiv.innerHTML = `
+                                <div class="admin-card p-3 h-100">
+                                    <h6 class="fw-bold text-dark border-bottom pb-2 mb-2"><i class="fas fa-tag me-1 text-primary"></i>${displayTitle}</h6>
+                                    <div class="attr-items-container" style="max-height: 200px; overflow-y: auto;">
+                                        ${checkboxesHtml}
+                                    </div>
+                                    <div class="input-group mt-3">
+                                        <input type="text" class="admin-form-control form-control form-control-sm new-value-input" placeholder="${cardPlaceholder}" maxlength="50">
+                                        <button type="button" class="admin-btn admin-btn-secondary admin-btn-sm" onclick="addCustomAttrValue(this, '${attName}')"><i class="fas fa-plus"></i> Thêm</button>
+                                    </div>
+                                </div>
+                            `;
+                            boxContainer.appendChild(cardDiv);
+                        });
+
+                        boxContainer.querySelectorAll(".dynamic-attr-cb").forEach(cb => {
+                            cb.addEventListener("change", updatePreview);
+                        });
+
+                        updatePreview();
+                    })
+                    .catch(err => {
+                        console.error("Lỗi khi tải thuộc tính danh mục:", err);
+                        showToast('Không thể tải thuộc tính danh mục. Vui lòng chọn lại danh mục hoặc thử lại.', 'error');
+                        updatePreview();
+                    });
+            }
+
+            window.addCustomAttrValue = function(btn, attrName) {
+                const card = btn.closest(".attr-card");
+                if (!card) return;
+                const input = card.querySelector(".new-value-input");
+                if (!input) return;
+                const val = input.value.trim();
+                if (!val) return;
+
+                const container = card.querySelector(".attr-items-container");
+                if (!container) return;
+
+                let existingCb = Array.from(container.querySelectorAll(".dynamic-attr-cb")).find(cb => cb.value.toLowerCase() === val.toLowerCase());
+                if (existingCb) {
+                    existingCb.checked = true;
+                } else {
+                    const id = "custom_val_" + Date.now();
+                    const div = document.createElement("div");
+                    div.className = "form-check my-2";
+                    div.innerHTML = `
+                        <input class="form-check-input filter-checkbox dynamic-attr-cb" type="checkbox" value="${val}" id="${id}" data-attr-name="${attrName}" checked>
+                        <label class="form-check-label fw-semibold text-secondary" for="${id}">${val}</label>
+                    `;
+                    container.appendChild(div);
+                    div.querySelector("input").addEventListener("change", updatePreview);
+                }
+                input.value = "";
+                updatePreview();
+            };
+
+            function createVariantRow(mauVal = "", sizeVal = "", giaNhapVal = "", giaBanVal = "", soLuongTonVal = "", attributes = []) {
+                const defGia = giaBanDefaultInput ? (giaBanDefaultInput.value || "") : "";
+                if (!giaBanVal && defGia) giaBanVal = defGia;
+
+                const categoryId = selectDanhMuc ? selectDanhMuc.value : null;
+                const catType = categoryId ? (CATEGORY_TYPES[categoryId] || "OTHER") : "OTHER";
+
+                let sizePlaceholder = "Kích thước / Trọng lượng";
+                if (catType === 'GIAY') sizePlaceholder = "VD: 42";
+                else if (catType === 'TRANG_PHUC') sizePlaceholder = "VD: L";
+                else if (catType === 'VOT') sizePlaceholder = "VD: 4U";
+
+                const tr = document.createElement("tr");
+                tr.dataset.variantAttributes = JSON.stringify(Array.isArray(attributes) ? attributes : []);
+
+                const tdMau = document.createElement("td");
+                tdMau.innerHTML = `<input type="text" class="admin-form-control form-control form-control-sm var-mau-sac" list="listMauSacDatalist" placeholder="VD: Đỏ" required oninvalid="this.setCustomValidity('Vui lòng nhập màu sắc cho biến thể!')" oninput="this.setCustomValidity('')" value="${mauVal}">`;
+                tr.appendChild(tdMau);
+
+                const tdSize = document.createElement("td");
+                tdSize.className = "td-attr2";
+                tdSize.innerHTML = `<input type="text" class="admin-form-control form-control form-control-sm var-size-weight" list="listSizeWeightDatalist" placeholder="${sizePlaceholder}" value="${sizeVal}">`;
+                if (Array.isArray(attributes) && attributes.length > 0) {
+                    const summaryInput = tdSize.querySelector('.var-size-weight');
+                    summaryInput.readOnly = true;
+                    summaryInput.title = 'Tóm tắt các thuộc tính đã chọn. Muốn thay đổi, hãy chọn lại thuộc tính phía trên.';
+                }
+                tr.appendChild(tdSize);
+
+                const tdGiaNhap = document.createElement("td");
+                tdGiaNhap.innerHTML = `
+                    <input type="number" class="admin-form-control form-control form-control-sm var-gia-nhap" min="0" placeholder="VD: 1800000" oninvalid="this.setCustomValidity('Giá nhập không được âm (tối thiểu 0 VNĐ)!')" oninput="this.setCustomValidity('')" value="${giaNhapVal}">
+                    <div class="price-warning-msg text-danger fw-semibold d-none" style="font-size: 0.72rem; margin-top: 2px;">
+                        <i class="fas fa-exclamation-triangle me-1"></i>Giá nhập không được cao hơn giá bán!
+                    </div>
+                `;
+                tr.appendChild(tdGiaNhap);
+
+                const tdGiaBan = document.createElement("td");
+                tdGiaBan.innerHTML = `<input type="number" class="admin-form-control form-control form-control-sm var-gia-ban" min="1000" step="1000" placeholder="VD: 2500000" required oninvalid="this.setCustomValidity('Vui lòng nhập giá bán cho biến thể (tối thiểu 1.000 VNĐ)!')" oninput="this.setCustomValidity('')" value="${giaBanVal}">`;
+                tr.appendChild(tdGiaBan);
+
+                const tdKho = document.createElement("td");
+                tdKho.innerHTML = `<input type="number" class="admin-form-control form-control form-control-sm var-so-luong-ton" min="0" placeholder="VD: 10" required oninvalid="this.setCustomValidity('Vui lòng nhập số lượng tồn kho (tối thiểu 0)!')" oninput="this.setCustomValidity('')" value="${soLuongTonVal}">`;
+                tr.appendChild(tdKho);
+
+                const tdAction = document.createElement("td");
+                tdAction.className = "text-center";
+                tdAction.innerHTML = `<button type="button" class="admin-btn admin-btn-icon danger btn-remove-row" title="Xóa dòng biến thể này"><i class="fas fa-trash-alt"></i></button>`;
+                tr.appendChild(tdAction);
+
+                return tr;
+            }
+
+            function validateVariantRowPrice(tr, showToastWarning = false) {
+                if (!tr) return true;
+                const inGiaNhap = tr.querySelector(".var-gia-nhap");
+                const inGiaBan = tr.querySelector(".var-gia-ban");
+                const warnMsg = tr.querySelector(".price-warning-msg");
+                if (!inGiaNhap || !inGiaBan) return true;
+
+                const gNhap = parseFloat(inGiaNhap.value) || 0;
+                const gBan = parseFloat(inGiaBan.value) || 0;
+
+                if (gNhap > 0 && gBan > 0 && gNhap > gBan) {
+                    inGiaNhap.classList.add("is-invalid", "border-danger");
+                    inGiaBan.classList.add("is-invalid", "border-danger");
+                    if (warnMsg) warnMsg.classList.remove("d-none");
+
+                    if (showToastWarning) {
+                        const inMau = tr.querySelector(".var-mau-sac");
+                        const inSize = tr.querySelector(".var-size-weight");
+                        const vName = (inMau && inMau.value.trim()) ? inMau.value.trim() + (inSize && inSize.value.trim() ? " - " + inSize.value.trim() : "") : "Biến thể";
+                        if (typeof showToast === 'function') {
+                            showToast(`Cảnh báo: Giá nhập (${gNhap.toLocaleString('vi-VN')} đ) đang cao hơn giá bán (${gBan.toLocaleString('vi-VN')} đ) tại phân loại [${vName}]. Vui lòng nhập lại!`, 'warning');
+                        }
+                    }
+                    return false;
+                } else {
+                    inGiaNhap.classList.remove("is-invalid", "border-danger");
+                    inGiaBan.classList.remove("is-invalid", "border-danger");
+                    if (warnMsg) warnMsg.classList.add("d-none");
+                    return true;
+                }
+            }
+
+            function reindexVariantRows() {
+                const rows = previewTbody.querySelectorAll("tr");
+                const total = rows.length;
+                const selectedCategoryId = selectDanhMuc ? selectDanhMuc.value : null;
+                const catType = selectedCategoryId ? (CATEGORY_TYPES[selectedCategoryId] || 'OTHER') : 'OTHER';
+
+                if (total === 0) {
+                    previewCount.textContent = "Chưa có biến thể nào. Chọn thuộc tính ở trên hoặc bấm 'Thêm 1 Dòng Biến Thể Thủ Công'.";
+                    previewCount.className = "fw-bold mb-2 text-warning fs-6";
+                    previewTable.classList.add("d-none");
+                    btnSubmit.disabled = false;
+                    limitWarning.classList.add("d-none");
+                    if (colorImagesContainer) colorImagesContainer.innerHTML = `<div class="col-12 text-muted small">Vui lòng chọn hoặc nhập màu sắc để thiết lập ảnh.</div>`;
+                    return;
+                }
+
+                previewTable.classList.remove("d-none");
+                previewCount.textContent = `Tổng số biến thể hiện tại: ${total} phân loại`;
+                previewCount.className = "fw-bold mb-2 text-success fs-6";
+
+                if (total > 100) {
+                    limitWarning.classList.remove("d-none");
+                    btnSubmit.disabled = true;
+                } else {
+                    limitWarning.classList.add("d-none");
+                    btnSubmit.disabled = false;
+                }
+
+                const colorIndexMap = new Map();
+                let nextColorIdx = 0;
+
+                rows.forEach((tr, index) => {
+                    const inMau = tr.querySelector(".var-mau-sac");
+                    const inSize = tr.querySelector(".var-size-weight");
+                    const inGiaNhap = tr.querySelector(".var-gia-nhap");
+                    const inGiaBan = tr.querySelector(".var-gia-ban");
+                    const inKho = tr.querySelector(".var-so-luong-ton");
+
+                    const mauVal = inMau ? inMau.value.trim() : "";
+                    const sizeVal = inSize ? inSize.value.trim() : "";
+
+                    if (mauVal && !colorIndexMap.has(mauVal)) {
+                        colorIndexMap.set(mauVal, nextColorIdx++);
+                    }
+                    const colorIdx = colorIndexMap.has(mauVal) ? colorIndexMap.get(mauVal) : 0;
+
+                    tr.querySelectorAll("input[type='hidden']").forEach(h => h.remove());
+
+                    const hMau = document.createElement("input");
+                    hMau.type = "hidden";
+                    hMau.name = `variants[${index}].mauSac`;
+                    hMau.value = mauVal;
+                    tr.appendChild(hMau);
+
+                    const hColorIdx = document.createElement("input");
+                    hColorIdx.type = "hidden";
+                    hColorIdx.name = `variants[${index}].colorIndex`;
+                    hColorIdx.value = colorIdx;
+                    tr.appendChild(hColorIdx);
+
+                    let variantAttributes = [];
+                    try {
+                        variantAttributes = JSON.parse(tr.dataset.variantAttributes || '[]');
+                    } catch (e) {
+                        variantAttributes = [];
+                    }
+
+                    if (variantAttributes.length === 0) {
+                        if (mauVal) {
+                            variantAttributes.push({ attributeId: null, attrName: 'Màu sắc', value: mauVal });
+                        }
+                        if (sizeVal) {
+                            const manualAttrName = catType === 'VOT' ? 'Trọng lượng' : 'Kích thước';
+                            variantAttributes.push({ attributeId: null, attrName: manualAttrName, value: sizeVal });
+                        }
+                    } else {
+                        const colorAttr = variantAttributes.find(item => (item.attrName || '').toLowerCase().includes('màu'));
+                        if (colorAttr) colorAttr.value = mauVal;
+                        tr.dataset.variantAttributes = JSON.stringify(variantAttributes);
+                    }
+
+                    const uniqueAttributes = [];
+                    const seenAttributeKeys = new Set();
+                    variantAttributes.forEach(item => {
+                        const attrName = (item.attrName || '').trim();
+                        const attrValue = (item.value || '').trim();
+                        const key = item.attributeId ? `id:${item.attributeId}` : `name:${attrName.toLowerCase()}`;
+                        if (!attrName || !attrValue || seenAttributeKeys.has(key)) return;
+                        seenAttributeKeys.add(key);
+                        uniqueAttributes.push({ attributeId: item.attributeId || null, attrName, value: attrValue });
+                    });
+
+                    uniqueAttributes.forEach((item, attrIndex) => {
+                        if (item.attributeId) {
+                            const hId = document.createElement('input');
+                            hId.type = 'hidden';
+                            hId.name = `variants[${index}].attributes[${attrIndex}].attributeId`;
+                            hId.value = item.attributeId;
+                            tr.appendChild(hId);
+                        }
+
+                        const hName = document.createElement('input');
+                        hName.type = 'hidden';
+                        hName.name = `variants[${index}].attributes[${attrIndex}].attributeName`;
+                        hName.value = item.attrName;
+                        tr.appendChild(hName);
+
+                        const hValue = document.createElement('input');
+                        hValue.type = 'hidden';
+                        hValue.name = `variants[${index}].attributes[${attrIndex}].value`;
+                        hValue.value = item.value;
+                        tr.appendChild(hValue);
+                    });
+
+                    const weightAttr = uniqueAttributes.find(item => item.attrName.toLowerCase().includes('trọng lượng'));
+                    const sizeAttr = uniqueAttributes.find(item => item.attrName.toLowerCase().includes('kích thước') || item.attrName.toLowerCase().includes('size'));
+                    if (weightAttr) {
+                        const hTrong = document.createElement('input');
+                        hTrong.type = 'hidden';
+                        hTrong.name = `variants[${index}].trongLuong`;
+                        hTrong.value = weightAttr.value;
+                        tr.appendChild(hTrong);
+                    }
+                    if (sizeAttr) {
+                        const hKich = document.createElement('input');
+                        hKich.type = 'hidden';
+                        hKich.name = `variants[${index}].kichThuoc`;
+                        hKich.value = sizeAttr.value;
+                        tr.appendChild(hKich);
+                    }
+
+                    if (inGiaNhap) inGiaNhap.name = `variants[${index}].giaNhap`;
+                    if (inGiaBan) inGiaBan.name = `variants[${index}].giaBan`;
+                    if (inKho) inKho.name = `variants[${index}].soLuongTon`;
+                });
+
+                if (colorImagesContainer) {
+                    colorImagesContainer.innerHTML = "";
+                    if (colorIndexMap.size === 0) {
+                        colorImagesContainer.innerHTML = `<div class="col-12 text-muted small">Vui lòng chọn hoặc nhập màu sắc để thiết lập ảnh.</div>`;
+                    } else {
+                        colorIndexMap.forEach((cIdx, mau) => {
+                            const colDiv = document.createElement("div");
+                            colDiv.className = "col-md-6 mb-3 color-img-block";
+
+                            const label = document.createElement("label");
+                            label.className = "admin-form-label small fw-bold mb-1";
+                            label.textContent = `Hình ảnh cho màu ${mau} (Tùy chọn)`;
+
+                            const fileInput = document.createElement("input");
+                            fileInput.type = "file";
+                            fileInput.name = `colorImages[${cIdx}]`;
+                            fileInput.className = "admin-form-control form-control form-control-sm color-img-input";
+                            fileInput.accept = "image/jpeg, image/png, image/webp";
+
+                            const helperText = document.createElement("div");
+                            helperText.className = "form-text text-muted small mt-1";
+                            helperText.innerHTML = `Tối đa <strong>5MB</strong> (JPG, PNG, WEBP).`;
+
+                            const errDiv = document.createElement("div");
+                            errDiv.className = "text-danger small mt-1 fw-semibold d-none color-file-err";
+
+                            const previewWrap = document.createElement("div");
+                            previewWrap.className = "mt-2 d-none color-preview-wrap";
+                            const previewImg = document.createElement("img");
+                            previewImg.className = "rounded border p-1 color-preview-img";
+                            previewImg.style.cssText = "max-height: 100px; max-width: 140px; object-fit: contain;";
+                            previewWrap.appendChild(previewImg);
+
+                            fileInput.addEventListener("change", async function() {
+                                await validateSingleImageFile(this, errDiv, previewWrap, previewImg, `màu ${mau}`);
+                            });
+
+                            colDiv.appendChild(label);
+                            colDiv.appendChild(fileInput);
+                            colDiv.appendChild(helperText);
+                            colDiv.appendChild(errDiv);
+                            colDiv.appendChild(previewWrap);
+                            colorImagesContainer.appendChild(colDiv);
+                        });
+                    }
+                }
+
+                updateVariantColumnsVisibility();
+            }
+
+            function updateVariantColumnsVisibility() {
+                const attrCards = document.querySelectorAll("#sectionAttributeBox .attr-card");
+                let showSecond = true;
+
+                if (attrCards.length === 1) {
+                    showSecond = false;
+                } else if (attrCards.length > 1) {
+                    const checkedGroups = Array.from(attrCards).filter(card => card.querySelectorAll(".dynamic-attr-cb:checked").length > 0);
+                    if (checkedGroups.length === 1) {
+                        showSecond = false;
+                    }
+                } else if (attrCards.length === 0) {
+                    showSecond = false;
+                }
+
+                const thAttr2 = document.getElementById("thAttr2");
+                if (thAttr2) {
+                    if (showSecond) {
+                        thAttr2.classList.remove("d-none");
+                    } else {
+                        thAttr2.classList.add("d-none");
+                    }
+                }
+
+                const rows = previewTbody.querySelectorAll("tr");
+                rows.forEach(tr => {
+                    const tdSize = tr.querySelector(".td-attr2");
+                    if (tdSize) {
+                        if (showSecond) {
+                            tdSize.classList.remove("d-none");
+                        } else {
+                            tdSize.classList.add("d-none");
+                        }
+                    }
+                });
+            }
+
+            function updatePreview() {
+                previewTbody.innerHTML = "";
+
+                if (!selectDanhMuc.value) {
+                    previewCount.textContent = "Vui lòng chọn danh mục để bắt đầu thiết lập.";
+                    previewTable.classList.add("d-none");
+                    if (btnAddManualRow) btnAddManualRow.classList.add("d-none");
+                    return;
+                }
+
+                if (btnAddManualRow) btnAddManualRow.classList.remove("d-none");
+
+                const attrCards = Array.from(document.querySelectorAll("#sectionAttributeBox .attr-card"));
+                const attrGroups = [];
+                attrCards.forEach(card => {
+                    const attrName = card.dataset.attrName;
+                    const attributeId = parseInt(card.dataset.attrId, 10);
+                    const checkedVals = Array.from(card.querySelectorAll(".dynamic-attr-cb:checked")).map(cb => cb.value);
+                    if (checkedVals.length > 0) {
+                        attrGroups.push({ attributeId: attributeId, attrName: attrName, values: checkedVals });
+                    }
+                });
+
+                if (attrGroups.length > 0) {
+                    const defGia = giaBanDefaultInput ? (giaBanDefaultInput.value || "") : "";
+
+                    function cartesian(args) {
+                        var r = [], max = args.length - 1;
+                        function helper(arr, i) {
+                            for (var j = 0, l = args[i].values.length; j < l; j++) {
+                                var a = arr.slice(0);
+                                a.push({ attributeId: args[i].attributeId, attrName: args[i].attrName, value: args[i].values[j] });
+                                if (i == max)
+                                    r.push(a);
+                                else
+                                    helper(a, i + 1);
+                            }
+                        }
+                        helper([], 0);
+                        return r;
+                    }
+
+                    const combinations = cartesian(attrGroups);
+                    const fragment = document.createDocumentFragment();
+
+                    combinations.forEach(combo => {
+                        let mauVal = "";
+                        const otherAttributeValues = [];
+                        combo.forEach(item => {
+                            const lower = item.attrName.toLowerCase();
+                            if (lower.includes("màu")) {
+                                mauVal = item.value;
+                            } else {
+                                otherAttributeValues.push(item.value);
+                            }
+                        });
+
+                        const tr = createVariantRow(mauVal, otherAttributeValues.join(' / '), "0", defGia, "0", combo);
+                        fragment.appendChild(tr);
+                    });
+
+                    previewTbody.appendChild(fragment);
+                }
+
+                reindexVariantRows();
+            }
+
+            if (btnAddManualRow) {
+                btnAddManualRow.addEventListener("click", function() {
+                    const defGia = giaBanDefaultInput ? (giaBanDefaultInput.value || "") : "";
+                    const tr = createVariantRow("", "", "0", defGia, "0");
+                    previewTbody.appendChild(tr);
+                    reindexVariantRows();
+                });
+            }
+
+            if (previewTbody) {
+                previewTbody.addEventListener("click", function(e) {
+                    const btnRemove = e.target.closest(".btn-remove-row");
+                    if (btnRemove) {
+                        const tr = btnRemove.closest("tr");
+                        if (tr) {
+                            tr.remove();
+                            reindexVariantRows();
+                        }
+                    }
+                });
+
+                previewTbody.addEventListener("input", function(e) {
+                    if (e.target && e.target.classList.contains("var-gia-ban")) {
+                        e.target.dataset.userEdited = "true";
+                    }
+                    if (e.target && (e.target.classList.contains("var-gia-nhap") || e.target.classList.contains("var-gia-ban"))) {
+                        const tr = e.target.closest("tr");
+                        validateVariantRowPrice(tr, false);
+                    }
+                    if (e.target && (e.target.classList.contains("var-mau-sac") || e.target.classList.contains("var-size-weight"))) {
+                        reindexVariantRows();
+                    }
+                });
+
+                previewTbody.addEventListener("change", function(e) {
+                    if (e.target && e.target.classList.contains("var-gia-ban")) {
+                        e.target.dataset.userEdited = "true";
+                    }
+                    if (e.target && (e.target.classList.contains("var-gia-nhap") || e.target.classList.contains("var-gia-ban"))) {
+                        const tr = e.target.closest("tr");
+                        validateVariantRowPrice(tr, true);
+                    }
+                    if (e.target && (e.target.classList.contains("var-mau-sac") || e.target.classList.contains("var-size-weight"))) {
+                        reindexVariantRows();
+                    }
+                });
+            }
+
+            if (giaBanDefaultInput) {
+                giaBanDefaultInput.addEventListener("input", function() {
+                    const newVal = giaBanDefaultInput.value;
+                    previewTbody.querySelectorAll(".var-gia-ban").forEach(input => {
+                        if (!input.dataset.userEdited) {
+                            input.value = newVal;
+                            const tr = input.closest("tr");
+                            validateVariantRowPrice(tr, false);
+                        }
+                    });
+                });
+            }
+
+            selectDanhMuc.addEventListener("change", handleCategoryChange);
+            handleCategoryChange();
+
+            window.validateAndConfirmAddProduct = async function(formElement) {
+                if (formElement.dataset.confirmed === "true") {
+                    return true;
+                }
+
+                // Đồng bộ dữ liệu từ CKEditor vào textarea
+                if (moTaEditorInstance) {
+                    const moTaInput = document.getElementById("moTa");
+                    if (moTaInput) {
+                        moTaInput.value = moTaEditorInstance.getData();
+                    }
+                }
+
+                // 1. Kiểm tra Tên sản phẩm
+                const inTen = formElement.querySelector("input[name='tenSanPham']");
+                if (inTen && (!inTen.value || !inTen.value.trim())) {
+                    inTen.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    inTen.focus();
+                    if (window.Swal) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Thiếu tên sản phẩm!',
+                            text: 'Vui lòng nhập tên sản phẩm trước khi tạo mới!',
+                            confirmButtonColor: '#f97316'
+                        });
+                    } else if (window.SmashNotify) {
+                        SmashNotify.warning('Vui lòng nhập tên sản phẩm!');
+                    }
+                    return false;
+                }
+
+                // 2. Kiểm tra Danh mục
+                const inDanhMuc = formElement.querySelector("select[name='idDanhMuc']");
+                if (inDanhMuc && !inDanhMuc.value) {
+                    inDanhMuc.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    inDanhMuc.focus();
+                    if (window.Swal) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Chưa chọn danh mục!',
+                            text: 'Vui lòng chọn danh mục cho sản phẩm!',
+                            confirmButtonColor: '#f97316'
+                        });
+                    } else if (window.SmashNotify) {
+                        SmashNotify.warning('Vui lòng chọn danh mục cho sản phẩm!');
+                    }
+                    return false;
+                }
+
+                // 3. Kiểm tra Thương hiệu
+                const inThuongHieu = formElement.querySelector("select[name='idThuongHieu']");
+                if (inThuongHieu && !inThuongHieu.value) {
+                    inThuongHieu.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    inThuongHieu.focus();
+                    if (window.Swal) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Chưa chọn thương hiệu!',
+                            text: 'Vui lòng chọn thương hiệu cho sản phẩm!',
+                            confirmButtonColor: '#f97316'
+                        });
+                    } else if (window.SmashNotify) {
+                        SmashNotify.warning('Vui lòng chọn thương hiệu cho sản phẩm!');
+                    }
+                    return false;
+                }
+
+                // 4. Kiểm tra ảnh sản phẩm gốc
+                if (mainFileAnh) {
+                    if (!mainFileAnh.files || mainFileAnh.files.length === 0) {
+                        if (mainFileError) {
+                            mainFileError.textContent = "Vui lòng chọn hình ảnh sản phẩm gốc (tối đa 5.0 MB)!";
+                            mainFileError.classList.remove("d-none");
+                        }
+                        mainFileAnh.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        mainFileAnh.focus();
+                        if (window.Swal) {
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Thiếu hình ảnh sản phẩm gốc!',
+                                text: 'Vui lòng chọn hình ảnh đại diện cho sản phẩm (định dạng JPG, PNG, WEBP, dung lượng tối đa 5.0 MB)!',
+                                confirmButtonColor: '#f97316'
+                            });
+                        } else if (window.SmashNotify) {
+                            SmashNotify.warning('Vui lòng chọn hình ảnh sản phẩm gốc!');
+                        }
+                        return false;
+                    }
+                    const ok = await validateSingleImageFile(mainFileAnh, mainFileError, mainFilePreviewWrap, mainFilePreviewImg, "ảnh sản phẩm gốc");
+                    if (!ok) {
+                        mainFileAnh.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        mainFileAnh.focus();
+                        return false;
+                    }
+                }
+
+                // 5. Kiểm tra tất cả ảnh biến thể màu
+                const colorInputs = Array.from(document.querySelectorAll(".color-img-input"));
+                for (let i = 0; i < colorInputs.length; i++) {
+                    const cInput = colorInputs[i];
+                    if (cInput.files && cInput.files.length > 0) {
+                        const block = cInput.closest(".color-img-block");
+                        const errDiv = block ? block.querySelector(".color-file-err") : null;
+                        const previewWrap = block ? block.querySelector(".color-preview-wrap") : null;
+                        const previewImg = block ? block.querySelector(".color-preview-img") : null;
+                        const ok = await validateSingleImageFile(cInput, errDiv, previewWrap, previewImg, "ảnh biến thể màu");
+                        if (!ok) {
+                            cInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            cInput.focus();
+                            return false;
+                        }
+                    }
+                }
+
+                // 6. Kiểm tra tổng dung lượng toàn bộ request upload
+                let totalUploadBytes = 0;
+                if (mainFileAnh && mainFileAnh.files && mainFileAnh.files[0]) {
+                    totalUploadBytes += mainFileAnh.files[0].size;
+                }
+                colorInputs.forEach(cIn => {
+                    if (cIn.files && cIn.files[0]) {
+                        totalUploadBytes += cIn.files[0].size;
+                    }
+                });
+
+                if (totalUploadBytes > MAX_TOTAL_IMAGES_SIZE_BYTES) {
+                    const totalMB = (totalUploadBytes / (1024 * 1024)).toFixed(2);
+                    const warnMsg = `Tổng dung lượng các hình ảnh là ${totalMB} MB, vượt quá mức tối đa 10 MB cho phép. Vui lòng giảm bớt ảnh hoặc chọn ảnh có dung lượng nhẹ hơn!`;
+                    if (window.Swal && typeof window.Swal.fire === 'function') {
+                        window.Swal.fire({
+                            icon: 'warning',
+                            title: 'Tổng dung lượng ảnh quá lớn!',
+                            text: warnMsg,
+                            confirmButtonColor: '#f97316'
+                        });
+                    } else if (window.SmashNotify) {
+                        SmashNotify.warning(warnMsg);
+                    } else if (typeof showToast === 'function') {
+                        showToast(warnMsg, 'error');
+                    }
+                    return false;
+                }
+
+                // 7. Kiểm tra tính hợp lệ giá bán & giá nhập của biến thể
+                const categoryId = selectDanhMuc ? selectDanhMuc.value : null;
+                const catType = categoryId ? (CATEGORY_TYPES[categoryId] || "OTHER") : "OTHER";
+                const defGia = giaBanDefaultInput ? (parseFloat(giaBanDefaultInput.value) || 0) : 0;
+
+                if (catType === 'HOP_CAU') {
+                    if (defGia < 1000) {
+                        if (giaBanDefaultInput) {
+                            giaBanDefaultInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            giaBanDefaultInput.focus();
+                        }
+                        if (window.Swal) {
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Chưa nhập giá bán!',
+                                text: 'Vui lòng nhập giá bán cho sản phẩm (tối thiểu 1.000 VNĐ)!',
+                                confirmButtonColor: '#f97316'
+                            });
+                        } else if (window.SmashNotify) {
+                            SmashNotify.warning('Vui lòng nhập giá bán cho sản phẩm!');
+                        }
+                        return false;
+                    }
+                } else {
+                    const rows = previewTbody.querySelectorAll("tr");
+                    if (rows.length === 0) {
+                        if (window.Swal) {
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Chưa có biến thể nào!',
+                                text: 'Vui lòng chọn thuộc tính (Màu sắc, kích thước...) hoặc bấm "Thêm dòng biến thể" để tạo phân loại cho sản phẩm!',
+                                confirmButtonColor: '#f97316'
+                            });
+                        } else if (window.SmashNotify) {
+                            SmashNotify.warning('Vui lòng cấu hình biến thể cho sản phẩm!');
+                        }
+                        return false;
+                    }
+
+                    // Kiểm tra giá bán từng biến thể:
+                    // Nếu không nhập giá bán chung (defGia < 1000), kiểm tra giá bán dưới biến thể
+                    // Nếu cả hai đều bỏ trống -> Yêu cầu nhập giá bán
+                    for (let i = 0; i < rows.length; i++) {
+                        const tr = rows[i];
+                        const inGiaBan = tr.querySelector(".var-gia-ban");
+                        const inMau = tr.querySelector(".var-mau-sac");
+                        const inSize = tr.querySelector(".var-size-weight");
+                        const mauVal = inMau ? inMau.value.trim() : "";
+                        const sizeVal = inSize ? inSize.value.trim() : "";
+                        const variantName = mauVal ? (mauVal + (sizeVal ? " - " + sizeVal : "")) : `Biến thể #${i + 1}`;
+
+                        let gBan = inGiaBan ? (parseFloat(inGiaBan.value) || 0) : 0;
+                        if (gBan < 1000) {
+                            if (defGia >= 1000) {
+                                if (inGiaBan) inGiaBan.value = defGia;
+                                gBan = defGia;
+                            } else {
+                                if (inGiaBan) {
+                                    inGiaBan.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                    inGiaBan.focus();
+                                }
+                                if (window.Swal) {
+                                    Swal.fire({
+                                        icon: 'warning',
+                                        title: 'Chưa nhập giá bán cho biến thể!',
+                                        html: `
+                                            <div style="font-size: 14px; text-align: left; padding: 4px;">
+                                                <p class="mb-2">Phân loại <strong>${variantName}</strong> chưa có giá bán.</p>
+                                                <div class="alert alert-warning py-2 px-3 mb-0 small border-0 rounded-3">
+                                                    <i class="fas fa-exclamation-triangle me-1"></i>
+                                                    Vui lòng nhập <strong>Giá bán cho biến thể này</strong> (tối thiểu 1.000 VNĐ) hoặc điền <strong>Giá bán áp dụng chung</strong> ở phần 2 phía trên!
+                                                </div>
+                                            </div>
+                                        `,
+                                        confirmButtonText: 'Tôi sẽ nhập giá bán',
+                                        confirmButtonColor: '#f97316'
+                                    });
+                                } else if (window.SmashNotify) {
+                                    SmashNotify.warning(`Vui lòng nhập giá bán cho biến thể ${variantName}!`);
+                                }
+                                return false;
+                            }
+                        }
+                    }
+
+                    // Kiểm tra cảnh báo Giá nhập > Giá bán
+                    const invalidRows = [];
+                    rows.forEach((tr, idx) => {
+                        const inMau = tr.querySelector(".var-mau-sac");
+                        const inSize = tr.querySelector(".var-size-weight");
+                        const inGiaNhap = tr.querySelector(".var-gia-nhap");
+                        const inGiaBan = tr.querySelector(".var-gia-ban");
+
+                        const gNhap = inGiaNhap ? (parseFloat(inGiaNhap.value) || 0) : 0;
+                        const gBan = inGiaBan ? (parseFloat(inGiaBan.value) || 0) : 0;
+                        const mauVal = inMau ? inMau.value.trim() : "";
+                        const sizeVal = inSize ? inSize.value.trim() : "";
+                        const variantName = mauVal ? (mauVal + (sizeVal ? " - " + sizeVal : "")) : `Biến thể #${idx + 1}`;
+
+                        if (gNhap > 0 && gBan > 0 && gNhap > gBan) {
+                            validateVariantRowPrice(tr, false);
+                            invalidRows.push({
+                                tr: tr,
+                                inGiaNhap: inGiaNhap,
+                                inGiaBan: inGiaBan,
+                                name: variantName,
+                                giaNhap: gNhap,
+                                giaBan: gBan
+                            });
+                        }
+                    });
+
+                    if (invalidRows.length > 0) {
+                        if (invalidRows[0].inGiaNhap) {
+                            invalidRows[0].inGiaNhap.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            invalidRows[0].inGiaNhap.focus();
+                        }
+
+                        const invalidListHtml = invalidRows.map(item => `
+                            <li class="mb-1 text-start">
+                                <strong class="text-dark">${item.name}:</strong> 
+                                Giá nhập <span class="text-danger fw-bold">${item.giaNhap.toLocaleString('vi-VN')} đ</span> 
+                                cao hơn Giá bán <span class="text-primary fw-bold">${item.giaBan.toLocaleString('vi-VN')} đ</span>
+                            </li>
+                        `).join('');
+
+                        if (window.Swal && typeof window.Swal.fire === 'function') {
+                            window.Swal.fire({
+                                icon: 'warning',
+                                title: 'Giá nhập cao hơn giá bán!',
+                                html: `
+                                    <div style="font-size: 14px; text-align: left; padding: 4px;">
+                                        <p class="mb-2">Phát hiện <strong>${invalidRows.length}</strong> biến thể có giá nhập cao hơn giá bán:</p>
+                                        <ul class="text-secondary ps-3 mb-3" style="max-height: 180px; overflow-y: auto;">
+                                            ${invalidListHtml}
+                                        </ul>
+                                        <div class="alert alert-warning py-2 px-3 mb-0 small border-0 rounded-3">
+                                            <i class="fas fa-exclamation-triangle text-warning me-1"></i>
+                                            Giá nhập không được phép cao hơn giá bán. Vui lòng kiểm tra và nhập lại giá phù hợp trước khi tiếp tục.
+                                        </div>
+                                    </div>
+                                `,
+                                confirmButtonText: 'Tôi sẽ nhập lại giá',
+                                confirmButtonColor: '#f97316'
+                            });
+                        } else if (typeof showToast === 'function') {
+                            showToast(`Lỗi: Có ${invalidRows.length} biến thể có giá nhập cao hơn giá bán. Vui lòng nhập lại!`, 'error');
+                        } else if (window.SmashNotify && typeof window.SmashNotify.error === 'function') {
+                            window.SmashNotify.error(`Có ${invalidRows.length} biến thể có giá nhập cao hơn giá bán. Vui lòng nhập lại!`);
+                        }
+
+                        return false;
+                    }
+                }
+
+                // 8. Kiểm tra toàn bộ form HTML5
+                if (!formElement.checkValidity()) {
+                    formElement.reportValidity();
+                    return false;
+                }
+
+                return confirmSubmitForm(formElement, 'Bạn có chắc chắn muốn tạo mới sản phẩm và sinh các biến thể này không?');
+            };
+
+            const addProductForm = document.getElementById("addProductForm");
+            if (addProductForm) {
+                addProductForm.addEventListener("submit", async function(e) {
+                    if (this.dataset.confirmed === "true") {
+                        return;
+                    }
+                    e.preventDefault();
+                    await window.validateAndConfirmAddProduct(this);
+                });
+            }
+
+            // Tự động bật thông báo Popup nếu có lỗi từ Server truyền về
+            const serverErrHolder = document.getElementById("serverErrorMessageHolder");
+            if (serverErrHolder && serverErrHolder.dataset.message) {
+                const sMsg = serverErrHolder.dataset.message.trim();
+                if (sMsg) {
+                    if (window.Swal) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Không thể thêm sản phẩm!',
+                            text: sMsg,
+                            confirmButtonText: 'Đã hiểu',
+                            confirmButtonColor: '#dc3545'
+                        });
+                    } else if (window.SmashNotify) {
+                        SmashNotify.error(sMsg, 'Lỗi');
+                    }
+                }
+            }
+        });
+    </script>
+
+    <!-- Bootstrap 5.3.0 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Admin Layout JS -->
+    <script th:src="@{/js/admin-layout.js(v='2.4')}"></script>
+</body>
+</html>

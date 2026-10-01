@@ -1,0 +1,32 @@
+name: Verify project
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Verify Java and build application
+        run: sh mvnw -B -Pverification clean verify
+      - name: Install browser test dependencies
+        run: npm ci
+      - name: Verify browser behavior
+        run: npm test

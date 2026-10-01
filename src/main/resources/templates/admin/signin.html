@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng Nhập Quản Trị - SmashVN</title>
+    <link th:href="@{/images/favicon.png}" rel="shortcut icon">
+    
+    <!-- Google Font Outfit -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
+    <style>
+        :root {
+            --brand-primary: #ff4500;
+            --brand-secondary: #ff6a00;
+            --dark-bg: #0b0c10;
+            --dark-card: rgba(21, 23, 28, 0.65);
+            --border-glass: rgba(255, 255, 255, 0.08);
+            --text-light: #f4f4f6;
+            --text-muted: #8a8d98;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--dark-bg);
+            color: var(--text-light);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+            margin: 0;
+        }
+
+        /* Background blur circles */
+        .glowing-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(120px);
+            z-index: 1;
+            opacity: 0.4;
+            animation: floatOrb 15s infinite alternate ease-in-out;
+        }
+
+        .orb-1 {
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, var(--brand-primary) 0%, transparent 70%);
+            top: -100px;
+            left: -100px;
+        }
+
+        .orb-2 {
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, #7928ca 0%, transparent 70%);
+            bottom: -150px;
+            right: -100px;
+            animation-delay: -5s;
+        }
+
+        .orb-3 {
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, #0070f3 0%, transparent 70%);
+            top: 40%;
+            right: 15%;
+            animation-delay: -10s;
+        }
+
+        @keyframes floatOrb {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(60px, 40px) scale(1.1); }
+        }
+
+        .login-wrapper {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            max-width: 460px;
+            padding: 20px;
+        }
+
+        /* Glassmorphism Card */
+        .glass-card {
+            background: var(--dark-card);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid var(--border-glass);
+            border-radius: 24px;
+            padding: 40px 35px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            transition: all 0.4s ease;
+        }
+
+        .glass-card:hover {
+            border-color: rgba(255, 69, 0, 0.2);
+            box-shadow: 0 25px 50px rgba(255, 69, 0, 0.1);
+        }
+
+        .brand-logo-badge {
+            background: linear-gradient(135deg, var(--brand-primary), var(--brand-secondary));
+            width: 64px;
+            height: 64px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            color: white;
+            margin: 0 auto 20px auto;
+            box-shadow: 0 8px 20px rgba(255, 69, 0, 0.3);
+        }
+
+        .brand-title {
+            font-size: 1.6rem;
+            font-weight: 800;
+            text-align: center;
+            letter-spacing: 0.5px;
+            background: linear-gradient(to right, #fff, #b3b6c2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 5px;
+        }
+
+        .brand-subtitle {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-align: center;
+            text-uppercase: uppercase;
+            letter-spacing: 2px;
+            font-weight: 600;
+            margin-bottom: 30px;
+        }
+
+        /* Form Inputs */
+        .form-label-custom {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .input-group-custom {
+            position: relative;
+            margin-bottom: 24px;
+        }
+
+        .input-custom {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-glass);
+            border-radius: 12px;
+            padding: 14px 16px 14px 45px;
+            color: var(--text-light);
+            font-size: 0.95rem;
+            font-weight: 400;
+            transition: all 0.3s ease;
+        }
+
+        .input-custom:focus {
+            outline: none;
+            background: rgba(255, 255, 255, 0.07);
+            border-color: var(--brand-primary);
+            box-shadow: 0 0 12px rgba(255, 69, 0, 0.25);
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+        }
+
+        .input-custom:focus + .input-icon {
+            color: var(--brand-primary);
+        }
+
+        /* Interactive toggle password */
+        .toggle-password {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        .toggle-password:hover {
+            color: var(--text-light);
+        }
+
+        /* Custom error alert */
+        .alert-error-custom {
+            background: rgba(220, 53, 69, 0.1);
+            border: 1px solid rgba(220, 53, 69, 0.2);
+            border-radius: 12px;
+            color: #ea868f;
+            padding: 12px 15px;
+            font-size: 0.85rem;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+
+        .alert-error-custom i {
+            font-size: 1.1rem;
+            margin-right: 10px;
+        }
+
+        /* Submit Button */
+        .btn-submit-custom {
+            width: 100%;
+            background: linear-gradient(135deg, var(--brand-primary), var(--brand-secondary));
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 1rem;
+            font-weight: 700;
+            padding: 14px;
+            box-shadow: 0 4px 15px rgba(255, 69, 0, 0.3);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-submit-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 69, 0, 0.45);
+        }
+
+        .btn-submit-custom:active {
+            transform: translateY(0);
+        }
+
+        /* Loading spinner */
+        .btn-submit-custom .spinner-border {
+            width: 1.2rem;
+            height: 1.2rem;
+            border-width: 0.15em;
+            display: none;
+            position: absolute;
+            right: 20px;
+            top: calc(50% - 0.6rem);
+        }
+
+        .btn-submit-custom.loading {
+            color: transparent;
+            pointer-events: none;
+        }
+
+        .btn-submit-custom.loading .spinner-border {
+            display: inline-block;
+        }
+
+        /* Footer Info */
+        .footer-info {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            letter-spacing: 0.5px;
+        }
+
+        .footer-info a {
+            color: var(--text-light);
+            text-decoration: none;
+            transition: color 0.2s ease;
+            font-weight: 500;
+        }
+
+        .footer-info a:hover {
+            color: var(--brand-primary);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Blurry Ambient Orbs -->
+    <div class="glowing-orb orb-1"></div>
+    <div class="glowing-orb orb-2"></div>
+    <div class="glowing-orb orb-3"></div>
+
+    <div class="login-wrapper">
+        <div class="glass-card">
+            
+            <!-- Brand Info -->
+            <div class="brand-logo-badge">
+                <i class="fas fa-lock"></i>
+            </div>
+            <div class="brand-title">SMASHVN</div>
+            <div class="brand-subtitle">Administration Portal</div>
+
+            <!-- Error Display -->
+            <div th:if="${loi != null}" class="alert-error-custom">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span th:text="${loi}">Lỗi đăng nhập!</span>
+            </div>
+
+            <!-- Login Form -->
+            <form id="adminLoginForm" th:action="@{/admin/dang-nhap}" method="post">
+                
+                <div class="form-group">
+                    <label class="form-label-custom" for="email">Tài khoản</label>
+                    <div class="input-group-custom">
+                        <input class="input-custom" type="text" id="email" name="username" required placeholder="Nhập email hoặc tên đăng nhập..." autocomplete="username">
+                        <i class="fas fa-envelope input-icon"></i>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label-custom" for="password">Mật khẩu</label>
+                    <div class="input-group-custom">
+                        <input class="input-custom" type="password" id="password" name="matKhau" required placeholder="••••••••" autocomplete="current-password">
+                        <i class="fas fa-key input-icon"></i>
+                        <i class="fas fa-eye-slash toggle-password" id="togglePasswordBtn"></i>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" class="btn btn-submit-custom" id="submitBtn">
+                    ĐĂNG NHẬP HỆ THỐNG
+                    <span class="spinner-border text-light" role="status" aria-hidden="true"></span>
+                </button>
+
+            </form>
+
+            <div class="footer-info">
+                &copy; 2026 SmashVN. Tất cả quyền được bảo lưu.<br>
+                <a th:href="@{/}"><i class="fas fa-arrow-left me-1"></i> Quay lại trang bán hàng</a>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Script to add micro-interactions -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('adminLoginForm');
+            const submitBtn = document.getElementById('submitBtn');
+            const togglePasswordBtn = document.getElementById('togglePasswordBtn');
+            const passwordInput = document.getElementById('password');
+
+            // Form Submit Loading State
+            form.addEventListener('submit', function() {
+                submitBtn.classList.add('loading');
+                submitBtn.disabled = true;
+            });
+
+            // Toggle Password Visibility — hold to show, release to hide
+            togglePasswordBtn.addEventListener('mousedown', function(e) {
+                e.preventDefault();
+                passwordInput.setAttribute('type', 'text');
+                togglePasswordBtn.classList.replace('fa-eye-slash', 'fa-eye');
+            });
+            const hidePassword = function() {
+                passwordInput.setAttribute('type', 'password');
+                togglePasswordBtn.classList.replace('fa-eye', 'fa-eye-slash');
+            };
+            togglePasswordBtn.addEventListener('mouseup', hidePassword);
+            togglePasswordBtn.addEventListener('mouseleave', hidePassword);
+            // Touch support
+            togglePasswordBtn.addEventListener('touchstart', function(e) {
+                e.preventDefault();
+                passwordInput.setAttribute('type', 'text');
+                togglePasswordBtn.classList.replace('fa-eye-slash', 'fa-eye');
+            });
+            togglePasswordBtn.addEventListener('touchend', hidePassword);
+        });
+    </script>
+</body>
+</html>

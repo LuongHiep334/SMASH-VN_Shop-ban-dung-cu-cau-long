@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tạo Đợt Giảm Giá Mới - Admin SmashVN</title>
+    
+    <!-- Bootstrap 5.3.0 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Admin Custom CSS -->
+    <link rel="stylesheet" th:href="@{/css/admin-custom.css(v='2.4')}">
+    <script th:src="@{/js/admin-layout-state.js(v='1.0')}"></script>
+    
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        .product-list-container {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid var(--admin-border);
+            border-radius: 8px;
+        }
+        .search-box {
+            position: relative;
+        }
+        .search-box i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6c757d;
+        }
+        .search-box input {
+            padding-left: 35px;
+        }
+        .helper-text {
+            font-size: 12px;
+            color: var(--admin-text-muted);
+            margin-top: 4px;
+        }
+    </style>
+</head>
+<body class="admin-body">
+
+    <!-- Sidebar Layout Fragment -->
+    <div th:replace="~{admin/layout/sidebar :: sidebar('khuyenmai')}"></div>
+
+    <div class="admin-page">
+        <!-- Topbar Layout Fragment -->
+        <div th:replace="~{admin/layout/header :: header}"></div>
+
+        <!-- Main Content -->
+        <main class="admin-content">
+            <div class="container-fluid admin-container">
+
+                <!-- Page Header -->
+                <div class="admin-page-header">
+                    <div>
+                        <h1 class="admin-page-title"><i class="fas fa-percent text-brand me-2"></i>Tạo Đợt Giảm Giá Mới</h1>
+                    </div>
+                    <div class="admin-toolbar">
+                        <a th:href="@{/admin/khuyen-mai}" class="admin-btn admin-btn-secondary">
+                            <i class="fas fa-arrow-left me-1"></i> Quay lại Khuyến Mãi
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Alert Messages -->
+                <div th:if="${loi != null}" class="alert alert-danger alert-dismissible fade show border-start border-danger border-4 rounded-3 shadow-sm mb-4" role="alert">
+                    <i class="fas fa-times-circle me-2"></i><span th:text="${loi}">Lỗi nhập liệu</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+
+                <!-- Form Card -->
+                <div class="row justify-content-center">
+                    <div class="col-lg-10">
+                        <div class="admin-card mb-5">
+                            <div class="admin-card-header">
+                                <h5 class="admin-card-title"><i class="fas fa-percent text-primary me-2"></i>Thông Tin Chiến Dịch Đợt Giảm Giá</h5>
+                            </div>
+                            <div class="admin-card-body">
+                                <form th:action="@{/admin/khuyen-mai/dot-giam-gia/them}" method="POST" id="campaignForm" onsubmit="return confirmSubmitForm(this, 'Bạn có chắc chắn muốn khởi tạo đợt giảm giá này không?');">
+                                    <div class="row g-4">
+                                        <!-- A. Information -->
+                                        <div class="col-12 border-bottom pb-2">
+                                            <h6 class="text-primary fw-bold mb-0"><i class="fas fa-info-circle me-2"></i>A. Thông Tin Chiến Dịch</h6>
+                                        </div>
+                                        <div class="col-md-12">
+                                            <label for="tenChienDich" class="admin-form-label">Tên Chiến Dịch <span class="text-danger">*</span></label>
+                                            <input type="text" id="tenChienDich" name="tenChienDich" th:value="${tenChienDich}" class="admin-form-control form-control" placeholder="Ví dụ: Siêu Sale Mùa Hè" required>
+                                            <div class="helper-text">Độ dài từ 2 đến 100 ký tự.</div>
+                                        </div>
+
+                                        <div class="col-md-6">
+                                            <label for="ngayBatDau" class="admin-form-label">Ngày &amp; Giờ Bắt Đầu <span class="text-danger">*</span></label>
+                                            <input type="datetime-local" id="ngayBatDau" name="ngayBatDau" th:value="${ngayBatDau}" class="admin-form-control form-control" required>
+                                            <div class="helper-text">Ngày giờ bắt đầu áp dụng chương trình (không được trong quá khứ).</div>
+                                        </div>
+
+                                        <div class="col-md-6">
+                                            <label for="ngayKetThuc" class="admin-form-label">Ngày &amp; Giờ Kết Thúc <span class="text-danger">*</span></label>
+                                            <input type="datetime-local" id="ngayKetThuc" name="ngayKetThuc" th:value="${ngayKetThuc}" class="admin-form-control form-control" required>
+                                            <div class="helper-text">Ngày giờ kết thúc chương trình (phải sau ngày bắt đầu).</div>
+                                        </div>
+
+                                        <!-- B. Discount Amount -->
+                                        <div class="col-12 border-bottom pb-2 mt-4">
+                                            <h6 class="text-primary fw-bold mb-0"><i class="fas fa-tags me-2"></i>B. Mức Giảm</h6>
+                                        </div>
+                                        <div class="col-md-12">
+                                            <label for="phanTramGiam" class="admin-form-label">Phần Trăm Giảm (%) <span class="text-danger">*</span></label>
+                                            <input type="number" id="phanTramGiam" name="phanTramGiam" th:value="${phanTramGiam}" class="admin-form-control form-control" placeholder="Nhập số nguyên từ 1 đến 40" min="1" max="40" step="1" required>
+                                            <div class="form-text text-danger fw-bold"><i class="fas fa-info-circle me-1"></i> Bắt buộc từ 1% đến tối đa 40% (Giới hạn hệ thống). Chỉ nhập số nguyên thô.</div>
+                                        </div>
+                                        <input type="hidden" name="loaiGiamGia" value="Theo Phần Trăm">
+
+                                        <!-- C. Selection Mode -->
+                                        <div class="col-12 border-bottom pb-2 mt-4">
+                                            <h6 class="text-primary fw-bold mb-0"><i class="fas fa-tasks me-2"></i>C. Cách Chọn Sản Phẩm Áp Dụng</h6>
+                                        </div>
+                                        <div class="col-md-12">
+                                            <div class="d-flex gap-4">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="radio" name="kieuApDung" id="kieuApDungManual" value="MANUAL" th:checked="${kieuApDung == null || kieuApDung == 'MANUAL'}" checked>
+                                                    <label class="form-check-label fw-bold text-dark" for="kieuApDungManual">
+                                                        Giảm giá theo sản phẩm
+                                                    </label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="radio" name="kieuApDung" id="kieuApDungPriceRange" value="PRICE_RANGE" th:checked="${kieuApDung == 'PRICE_RANGE'}">
+                                                    <label class="form-check-label fw-bold text-dark" for="kieuApDungPriceRange">
+                                                        Giảm giá theo khoảng giá
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="helper-text mt-2">Chọn phương thức để gán sản phẩm vào chương trình giảm giá.</div>
+                                        </div>
+
+                                        <!-- Price Range Section -->
+                                        <div class="col-12 mt-3" id="priceRangeSection" style="display: none;">
+                                            <div class="card bg-light border-0 p-3">
+                                                <div class="row g-3">
+                                                    <div class="col-md-6">
+                                                        <label for="giaFrom" class="admin-form-label">Giá bán từ <span class="text-danger">*</span></label>
+                                                        <input type="text" id="giaFrom" name="giaFrom" th:value="${giaFrom}" class="admin-form-control form-control bg-white" placeholder="Ví dụ: 500.000 hoặc 500000">
+                                                        <div class="helper-text">Nhập giá bán tối thiểu của sản phẩm. Bắt buộc.</div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label for="giaDen" class="admin-form-label">Giá bán đến</label>
+                                                        <input type="text" id="giaDen" name="giaDen" th:value="${giaDen}" class="admin-form-control form-control bg-white" placeholder="Ví dụ: 2.000.000 hoặc 2000000">
+                                                        <div class="helper-text">Nhập giá bán tối đa. Để trống nếu không giới hạn trên.</div>
+                                                    </div>
+                                                    <div class="col-12">
+                                                        <button type="button" id="btnPreviewRange" class="admin-btn admin-btn-secondary admin-btn-sm"><i class="fas fa-eye me-1"></i> Xem sản phẩm phù hợp</button>
+                                                        <div id="previewResult" class="mt-2" style="display: none;"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Manual Product Selection -->
+                                        <div class="col-12 mt-4" id="manualSection">
+                                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                                <label class="admin-form-label mb-0">Chọn Sản Phẩm Áp Dụng <span class="text-danger">*</span></label>
+                                                <div class="fw-semibold text-primary">
+                                                    Đã chọn: <span id="selectedCount" class="admin-status admin-status-info">0</span> / <span id="totalCount" th:text="${sanPhams.size()}">0</span> sản phẩm
+                                                </div>
+                                            </div>
+
+                                            <div class="row g-3 mb-3 align-items-center">
+                                                <div class="col-md-6 search-box">
+                                                    <i class="fas fa-search"></i>
+                                                    <input type="text" id="productSearch" class="admin-form-control form-control" placeholder="Tìm kiếm nhanh theo tên sản phẩm...">
+                                                </div>
+                                                <div class="col-md-6 text-md-end">
+                                                    <div class="form-check form-check-inline">
+                                                        <input class="form-check-input" type="checkbox" id="selectAllProducts">
+                                                        <label class="form-check-label fw-bold text-dark" for="selectAllProducts">Chọn Tất Cả Sản Phẩm</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="product-list-container">
+                                                <table class="admin-table" id="productTable">
+                                                    <thead style="position: sticky; top: 0; z-index: 2;">
+                                                        <tr>
+                                                            <th style="width: 50px;" class="text-center">Chọn</th>
+                                                            <th>Tên Sản Phẩm</th>
+                                                            <th>Danh Mục</th>
+                                                            <th>Thương Hiệu</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <tr th:each="sp : ${sanPhams}" class="product-row">
+                                                            <td class="text-center">
+                                                                <input class="form-check-input product-checkbox" type="checkbox" name="productIds" th:value="${sp.id}" th:checked="${selectedProductIds != null &amp;&amp; selectedProductIds.contains(sp.id)}">
+                                                            </td>
+                                                            <td class="fw-semibold text-primary product-name" th:text="${sp.tenSanPham}">Racket A</td>
+                                                            <td th:text="${sp.danhMuc.tenDanhMuc}">Vợt</td>
+                                                            <td th:text="${sp.thuongHieu.tenThuongHieu}">Yonex</td>
+                                                        </tr>
+                                                        <tr th:if="${sanPhams.isEmpty()}">
+                                                            <td colspan="4" class="text-center text-muted py-4">Không có sản phẩm nào đang bán.</td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-12 mt-4 pt-3 border-top d-flex justify-content-end gap-2">
+                                            <a th:href="@{/admin/khuyen-mai}" class="admin-btn admin-btn-secondary"><i class="fas fa-times me-1"></i> Hủy bỏ</a>
+                                            <button type="submit" class="admin-btn admin-btn-primary"><i class="fas fa-save me-1"></i> Tạo Chiến Dịch</button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('productSearch');
+        const selectAllCheckbox = document.getElementById('selectAllProducts');
+        const productCheckboxes = document.querySelectorAll('.product-checkbox');
+        const selectedCountSpan = document.getElementById('selectedCount');
+        const productRows = document.querySelectorAll('.product-row');
+
+        function updateCounter() {
+            if (!selectedCountSpan) return;
+            const checkedCount = document.querySelectorAll('.product-checkbox:checked').length;
+            selectedCountSpan.textContent = checkedCount;
+            
+            const visibleCheckedCount = Array.from(productCheckboxes).filter(cb => {
+                const row = cb.closest('.product-row');
+                return cb.checked && row.style.display !== 'none';
+            }).length;
+            
+            const visibleCount = Array.from(productRows).filter(row => row.style.display !== 'none').length;
+            if (selectAllCheckbox) {
+                selectAllCheckbox.checked = visibleCount > 0 && visibleCheckedCount === visibleCount;
+            }
+        }
+
+        updateCounter();
+
+        productCheckboxes.forEach(cb => {
+            cb.addEventListener('change', updateCounter);
+        });
+
+        if (searchInput) {
+            searchInput.addEventListener('input', function() {
+                const query = this.value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                
+                productRows.forEach(row => {
+                    const productName = row.querySelector('.product-name').textContent.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                    row.style.display = productName.includes(query) ? '' : 'none';
+                });
+                
+                updateCounter();
+            });
+        }
+
+        if (selectAllCheckbox) {
+            selectAllCheckbox.addEventListener('change', function() {
+                const isChecked = this.checked;
+                productRows.forEach(row => {
+                    if (row.style.display !== 'none') {
+                        const cb = row.querySelector('.product-checkbox');
+                        if (cb) cb.checked = isChecked;
+                    }
+                });
+                updateCounter();
+            });
+        }
+
+        const kieuApDungManual = document.getElementById('kieuApDungManual');
+        const kieuApDungPriceRange = document.getElementById('kieuApDungPriceRange');
+        const priceRangeSection = document.getElementById('priceRangeSection');
+        const manualSection = document.getElementById('manualSection');
+
+        function handleKieuApDungChange() {
+            if (kieuApDungPriceRange && kieuApDungPriceRange.checked) {
+                if (priceRangeSection) priceRangeSection.style.display = 'block';
+                if (manualSection) manualSection.style.display = 'none';
+                productCheckboxes.forEach(cb => { cb.disabled = true; });
+            } else {
+                if (priceRangeSection) priceRangeSection.style.display = 'none';
+                if (manualSection) manualSection.style.display = 'block';
+                productCheckboxes.forEach(cb => { cb.disabled = false; });
+            }
+        }
+
+        if (kieuApDungManual && kieuApDungPriceRange) {
+            kieuApDungManual.addEventListener('change', handleKieuApDungChange);
+            kieuApDungPriceRange.addEventListener('change', handleKieuApDungChange);
+            handleKieuApDungChange();
+        }
+
+        const btnPreviewRange = document.getElementById('btnPreviewRange');
+        const previewResult = document.getElementById('previewResult');
+
+        if (btnPreviewRange) {
+            btnPreviewRange.addEventListener('click', function() {
+                const giaFrom = document.getElementById('giaFrom').value.trim();
+                const giaDen = document.getElementById('giaDen').value.trim();
+
+                if (!giaFrom) {
+                    previewResult.style.display = 'block';
+                    previewResult.className = 'mt-2 alert alert-danger p-2 fs-6';
+                    previewResult.innerHTML = '<i class="fas fa-exclamation-circle me-1"></i> Giá bán từ không được để trống!';
+                    return;
+                }
+
+                const url = `/admin/khuyen-mai/dot-giam-gia/preview-by-price?giaFrom=${encodeURIComponent(giaFrom)}&giaDen=${encodeURIComponent(giaDen)}`;
+
+                previewResult.style.display = 'block';
+                previewResult.className = 'mt-2 alert alert-info p-2 fs-6';
+                previewResult.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Đang tìm sản phẩm phù hợp...';
+
+                fetch(url)
+                    .then(response => {
+                        return response.json().then(data => {
+                            if (!response.ok) throw new Error(data.error || 'Có lỗi xảy ra!');
+                            return data;
+                        });
+                    })
+                    .then(data => {
+                        if (data.count === 0) {
+                            previewResult.className = 'mt-2 alert alert-warning p-2 fs-6';
+                            previewResult.innerHTML = '<i class="fas fa-exclamation-triangle me-1"></i> Không tìm thấy sản phẩm nào đang bán thỏa mãn khoảng giá này.';
+                        } else {
+                            let listHtml = '';
+                            if (data.sanPhams && data.sanPhams.length > 0) {
+                                listHtml = '<ul class="mb-0 mt-2 list-unstyled ps-3 border-top pt-2" style="max-height: 150px; overflow-y: auto; font-size: 13px;">';
+                                data.sanPhams.forEach(sp => {
+                                    listHtml += `<li class="py-1"><i class="fas fa-check text-success me-2"></i> #${sp.id} - ${sp.tenSanPham}</li>`;
+                                });
+                                if (data.count > 10) {
+                                    listHtml += `<li class="text-muted fst-italic pt-1">... và ${data.count - 10} sản phẩm khác.</li>`;
+                                }
+                                listHtml += '</ul>';
+                            }
+                            previewResult.className = 'mt-2 alert alert-success p-3 fs-6';
+                            previewResult.innerHTML = `
+                                <div><i class="fas fa-check-circle me-1"></i> Tìm thấy <strong>${data.count}</strong> sản phẩm đang bán phù hợp trong khoảng giá này.</div>
+                                ${listHtml}
+                            `;
+                        }
+                    })
+                    .catch(error => {
+                        previewResult.className = 'mt-2 alert alert-danger p-2 fs-6';
+                        previewResult.innerHTML = `<i class="fas fa-exclamation-circle me-1"></i> ${error.message}`;
+                    });
+            });
+        }
+
+        const form = document.getElementById('campaignForm');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                const tenChienDich = document.getElementById('tenChienDich').value.trim();
+                const phanTramGiamRaw = document.getElementById('phanTramGiam').value.trim();
+                const ngayBatDauStr = document.getElementById('ngayBatDau').value;
+                const ngayKetThucStr = document.getElementById('ngayKetThuc').value;
+                const checkedCount = document.querySelectorAll('.product-checkbox:checked').length;
+
+                if (tenChienDich.length < 2 || tenChienDich.length > 100) {
+                    e.preventDefault();
+                    showToast('Tên chiến dịch phải có độ dài từ 2 đến 100 ký tự!', 'warning');
+                    document.getElementById('tenChienDich').focus();
+                    return;
+                }
+
+                if (phanTramGiamRaw.includes('.') || phanTramGiamRaw.includes(',')) {
+                    e.preventDefault();
+                    showToast('Phần trăm giảm giá phải là số nguyên, không được là số thập phân!', 'warning');
+                    document.getElementById('phanTramGiam').focus();
+                    return;
+                }
+                const phanTramGiamVal = parseFloat(phanTramGiamRaw);
+                if (isNaN(phanTramGiamVal) || phanTramGiamVal <= 0 || phanTramGiamVal > 40) {
+                    e.preventDefault();
+                    showToast('Phần trăm giảm giá tối đa cho đợt giảm giá là 40% (từ 1% đến 40%)!', 'warning');
+                    document.getElementById('phanTramGiam').focus();
+                    return;
+                }
+
+                if (!ngayBatDauStr || !ngayKetThucStr) {
+                    e.preventDefault();
+                    showToast('Vui lòng chọn đầy đủ thời gian bắt đầu và kết thúc!', 'warning');
+                    return;
+                }
+
+                const ngayBatDau = new Date(ngayBatDauStr);
+                const ngayKetThuc = new Date(ngayKetThucStr);
+                const now = new Date(Date.now() - 60000); // 1 phút buffer
+
+                if (ngayBatDau < now) {
+                    e.preventDefault();
+                    showToast('Thời gian bắt đầu không được nằm trong quá khứ!', 'warning');
+                    document.getElementById('ngayBatDau').focus();
+                    return;
+                }
+
+                if (ngayBatDau >= ngayKetThuc) {
+                    e.preventDefault();
+                    showToast('Ngày bắt đầu phải xảy ra trước ngày kết thúc!', 'warning');
+                    document.getElementById('ngayBatDau').focus();
+                    return;
+                }
+
+                if (kieuApDungPriceRange && kieuApDungPriceRange.checked) {
+                    const giaFromRaw = document.getElementById('giaFrom').value.trim();
+                    const giaDenRaw = document.getElementById('giaDen').value.trim();
+
+                    if (!giaFromRaw) {
+                        e.preventDefault();
+                        showToast('Giá bán từ không được để trống!', 'warning');
+                        document.getElementById('giaFrom').focus();
+                        return;
+                    }
+                } else {
+                    if (checkedCount === 0) {
+                        e.preventDefault();
+                        showToast('Vui lòng chọn ít nhất một sản phẩm để áp dụng đợt giảm giá!', 'warning');
+                        return;
+                    }
+                }
+            });
+        }
+    });
+    </script>
+
+    <!-- Bootstrap 5.3.0 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Admin Layout JS -->
+    <script th:src="@{/js/admin-layout.js(v='2.4')}"></script>
+</body>
+</html>

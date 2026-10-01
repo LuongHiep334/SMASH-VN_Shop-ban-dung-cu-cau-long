@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html class="no-js" lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    
+    <!-- SEO Meta Tags -->
+    <title th:text="${blog.title + ' - Smash VN'}">Tiêu đề bài viết - Smash VN</title>
+    <meta name="description" th:content="${blog.summary}">
+    <meta name="author" th:content="${blog.author}">
+    <meta name="robots" content="index, follow">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" th:href="|https://smashvn.com/blog/${blog.slug}|">
+    
+    <!-- OpenGraph Tags -->
+    <meta property="og:type" content="article">
+    <meta property="og:title" th:content="${blog.title + ' - Smash VN'}">
+    <meta property="og:description" th:content="${blog.summary}">
+    <meta property="og:image" th:content="${#strings.startsWith(blog.image, '/uploads/') ? blog.image : '/images/blog/' + blog.image}">
+    <meta property="og:url" th:content="|https://smashvn.com/blog/${blog.slug}|">
+    <meta property="og:site_name" content="Smash VN">
+    <meta property="article:published_time" th:content="${blog.publishDate}">
+    <meta property="article:author" th:content="${blog.author}">
+    
+    <link th:href="@{/images/favicon.png}" rel="shortcut icon">
+
+    <!--====== Google Font ======-->
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,600,700,800" rel="stylesheet">
+
+    <!--====== Vendor Css ======-->
+    <link rel="stylesheet" th:href="@{/css/vendor.css}">
+
+    <!--====== Utility-Spacing ======-->
+    <link rel="stylesheet" th:href="@{/css/utility.css}">
+
+    <!--====== App ======-->
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+
+    <!-- Schema.org JSON-LD -->
+    <script type="application/ld+json" th:inline="javascript">
+    {
+      "@context": "https://schema.org",
+      "@type": "BlogPosting",
+      "headline": /*[[${blog.title}]]*/ "Tiêu đề bài viết",
+      "image": /*[[${#strings.startsWith(blog.image, '/uploads/') ? 'https://smashvn.com' + blog.image : 'https://smashvn.com/images/blog/' + blog.image}]]*/ "",
+      "genre": /*[[${blog.category}]]*/ "Category",
+      "keywords": /*[[${blog.tags != null and !blog.tags.isEmpty() ? T(java.lang.String).join(',', blog.tags) : ''}]]*/ "Tags",
+      "publisher": {
+        "@type": "Organization",
+        "name": "Smash VN",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://smashvn.com/images/logo/logo-1.png"
+        }
+      },
+      "url": /*[[${'https://smashvn.com/blog/' + blog.slug}]]*/ "",
+      "datePublished": /*[[${blog.publishDate}]]*/ "",
+      "author": {
+        "@type": "Person",
+        "name": /*[[${blog.author}]]*/ "Author"
+      },
+      "description": /*[[${blog.summary}]]*/ "Summary"
+    }
+    </script>
+    <style>
+        .iframe-mode header,
+        .iframe-mode footer,
+        .iframe-mode .header--style-1,
+        .iframe-mode .outer-footer,
+        .iframe-mode .lower-footer,
+        .iframe-mode .footer,
+        .iframe-mode #smashvn-chatbot-container,
+        .iframe-mode #chatbot-trigger,
+        .iframe-mode #chatbot-window,
+        .iframe-mode #floating-cart,
+        .iframe-mode .floating-cart,
+        .iframe-mode .floating-cart-dropdown,
+        .iframe-mode #topScroll,
+        .iframe-mode .app-setting,
+        .iframe-mode .breadcrumb,
+        .iframe-mode .pd-breadcrumb,
+        .iframe-mode .btn-floating-cart,
+        .iframe-mode .btn-back-to-top,
+        .iframe-mode .preloader,
+        .iframe-mode #preloader,
+        .iframe-mode .sticky-header {
+            display: none !important;
+            visibility: hidden !important;
+            height: 0 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            overflow: hidden !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
+        }
+        body.iframe-mode {
+            background-color: #ffffff !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+        body.iframe-mode .app-content {
+            padding: 0 !important;
+            padding-bottom: 30px !important;
+        }
+        body.iframe-mode .blog-d-t {
+            box-shadow: none !important;
+            border: none !important;
+            padding: 20px !important;
+        }
+    </style>
+
+    <style th:if="${isPreview == true or previewMode == true}">
+        header,
+        footer,
+        .header--style-1,
+        .outer-footer,
+        .lower-footer,
+        .footer,
+        #smashvn-chatbot-container,
+        #chatbot-trigger,
+        #chatbot-window,
+        #floating-cart,
+        .floating-cart,
+        .floating-cart-dropdown,
+        #topScroll,
+        .app-setting,
+        .breadcrumb,
+        .pd-breadcrumb,
+        .btn-floating-cart,
+        .btn-back-to-top,
+        .preloader,
+        #preloader,
+        .sticky-header {
+            display: none !important;
+            visibility: hidden !important;
+            height: 0 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            overflow: hidden !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
+        }
+        body, body.iframe-mode {
+            background-color: #ffffff !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+        .app-content {
+            padding: 0 !important;
+            padding-bottom: 30px !important;
+        }
+        .blog-d-t {
+            box-shadow: none !important;
+            border: none !important;
+            padding: 20px !important;
+        }
+        .preloader {
+            display: none !important;
+        }
+    </style>
+    <style>
+        /* Blockquote styles matching mockup */
+        .blog-d-t__post-content blockquote {
+            border: 1px solid #ff4500;
+            padding: 35px 25px;
+            margin: 30px 0;
+            position: relative;
+            background-color: #ffffff;
+            text-align: center;
+            font-size: 15px;
+            font-style: italic;
+            font-weight: 600;
+            color: #333333;
+            line-height: 1.6;
+        }
+        .blog-d-t__post-content blockquote::before {
+            content: "\f10d";
+            font-family: "Font Awesome 6 Free", "Font Awesome 5 Free";
+            font-weight: 900;
+            display: block;
+            font-size: 24px;
+            color: #ff4500;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        /* Tag styles matching mockup */
+        .blog-detail-tag-link {
+            display: inline-block;
+            padding: 4px 15px;
+            font-size: 12px;
+            color: #ff4500;
+            border: 1px solid #e0e0e0;
+            border-radius: 20px;
+            text-decoration: none;
+            font-weight: 600;
+            text-transform: lowercase;
+            transition: all 0.2s;
+        }
+        .blog-detail-tag-link:hover {
+            background-color: #ff4500 !important;
+            color: #ffffff !important;
+            border-color: #ff4500 !important;
+        }
+        /* Social share styles matching mockup */
+        .share-icon {
+            font-size: 14px;
+            text-decoration: none;
+            transition: opacity 0.2s;
+            font-weight: 700;
+        }
+        .share-icon:hover {
+            opacity: 0.8;
+        }
+        .share-icon.fb { color: #3b5998; }
+        .share-icon.tw { color: #1da1f2; }
+        .share-icon.pin { color: #bd081c; }
+        .share-icon.gp { color: #db4437; }
+        /* Nav link hover styles */
+        .blog-nav-link {
+            color: #333333;
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .blog-nav-link:hover {
+            color: #ff4500 !important;
+        }
+        /* Comment list and paragraph width overrides matching mockup */
+        .d-meta__comments ol, .d-meta__comments ul, .d-meta__comments li {
+            list-style: none !important;
+            list-style-type: none !important;
+        }
+        .d-meta__comments .p-comment__paragraph, .d-meta__comments p {
+            max-width: 100% !important;
+            width: 100% !important;
+        }
+    </style>
+    <script>
+        // Bulletproof client-side check to automatically hide header & footer when page is loaded inside an iframe (preview mode)
+        if (window.self !== window.top) {
+            document.documentElement.classList.add('iframe-mode');
+            document.addEventListener('DOMContentLoaded', function() {
+                document.body.classList.add('iframe-mode');
+                // Force remove any remaining floating widgets in preview iframe
+                ['smashvn-chatbot-container', 'topScroll', 'floating-cart'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.remove();
+                });
+                document.querySelectorAll('footer, .outer-footer, .lower-footer').forEach(f => f.remove());
+            });
+        }
+    </script>
+</head>
+<body class="config" th:classappend="${isPreview == true or previewMode == true} ? 'iframe-mode' : ''">
+    <th:block th:unless="${isPreview == true or previewMode == true}">
+        <div class="preloader is-active">
+            <div class="preloader__wrap">
+                <img class="preloader__img" th:src="@{/images/preloader.svg}" alt="Đang tải..." width="64" height="64">
+            </div>
+        </div>
+    </th:block>
+
+    <!--====== Main App ======-->
+    <div id="app">
+        <!--====== Main Header ======-->
+        <th:block th:unless="${isPreview == true or previewMode == true}">
+            <header class="header--style-1">
+                <div th:replace="~{layout/header :: header}"></div>
+            </header>
+        </th:block>
+
+        <!--====== App Content ======-->
+        <div class="app-content">
+            <!--====== Section 1: Breadcrumb ======-->
+            <th:block th:unless="${isPreview == true or previewMode == true}">
+                <div class="u-s-p-y-60">
+                    <div class="section__content">
+                        <div class="container">
+                            <div class="breadcrumb">
+                                <div class="breadcrumb__wrap">
+                                    <ul class="breadcrumb__list">
+                                        <li class="has-separator">
+                                            <a th:href="@{/}">Trang chủ</a>
+                                        </li>
+                                        <li class="has-separator">
+                                            <a th:href="@{/blog}">Tin tức / Blogs</a>
+                                        </li>
+                                        <li class="is-marked">
+                                            <a th:href="@{/blog/{slug}(slug=${blog.slug})}" th:text="${blog.title}">Chi tiết bài viết</a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </th:block>
+
+            <!--====== Section 2 ======-->
+            <div th:class="${(isPreview == true or previewMode == true) ? 'u-s-p-t-20 u-s-p-b-60' : 'u-s-p-y-90'}">
+                <div class="container">
+                    <!--====== Preview Mode Alert Banner ======-->
+                    <div th:if="${isPreview == true or previewMode == true}" class="u-s-m-b-20">
+                        <div class="alert alert-warning py-2 px-3 rounded-3 border-start border-warning border-4 shadow-sm" style="background-color: #fff3cd; color: #664d03; border-color: #ffecb5;" role="alert">
+                            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                                <div style="font-size: 13.5px;">
+                                    <i class="fas fa-eye me-2 text-warning"></i>
+                                    <strong>Chế độ xem trước bài viết:</strong>
+                                    <span th:if="${blog.status == 'DRAFT'}">Bài viết hiện đang ở trạng thái <strong>Nháp</strong> và chưa hiển thị công khai cho khách hàng.</span>
+                                    <span th:if="${blog.status == 'PUBLISHED'}">Bài viết hiện <strong>Đã xuất bản</strong> và đang hiển thị công khai trên website.</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <!--====== Thumbnail Image (Wide, aligned with comments) ======-->
+                            <div class="bp-detail__thumbnail u-s-m-b-30">
+                                <div class="aspect aspect--bg-grey aspect--1366-768">
+                                    <img class="aspect__img" th:src="${#strings.startsWith(blog.image, '/uploads/') ? blog.image : '/images/blog/' + blog.image}" th:alt="${blog.title}">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!--====== Detail Post ======-->
+                <div class="detail-post">
+                    <div class="bp-detail">
+                        <div class="bp-detail__info-wrap">
+                            <div class="bp-detail__stat">
+                                <span class="bp-detail__stat-wrap">
+                                    <span class="bp-detail__publish-date">
+                                        <a th:href="@{/blog}">
+                                            <span th:text="${blog.publishDate}">25 March 2018</span>
+                                        </a>
+                                    </span>
+                                </span>
+                                <span class="bp-detail__stat-wrap">
+                                    <span class="bp-detail__author">
+                                        <a th:href="@{/blog}">
+                                            <span th:text="${blog.author}">Dayle</span>
+                                        </a>
+                                    </span>
+                                </span>
+                                <span class="bp-detail__stat-wrap">
+                                    <span class="bp-detail__category">
+                                        <a th:href="@{/blog(q=${blog.category})}" th:text="${blog.category}">Learning</a>
+                                    </span>
+                                </span>
+                            </div>
+
+                            <span class="bp-detail__h1">
+                                <a th:href="@{/blog/{slug}(slug=${blog.slug})}" th:text="${blog.title}" style="font-size: 32px; font-weight: 700; line-height: 1.25; color: #333333;">Wait till its open</a>
+                            </span>
+
+                            <div class="blog-t-w" style="margin-bottom: 30px;">
+                                <a th:each="tag : ${blog.tags}" th:text="${tag}" th:href="@{/blog(q=${tag})}" class="gl-tag btn--e-transparent-hover-brand-b-2">sport</a>
+                            </div>
+
+                            <div class="blog-d-t__post-content" th:utext="${blog.content}" style="font-size: 14px; line-height: 1.8; color: #333333; text-align: justify; margin-top: 30px;">
+                                Nội dung bài viết...
+                            </div>
+
+                            <blockquote class="bp-detail__q" style="margin-top: 30px; margin-bottom: 30px;"><i class="fas fa-quote-left"></i>
+                                <span class="bp-detail__q-title" th:text="${blog.summary}">It’s Easier to Fool People Than to Convince Them That They Have Been Fooled.</span>
+                                <cite class="bp-detail__q-citation" th:text="${blog.author != null ? '— ' + #strings.toUpperCase(blog.author) : ''}">— MARK TWAIN</cite>
+                            </blockquote>
+
+                            <div class="post-center-wrap" style="margin-top: 40px; margin-bottom: 40px;">
+                                <ul class="bp-detail__social-list" style="justify-content: center; display: flex; gap: 20px;">
+                                    <li>
+                                        <a class="s-fb--color share-icon fb" href="#"><i class="fab fa-facebook-f"></i></a>
+                                    </li>
+                                    <li>
+                                        <a class="s-tw--color share-icon tw" href="#"><i class="fab fa-twitter"></i></a>
+                                    </li>
+                                    <li>
+                                        <a class="s-insta--color share-icon pin" href="#"><i class="fab fa-pinterest-p"></i></a>
+                                    </li>
+                                    <li>
+                                        <a class="s-gplus--color share-icon gp" href="#"><i class="fab fa-google-plus-g"></i></a>
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <div class="gl-l-r bp-detail__postnp" style="border-top: 1px solid #eeeeee; border-bottom: 1px solid #eeeeee; padding: 20px 0; margin-top: 40px; margin-bottom: 50px;">
+                                <div>
+                                    <a th:href="@{${prevBlogSlug != null ? '/blog/' + prevBlogSlug : '/blog'}}" 
+                                       th:style="${prevBlogSlug == null} ? 'pointer-events: none; opacity: 0.5; border-bottom: none;' : ''">Bài viết trước</a>
+                                </div>
+                                <div>
+                                    <a th:href="@{${nextBlogSlug != null ? '/blog/' + nextBlogSlug : '/blog'}}" 
+                                       th:style="${nextBlogSlug == null} ? 'pointer-events: none; opacity: 0.5; border-bottom: none;' : ''">Bài viết tiếp theo</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!--====== Section 3: Comments ======-->
+            <div class="u-s-p-b-60" th:if="${isPreview != true and previewMode != true}">
+                <div class="d-meta">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <div class="d-meta__comment-arena">
+                                    <!-- Dynamic Comments Count -->
+                                    <span class="d-meta__text u-s-m-b-36" th:text="${blog.commentsCount != null ? blog.commentsCount : 0} + ' bình luận về bài viết \'' + ${blog.title} + '\''">0 bình luận</span>
+                                    
+                                    <!-- Alerts for Comments -->
+                                    <div th:if="${successMsg != null}" class="alert alert-success alert-dismissible fade show" role="alert" style="margin-bottom: 20px; border-left: 4px solid #198754; font-size: 14px; padding: 12px 20px;">
+                                        <i class="fas fa-check-circle me-2"></i><span th:text="${successMsg}"></span>
+                                    </div>
+                                    <div th:if="${errorMsg != null}" class="alert alert-danger alert-dismissible fade show" role="alert" style="margin-bottom: 20px; border-left: 4px solid #dc3545; font-size: 14px; padding: 12px 20px;">
+                                        <i class="fas fa-times-circle me-2"></i><span th:text="${errorMsg}"></span>
+                                    </div>
+
+                                    <!-- Comments List -->
+                                    <div class="d-meta__comments u-s-m-b-30">
+                                        <ol th:if="${not #lists.isEmpty(comments)}" style="padding-left: 0; list-style: none;">
+                                            <li th:each="cmt : ${comments}" style="margin-bottom: 25px; border-bottom: 1px solid #f1f1f1; padding-bottom: 20px; list-style: none;">
+                                                <div class="d-meta__p-comment" style="display: flex; align-items: flex-start;">
+                                                    <div class="p-comment__wrap1" style="flex-shrink: 0;">
+                                                        <div class="aspect aspect--square p-comment__img-wrap" style="width: 50px; height: 50px; border-radius: 50%; overflow: hidden; border: 1px solid #eaeaea;">
+                                                            <img class="aspect__img" src="/images/blog/avatar.jpg" alt="Avatar">
+                                                        </div>
+                                                    </div>
+                                                    <div class="p-comment__wrap2" style="flex-grow: 1; padding-left: 20px;">
+                                                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                                                            <div>
+                                                                <span class="p-comment__author" th:text="${cmt.tenHienThi}" style="font-weight: 700; color: #333333; font-size: 14px;">Tom</span>
+                                                                <span class="p-comment__timestamp" style="margin-left: 10px; font-size: 11px; color: #999999;" th:text="${#strings.substring(cmt.createdAt, 0, 19)}">
+                                                                    28 March 2018 at 10:45 AM
+                                                                </span>
+                                                            </div>
+                                                            <!-- Delete comment button for Admin/Manager (QL) -->
+                                                            <div th:if="${session.vaiTro == 'QL'}">
+                                                                <button type="button" class="btn btn-sm btn-outline-danger" 
+                                                                        th:onclick="'openDeleteCommentModal(' + ${cmt.id} + ')'" 
+                                                                        style="padding: 2px 8px; font-size: 11px; font-weight: 600; border-radius: 4px;">
+                                                                    <i class="fas fa-trash me-1"></i> Xóa
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                        <p class="p-comment__paragraph" th:text="${cmt.content}" style="margin-top: 8px; font-size: 13px; color: #555555; line-height: 1.6; white-space: pre-wrap; word-break: break-word;"></p>
+                                                    </div>
+                                                </div>
+                                            </li>
+                                        </ol>
+                                        <div th:if="${#lists.isEmpty(comments)}" class="text-center text-muted py-5" style="border: 1px dashed #eaeaea; border-radius: 8px; background-color: #fafafa; font-size: 13.5px;">
+                                            <i class="far fa-comments fa-2x mb-2 d-block text-muted"></i>
+                                            Chưa có bình luận nào cho bài viết này. Hãy là người đầu tiên bình luận!
+                                        </div>
+                                    </div>
+
+                                    <!-- Comment Submission Banner/Form -->
+                                    <div th:if="${isPreview == true or previewMode == true}" class="text-center text-muted py-3 bg-light rounded-3 border my-4">
+                                        <i class="fas fa-info-circle me-1 text-primary"></i> Chế độ xem trước: Chức năng gửi bình luận và tương tác bị tạm khóa.
+                                    </div>
+
+                                    <th:block th:unless="${isPreview == true or previewMode == true}">
+                                        <div th:if="${session.idNguoiDung == null}" class="alert alert-warning text-center" style="padding: 25px; margin-top: 40px; margin-bottom: 20px; border-left: 4px solid #ffc107; background-color: #fffdf5; border-radius: 6px;">
+                                            <span style="font-size: 14.5px; font-weight: 500; color: #664d03;">Bạn cần <a th:href="@{/user/dang-nhap}" style="font-weight: 700; color: #ff4500; text-decoration: underline;">đăng nhập</a> để gửi bình luận cho bài viết này.</span>
+                                        </div>
+
+                                        <div th:if="${session.idNguoiDung != null}" style="margin-top: 40px;">
+                                            <span class="d-meta__text-2 u-s-m-b-6">Viết Bình Luận</span>
+                                            <span class="d-meta__text-3 u-s-m-b-16">Tài khoản của bạn: <strong th:text="${session.tenHienThi}">Người dùng</strong> (<span th:text="${session.nguoiDungDangNhap}">email</span>)</span>
+                                            
+                                            <form class="respond__form" th:action="@{/blog/{slug}/comment(slug=${blog.slug})}" method="POST">
+                                                <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                                                <div class="respond__group">
+                                                    <div class="u-s-m-b-15" style="width: 100%;">
+                                                        <label class="gl-label" for="comment">NỘI DUNG BÌNH LUẬN (Tối đa 1000 ký tự) *</label>
+                                                        <textarea class="text-area text-area--primary-style" id="comment" name="content" required maxlength="1000" style="padding: 15px; height: 120px; font-size: 13px;" placeholder="Nhập bình luận của bạn tại đây... Phông chữ lịch sự và văn minh." th:text="${commentContent}"></textarea>
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <button class="btn btn--e-brand-shadow" type="submit" style="padding: 14px 40px; font-weight: 700; border-radius: 0px; background-color: #ff4500; border-color: #ff4500; color: #ffffff;">GỬI BÌNH LUẬN</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </th:block>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Delete Comment Modal -->
+            <div th:if="${session.vaiTro == 'QL' and isPreview != true and previewMode != true}" class="modal fade" id="deleteCommentModal" tabindex="-1" aria-labelledby="deleteCommentModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content" style="border: 0; box-shadow: 0 10px 30px rgba(0,0,0,0.15); border-radius: 8px;">
+                        <form id="deleteCommentForm" th:action="@{/blog/comment/delete/0}" method="POST">
+                            <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                            <input type="hidden" name="blogSlug" th:value="${blog.slug}" />
+                            <div class="modal-header bg-dark text-white" style="border-bottom: 0; border-top-left-radius: 8px; border-top-right-radius: 8px;">
+                                <h5 class="modal-title" id="deleteCommentModalLabel"><i class="fas fa-exclamation-triangle me-2 text-warning"></i> Xóa bình luận của người dùng</h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body" style="padding: 25px;">
+                                <div class="mb-3">
+                                    <label for="deleteReasonSelect" class="form-label fw-semibold">Lý do xóa bình luận</label>
+                                    <select class="form-select" id="deleteReasonSelect" name="reason" onchange="toggleCustomReasonInput(this)" required style="padding: 10px; font-size: 13.5px;">
+                                        <option value="Nội dung chứa từ ngữ thô tục, xúc phạm">Nội dung chứa từ ngữ thô tục, xúc phạm</option>
+                                        <option value="Bình luận spam, quảng cáo không phù hợp">Bình luận spam, quảng cáo không phù hợp</option>
+                                        <option value="Nội dung ngoài lề, gây tranh cãi kích động">Nội dung ngoài lề, gây tranh cãi kích động</option>
+                                        <option value="custom">Khác (Nhập lý do chi tiết)</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3" id="customReasonWrapper" style="display: none;">
+                                    <label for="customReasonInput" class="form-label fw-semibold">Nhập lý do chi tiết *</label>
+                                    <input type="text" class="form-control" id="customReasonInput" name="customReason" placeholder="Lý do xóa..." style="padding: 10px; font-size: 13.5px;">
+                                </div>
+                            </div>
+                            <div class="modal-footer" style="border-top: 0; padding-bottom: 20px;">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="padding: 10px 20px; font-size: 13px;">Hủy</button>
+                                <button type="submit" class="btn btn-danger" onclick="submitDeleteCommentForm(event)" style="padding: 10px 20px; font-size: 13px; background-color: #dc3545; border-color: #dc3545;"><i class="fas fa-trash me-1"></i> Xác Nhận Xóa</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+            <script th:inline="javascript" th:if="${session.vaiTro == 'QL' and isPreview != true and previewMode != true}">
+                let deleteCommentModal;
+                document.addEventListener("DOMContentLoaded", function() {
+                    const modalEl = document.getElementById('deleteCommentModal');
+                    if (modalEl) {
+                        deleteCommentModal = new bootstrap.Modal(modalEl);
+                    }
+                });
+
+                function openDeleteCommentModal(id) {
+                    const form = document.getElementById('deleteCommentForm');
+                    if (form) {
+                        form.action = '/blog/comment/delete/' + id;
+                    }
+                    if (deleteCommentModal) {
+                        deleteCommentModal.show();
+                    }
+                }
+
+                function toggleCustomReasonInput(select) {
+                    const wrapper = document.getElementById('customReasonWrapper');
+                    const customInput = document.getElementById('customReasonInput');
+                    if (select.value === 'custom') {
+                        wrapper.style.display = 'block';
+                        customInput.setAttribute('required', 'required');
+                    } else {
+                        wrapper.style.display = 'none';
+                        customInput.removeAttribute('required');
+                    }
+                }
+
+                function submitDeleteCommentForm(event) {
+                    const select = document.getElementById('deleteReasonSelect');
+                    const customInput = document.getElementById('customReasonInput');
+                    if (select.value === 'custom') {
+                        if (!customInput.value.trim()) {
+                            showToast('Vui lòng nhập lý do xóa chi tiết!', 'warning');
+                            event.preventDefault();
+                            return;
+                        }
+                        // Override select's value to the custom reason
+                        select.options[select.selectedIndex].value = customInput.value.trim();
+                    }
+                }
+            </script>
+        </div>
+        <!--====== End - App Content ======-->
+
+        <!--====== Main Footer ======-->
+        <footer th:replace="~{layout/footer :: footer}" th:if="${isPreview != true and previewMode != true}"></footer>
+
+        <!--====== Modal Section ======-->
+        <div th:replace="~{layout/modals :: all-modals}" th:if="${isPreview != true and previewMode != true}"></div>
+    </div>
+
+    <!--====== Vendor Js ======-->
+    <script th:src="@{/js/vendor.js}"></script>
+
+    <!--====== jQuery Shopnav plugin ======-->
+    <script th:src="@{/js/jquery.shopnav.js}"></script>
+
+    <!--====== App ======-->
+    <script th:src="@{/js/app.js}"></script>
+</body>
+</html>

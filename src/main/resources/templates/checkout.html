@@ -1,0 +1,2172 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link th:href="@{/images/favicon.png}" rel="shortcut icon">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <title>Thanh Toán - Smash VN</title>
+
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,600,700,800" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/vendor.css}">
+    <link rel="stylesheet" th:href="@{/css/utility.css}">
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+
+    <!-- CSRF Meta Tags -->
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+
+    <style>
+        .payment-card-container {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .payment-card {
+            min-width: 0;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px 44px 20px 20px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            background: #fff;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .payment-card:hover {
+            border-color: #ff4500;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 69, 0, 0.08);
+        }
+        .payment-card.active {
+            border-color: #ff4500;
+            background-color: rgba(255, 69, 0, 0.02);
+        }
+        .payment-card .card-radio {
+            position: absolute;
+            right: 15px;
+            top: 15px;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #cbd5e1;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .payment-card.active .card-radio {
+            border-color: #ff4500;
+            background-color: #ff4500;
+        }
+        .payment-card.active .card-radio::after {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background-color: #fff;
+            border-radius: 50%;
+        }
+        .payment-card-icon {
+            flex-shrink: 0;
+            font-size: 32px;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+        }
+        .icon-cod {
+            color: #ff4500;
+            background-color: rgba(255, 69, 0, 0.1);
+        }
+        .icon-sepay {
+            color: #ff4500;
+            background-color: rgba(255, 69, 0, 0.1);
+        }
+        .payment-card-info {
+            flex-grow: 1;
+            min-width: 0;
+        }
+        .payment-card-title {
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 4px;
+        }
+        .payment-card-desc {
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        @media (max-width: 575px) {
+            .payment-card-container {
+                grid-template-columns: minmax(0, 1fr);
+                gap: 12px;
+            }
+        }
+
+        /* System Style Modal */
+        .zp-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.55);
+            z-index: 9999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .zp-modal {
+            background: #ffffff;
+            border: 1px solid rgba(0, 0, 0, 0.15);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+            border-radius: 6px;
+            width: 100%;
+            max-width: 450px;
+            overflow: hidden;
+            position: relative;
+            transform: scale(0.95);
+            opacity: 0;
+            transition: all 0.2s ease-out;
+        }
+        .zp-modal-overlay.active {
+            display: flex;
+        }
+        .zp-modal-overlay.active .zp-modal {
+            transform: scale(1);
+            opacity: 1;
+        }
+        .zp-modal-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid #eeeeee;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .zp-modal-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333333;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .zp-modal-close {
+            background: none;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            color: #aaaaaa;
+            transition: color 0.2s;
+            line-height: 1;
+        }
+        .zp-modal-close:hover {
+            color: #333333;
+        }
+        .zp-modal-body {
+            padding: 20px;
+        }
+        .zp-qr-container {
+            width: 220px;
+            height: 220px;
+            margin: 0 auto 20px;
+            border: 1px solid #eeeeee;
+            border-radius: 6px;
+            padding: 10px;
+            background: #ffffff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        .zp-qr-image {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        .zp-spinner {
+            border: 4px solid rgba(255, 69, 0, 0.1);
+            border-top: 4px solid #ff4500;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 15px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .zp-btn-pay {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            background-color: #ff4500;
+            color: #ffffff;
+            font-weight: 600;
+            border-radius: 6px;
+            text-align: center;
+            text-decoration: none;
+            margin-top: 15px;
+            transition: background-color 0.2s;
+        }
+        .zp-btn-pay:hover {
+            background-color: #fa4400;
+            color: #ffffff;
+        }
+        .zp-status-text {
+            font-weight: 600;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+        .zp-status-success {
+            color: #10b981;
+        }
+        .zp-status-error {
+            color: #ef4444;
+        }
+        .zp-status-pending {
+            color: #64748b;
+        }
+        .zp-modal .input-text {
+            border-radius: 6px !important;
+        }
+    </style>
+</head>
+<body class="config">
+    <div class="preloader is-active">
+        <div class="preloader__wrap">
+            <img class="preloader__img" th:src="@{/images/preloader.svg}" alt="Đang tải" width="64" height="64">
+        </div>
+    </div>
+
+    <div id="app">
+        <header class="header--style-1">
+            <div th:replace="~{layout/header :: header}"></div>
+        </header>
+
+        <div class="app-content">
+            <nav class="support-inline-links" aria-label="Hỗ trợ đặt hàng">
+                <a th:href="@{/huong-dan-mua-hang#nhan-hang}">Hướng dẫn điền thông tin nhận hàng</a>
+                <a th:href="@{/huong-dan-thanh-toan}">Hướng dẫn COD và chuyển khoản QR</a>
+                <a th:href="@{/chinh-sach#doi-tra-hoan-tien}">Chính sách đổi trả và hoàn tiền</a>
+            </nav>
+            <div class="u-s-p-y-60">
+                <div class="section__content">
+                    <div class="container">
+                        <div class="breadcrumb">
+                            <div class="breadcrumb__wrap">
+                                <ul class="breadcrumb__list">
+                                    <li class="has-separator"><a th:href="@{/}">Trang chủ</a></li>
+                                    <li class="has-separator"><a th:href="@{/gio-hang}">Giỏ hàng</a></li>
+                                    <li class="is-marked"><a href="javascript:void(0)">Thanh toán</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="u-s-p-b-60">
+                <div class="section__intro u-s-m-b-60">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <div class="section__text-wrap">
+                                    <h1 class="section__heading u-c-secondary">ĐẶT HÀNG &amp; THANH TOÁN</h1>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section__content">
+                    <div class="container">
+                        <form id="checkout-form" class="checkout-f" novalidate>
+                            <input type="hidden" name="checkoutToken" id="checkoutToken" th:value="${checkoutToken}">
+
+                            <div class="row">
+                                <!-- Form details -->
+                                <div class="col-lg-6 col-md-12 col-sm-12">
+                                    <h2 class="checkout-f__h1">THÔNG TIN GIAO HÀNG</h2>
+                                    <div class="u-s-m-b-15" th:if="${listDiaChi != null and !listDiaChi.isEmpty()}">
+                                        <div id="saved-address-container" class="u-s-m-b-15">
+                                            <label class="gl-label" for="selectDiaChiLuu">CHỌN ĐỊA CHỈ ĐÃ LƯU</label>
+                                            <div style="display: flex; gap: 10px; align-items: center;">
+                                                <select class="select-box select-box--primary-style" id="selectDiaChiLuu" style="flex-grow: 1; margin-bottom: 0;">
+                                                    <option value="" th:selected="${!hasDefaultAddress}">-- Chọn địa chỉ đã lưu --</option>
+                                                    <option th:each="dc : ${listDiaChi}" 
+                                                            th:value="${dc.id}"
+                                                            th:selected="${dc.defaultShipping}"
+                                                            th:text="${(dc.hoNguoiNhan != null and !dc.hoNguoiNhan.isEmpty() ? dc.hoNguoiNhan + ' ' : '') + dc.tenNguoiNhan + ' - ' + dc.sdtNguoiNhan + ' (' + dc.diaChiCuThe + (dc.wardName != null and !dc.wardName.isEmpty() ? ', ' + dc.wardName : '') + (dc.districtName != null and !dc.districtName.isEmpty() ? ', ' + dc.districtName : '') + ', ' + dc.provinceName + ')' + (dc.defaultShipping ? ' [Mặc định]' : '')}">
+                                                    </option>
+                                                    <option value="new_address">-- Nhập địa chỉ mới --</option>
+                                                </select>
+                                                <a th:href="@{/user/address/add(from='checkout', token=${checkoutToken})}" class="btn btn--e-secondary" style="padding: 12px 18px; font-size: 13px; white-space: nowrap; border-radius: 6px; border: 1px solid #cbd5e1; display: inline-flex; align-items: center; gap: 5px; height: 40px;" title="Thêm địa chỉ mới vào sổ địa chỉ">
+                                                    <i class="fas fa-plus"></i> Thêm mới
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="u-s-m-b-15" th:if="${listDiaChi == null or listDiaChi.isEmpty()}" style="text-align: right; margin-top: -10px; margin-bottom: 10px;">
+                                        <a th:href="@{/user/address/add(from='checkout', token=${checkoutToken})}" style="color: #ff4500; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 5px;">
+                                            <i class="fas fa-plus-circle"></i> Thêm địa chỉ mới vào tài khoản
+                                        </a>
+                                    </div>
+                                    <!-- Email field for guest checkout -->
+                                    <div class="u-s-m-b-15" th:if="${isGuest}">
+                                        <label class="gl-label" for="email">EMAIL LIÊN HỆ *</label>
+                                        <input class="input-text input-text--primary-style" type="email" id="email" name="email" required placeholder="Nhập email của bạn..." maxlength="100" th:value="${guestEmail}">
+                                        <div class="invalid-feedback" id="email-error" style="color: #ef4444; font-size: 12px; margin-top: 5px; display: none;"></div>
+                                    </div>
+
+                                    <div id="manual-address-fields" style="display: none;">
+                                        <div class="u-s-m-b-15">
+                                            <label class="gl-label" for="hoTenNhan">HỌ VÀ TÊN NGƯỜI NHẬN *</label>
+                                            <input class="input-text input-text--primary-style" type="text" id="hoTenNhan" name="hoTenNhan" required placeholder="Nhập tên người nhận..." maxlength="100">
+                                            <div class="invalid-feedback" id="hoTenNhan-error" style="color: #ef4444; font-size: 12px; margin-top: 5px; display: none;"></div>
+                                        </div>
+                                        <div class="u-s-m-b-15">
+                                            <label class="gl-label" for="sdtNhan">SỐ ĐIỆN THOẠI *</label>
+                                            <input class="input-text input-text--primary-style" type="text" id="sdtNhan" name="sdtNhan" required placeholder="Nhập số điện thoại..." maxlength="12">
+                                            <div class="invalid-feedback" id="sdtNhan-error" style="color: #ef4444; font-size: 12px; margin-top: 5px; display: none;"></div>
+                                        </div>
+                                        <!-- GHN Address Dropdowns -->
+                                        <div class="u-s-m-b-15">
+                                            <label class="gl-label" for="quickAddressInput">
+                                                NHẬP NHANH ĐỊA CHỈ (TỰ ĐỘNG ĐIỀN TỈNH/HUYỆN/XÃ)
+                                            </label>
+                                            <input class="input-text input-text--primary-style"
+                                                   type="text"
+                                                   id="quickAddressInput"
+                                                   placeholder="Ví dụ: Số 12 ngõ 34 đường Lê Lợi, Dịch Vọng, Cầu Giấy, Hà Nội..."
+                                                   autocomplete="street-address">
+                                            <div id="quickAddressFeedback"
+                                                 style="font-size: 13px; margin-top: 5px; font-weight: 600; color: #64748b;"></div>
+                                        </div>
+                                        <div class="u-s-m-b-15">
+                                            <label class="gl-label" for="ghnProvinceId">TỈNH/THÀNH PHỐ *</label>
+                                            <select class="select-box select-box--primary-style" id="ghnProvinceId">
+                                                <option value="">-- Chọn tỉnh/thành (tuỳ chọn) --</option>
+                                            </select>
+                                        </div>
+                                        <div class="u-s-m-b-15">
+                                            <label class="gl-label" for="ghnDistrictId">QUẬN/HUYỆN *</label>
+                                            <select class="select-box select-box--primary-style" id="ghnDistrictId" name="ghnToDistrictId" disabled>
+                                                <option value="">-- Chọn quận/huyện --</option>
+                                            </select>
+                                        </div>
+                                        <div class="u-s-m-b-15">
+                                            <label class="gl-label" for="ghnWardCode">PHƯỜNG/XÃ *</label>
+                                            <select class="select-box select-box--primary-style" id="ghnWardCode" name="ghnToWardCode" disabled>
+                                                <option value="">-- Chọn phường/xã --</option>
+                                            </select>
+                                        </div>
+                                        <div class="u-s-m-b-15">
+                                            <label class="gl-label" for="diaChiNhan">ĐỊA CHỈ CỤ THỂ (Số nhà, tên đường) *</label>
+                                            <input class="input-text input-text--primary-style" type="text" id="diaChiNhan" name="diaChiNhan" required placeholder="Ví dụ: Số 12, ngõ 34, đường Lê Lợi..." maxlength="255">
+                                            <div class="invalid-feedback" id="diaChiNhan-error" style="color: #ef4444; font-size: 12px; margin-top: 5px; display: none;"></div>
+                                        </div>
+                                        <!-- Address Saving Checkbox -->
+                                        <div class="u-s-m-b-15">
+                                            <div style="display: flex; align-items: center; gap: 10px; margin-top: 5px;">
+                                                <input type="checkbox" id="saveAddress" name="saveAddress" value="true" checked style="width: 18px; height: 18px; cursor: pointer; accent-color: #ff4500;">
+                                                <label for="saveAddress" style="font-weight: 600; font-size: 13px; color: #1e293b; cursor: pointer; margin-bottom: 0; user-select: none;">Lưu địa chỉ này cho lần mua sau</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="u-s-m-b-15">
+                                        <label class="gl-label" for="idDonViVanChuyen">PHƯƠNG THỨC VẬN CHUYỂN *</label>
+                                        <select class="select-box select-box--primary-style" id="idDonViVanChuyen" name="idDonViVanChuyen" required disabled style="background-color: #e2e8f0; cursor: not-allowed;">
+                                            <option th:each="dvvc, status : ${listDvvc}" th:value="${dvvc.id}" th:text="${dvvc.tenDonVi}" th:selected="${status.first}"></option>
+                                        </select>
+                                    </div>
+                                    <div class="u-s-m-b-15">
+                                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                                            <label class="gl-label" for="ghiChu" style="margin-bottom: 0;">GHI CHÚ ĐƠN HÀNG</label>
+                                            <span id="ghiChu-counter" style="font-size: 12px; color: #64748b;">0/500</span>
+                                        </div>
+                                        <textarea class="text-area text-area--primary-style" id="ghiChu" name="ghiChu" placeholder="Lưu ý cho người giao hàng..." maxlength="500"></textarea>
+                                        <div class="invalid-feedback" id="ghiChu-error" style="color: #ef4444; font-size: 12px; margin-top: 5px; display: none;"></div>
+                                    </div>
+                                </div>
+
+                                <!-- Order summary & Payment method -->
+                                <div class="col-lg-6 col-md-12 col-sm-12">
+                                    <h2 class="checkout-f__h1">TÓM TẮT ĐƠN HÀNG</h2>
+                                    <div class="f-cart__pad-box u-s-m-b-30" style="border: 1px solid #e2e8f0; border-radius: 12px; padding: 25px;">
+                                        <div class="table-responsive u-s-m-b-20" style="max-height: 280px; overflow-y: auto;">
+                                            <table class="table" style="font-size: 13px; width: 100%; border-collapse: collapse; margin-bottom: 0;">
+                                                <thead>
+                                                    <tr>
+                                                        <th style="text-align: left; padding-left: 0; font-weight: 700; color: #475569; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; width: 75%;">Sản phẩm</th>
+                                                        <th style="text-align: right; padding-right: 0; font-weight: 700; color: #475569; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; width: 25%;">Tạm tính</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr th:each="item : ${danhSachCart}">
+                                                        <td style="text-align: left; padding-left: 0; vertical-align: middle; border-bottom: 1px solid #f1f5f9; padding: 12px 0;">
+                                                            <div style="display: flex; align-items: center; gap: 12px;">
+                                                                <div style="width: 50px; height: 50px; flex-shrink: 0; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; display: flex; align-items: center; justify-content: center; background-color: #f8fafc;">
+                                                                    <img th:src="@{${item.sanPhamChiTiet.hinhAnhUrl}}" onerror="this.onerror=null; this.src='/images/placeholder.png';" alt="Ảnh sản phẩm" style="max-width: 100%; max-height: 100%; object-fit: contain;">
+                                                                </div>
+                                                                <div>
+                                                                    <span th:text="${item.sanPhamChiTiet.sanPham.tenSanPham}" style="font-weight: 600; color: #1e293b; display: block; line-height: 1.4;">Tên Vợt</span>
+                                                                    <div style="margin-top: 2px;">
+                                                                        <small class="text-muted">
+                                                                            <span th:text="${item.sanPhamChiTiet.phanLoaiHienThi}">Mặc định</span>
+                                                                        </small>
+                                                                        <strong th:text="' x ' + ${item.soLuong}" style="color: #64748b; font-size: 12px; margin-left: 4px;">x 1</strong>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td style="text-align: right; padding-right: 0; vertical-align: middle; font-weight: 600; color: #0f172a; border-bottom: 1px solid #f1f5f9; padding: 12px 0;" th:text="${#numbers.formatDecimal(item.sanPhamChiTiet.giaBan * item.soLuong, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+
+                                        <!-- Voucher Code Section -->
+                                        <div class="u-s-m-b-20 pt-3 border-top">
+                                            <label class="gl-label" for="voucher-code-input">MÃ GIẢM GIÁ</label>
+                                            <div style="display: flex; gap: 8px;">
+                                                <input class="input-text input-text--primary-style" type="text" id="voucher-code-input" placeholder="Nhập mã giảm giá..." style="text-transform: uppercase; margin-bottom: 0; flex-grow: 1;">
+                                                <button class="btn btn--e-secondary" type="button" id="btn-apply-voucher" style="padding: 12px 20px; font-weight: 700; border-radius: 6px; white-space: nowrap; font-size: 13px;">Áp dụng</button>
+                                            </div>
+                                            <div id="voucher-status-msg" style="font-size: 13px; margin-top: 5px; font-weight: 600; display: none;"></div>
+                                        </div>
+
+                                        <table class="f-cart__table">
+                                            <tbody>
+                                                <tr>
+                                                    <td>TẠM TÍNH</td>
+                                                    <td class="text-right" th:text="${#numbers.formatDecimal(tongTien, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</td>
+                                                </tr>
+                                                <tr id="voucher-discount-row" style="display: none;">
+                                                    <td>GIẢM GIÁ</td>
+                                                    <td class="text-right text-danger js-voucher-discount">-0 đ</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>VẬN CHUYỂN</td>
+                                                    <td class="text-right js-ship-fee">0 đ</td>
+                                                </tr>
+                                                <tr>
+                                                    <td><strong>TỔNG CỘNG</strong></td>
+                                                    <td class="text-right"><strong class="js-checkout-total" th:text="${#numbers.formatDecimal(tongTien, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</strong></td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <h2 class="checkout-f__h1">PHƯƠNG THỨC THANH TOÁN</h2>
+                                    <div class="payment-card-container">
+                                        <!-- COD Card -->
+                                        <div class="payment-card active" data-value="COD">
+                                            <div class="payment-card-icon icon-cod">
+                                                <i class="fas fa-hand-holding-dollar"></i>
+                                            </div>
+                                            <div class="payment-card-info">
+                                                <div class="payment-card-title">COD</div>
+                                                <div class="payment-card-desc">Thanh toán khi nhận hàng</div>
+                                            </div>
+                                            <div class="card-radio"></div>
+                                        </div>
+
+                                        <!-- SePay Card -->
+                                        <div class="payment-card" data-value="SePay">
+                                            <div class="payment-card-icon icon-sepay">
+                                                <i class="fas fa-qrcode text-brand" style="color: #ff4500; font-size: 26px;"></i>
+                                            </div>
+                                            <div class="payment-card-info">
+                                                <div class="payment-card-title">Chuyển khoản Ngân hàng</div>
+                                                <div class="payment-card-desc">Quét mã QR tự động xác nhận</div>
+                                            </div>
+                                            <div class="card-radio"></div>
+                                        </div>
+                                    </div>
+                                    <input type="hidden" name="phuongThucThanhToan" id="phuongThucThanhToan" value="COD">
+
+                                    <div class="u-s-m-t-30">
+                                        <button id="btn-checkout-submit" class="btn btn--e-brand-b-2 w-100" type="submit" style="padding: 16px; font-size: 15px; font-weight: 700; border-radius: 8px;">ĐẶT HÀNG NGAY</button>
+                                        <div id="checkout-result-notice" role="status" aria-live="polite" style="display: none; margin-top: 12px;">
+                                            <p id="checkout-result-message"></p>
+                                            <button id="btn-checkout-status" type="button" class="btn btn--e-secondary" style="display: none;">Kiểm tra kết quả</button>
+                                            <a th:href="@{/user/track-order}">Kiểm tra đơn hàng đã đặt</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer th:replace="~{layout/footer :: footer}"></footer>
+        <div th:replace="~{layout/modals :: all-modals}"></div>
+    </div>
+
+    <!-- SePay Payment Modal overlay -->
+    <div class="zp-modal-overlay" id="zp-modal-overlay">
+        <div class="zp-modal">
+            <div class="zp-modal-header">
+                <div class="zp-modal-title">
+                    <i class="fas fa-university text-brand" style="color: #ff4500; font-size: 20px;"></i>
+                    <span>Chuyển khoản Ngân hàng</span>
+                </div>
+                <button class="zp-modal-close" id="zp-close-btn">&times;</button>
+            </div>
+            <div class="zp-modal-body">
+                <p class="u-s-m-b-15" style="font-size: 13px; color: #475569;">Quét mã QR dưới đây bằng bất kỳ ứng dụng Ngân hàng (Mobile Banking) để thanh toán chuyển khoản tự động.</p>
+                
+                <div class="zp-qr-container">
+                    <img src="" alt="Mã QR Chuyển khoản" class="zp-qr-image" id="zp-qr-img" style="width: 200px; height: 200px; object-fit: contain;">
+                </div>
+
+                <div class="u-s-m-b-10" style="font-size: 15px; font-weight: 700; color: #ff4500;">
+                    Tổng tiền: <span id="zp-modal-amount">0 đ</span>
+                </div>
+                <div class="u-s-m-b-15" style="font-size: 13px; background-color: #f8fafc; padding: 10px; border-radius: 8px; border: 1px dashed #cbd5e1; text-align: left;">
+                    <div><strong>Ngân hàng:</strong> <span th:text="${sepayBankName}">Vietcombank</span></div>
+                    <div><strong>Số tài khoản:</strong> <span th:text="${sepayBankAccount}">1234567890</span></div>
+                    <div><strong>Nội dung CK:</strong> <span id="sepay-modal-memo" style="color: #ff4500; font-weight: bold;">DH...</span></div>
+                </div>
+
+                <div class="zp-spinner" id="zp-spinner-loading"></div>
+                <div class="zp-status-text zp-status-pending" id="zp-status-msg">
+                    <i class="fas fa-spinner fa-spin"></i> Đang chờ hệ thống ghi nhận chuyển khoản...
+                </div>
+                <p style="font-size: 13px; margin-top: 16px;"><a th:href="@{/huong-dan-thanh-toan#su-co-thanh-toan}" target="_blank" rel="noopener" style="color: #b83200; text-decoration: underline;">Hỗ trợ khi QR hết hạn hoặc chưa ghi nhận thanh toán (mở tab mới)</a></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Guest Auth Modal (For existing member login or mandatory guest password set) -->
+    <div class="zp-modal-overlay" id="guest-auth-overlay">
+        <div class="zp-modal" style="max-width: 450px;">
+            <div class="zp-modal-header">
+                <div class="zp-modal-title">
+                    <i class="fas fa-user-shield text-brand" style="color: #ff4500; font-size: 20px;"></i>
+                    <span id="guest-modal-title-text">Xác thực tài khoản</span>
+                </div>
+                <button class="zp-modal-close" id="guest-auth-close-btn">&times;</button>
+            </div>
+            <div class="zp-modal-body" style="text-align: left; padding: 20px;">
+                <p id="guest-modal-desc" style="font-size: 13px; color: #475569; margin-bottom: 20px; line-height: 1.6;"></p>
+                
+                <!-- Password login form for ACTIVE accounts -->
+                <div id="guest-password-form-group">
+                    <div class="u-s-m-b-15">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                            <label class="gl-label" for="guest-password-input" style="margin-bottom: 0;">MẬT KHẨU *</label>
+                            <a href="javascript:void(0)" id="btn-guest-forgot-password" style="font-size: 12px; color: #ff4500; font-weight: 600; text-decoration: underline;">Quên mật khẩu?</a>
+                        </div>
+                        <div style="position: relative; display: block; width: 100%;">
+                            <input class="input-text input-text--primary-style" type="password" id="guest-password-input" placeholder="Nhập mật khẩu của bạn..." style="width: 100% !important; padding-right: 40px; margin-bottom: 0;">
+                            <span class="toggle-password" data-target="guest-password-input" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #64748b; font-size: 16px;">
+                                <i class="far fa-eye"></i>
+                            </span>
+                        </div>
+                        <div id="guest-password-error" style="color: #ef4444; font-size: 12px; margin-top: 5px; display: none;"></div>
+                        <div id="guest-password-success" style="color: #10b981; font-size: 12px; margin-top: 5px; display: none;"></div>
+                    </div>
+                    <button class="btn btn--e-brand-b-2 w-100" id="btn-guest-verify-password" style="padding: 12px; font-weight: 600; border-radius: 6px; font-size: 13px;">XÁC NHẬN ĐĂNG NHẬP</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Guest Success Modal -->
+    <div class="zp-modal-overlay" id="guest-success-overlay">
+        <div class="zp-modal" style="max-width: 480px;">
+            <div class="zp-modal-header" style="border-bottom: none; padding-bottom: 0;">
+                <div class="zp-modal-title" style="color: #10b981; font-size: 20px;">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Đặt hàng thành công!</span>
+                </div>
+            </div>
+            <div class="zp-modal-body" style="text-align: left; padding: 20px 24px 24px;">
+                <p style="font-size: 14px; color: #1e293b; font-weight: 600; margin-bottom: 12px;">
+                    Tài khoản Guest của bạn đã được khởi tạo. Vui lòng kiểm tra email để nhận mật khẩu tạm thời.
+                </p>
+                <p style="font-size: 13px; color: #64748b; line-height: 1.6; margin-bottom: 20px;">
+                    Email bao gồm mật khẩu tạm để đăng nhập và activation link để bạn có thể thiết lập mật khẩu chính thức ngay.
+                </p>
+                <button class="btn btn--e-brand-b-2 w-100" id="btn-success-close" style="padding: 12px; font-weight: 600; border-radius: 6px; font-size: 13px; color: white;">XEM CHI TIẾT ĐƠN HÀNG</button>
+            </div>
+        </div>
+    </div>
+
+    <script th:src="@{/js/vendor.js}"></script>
+    <script th:src="@{/js/jquery.shopnav.js}"></script>
+    <script th:src="@{/js/app.js}"></script>
+    <script th:src="@{/js/checkout-request.js}"></script>
+
+    <script th:inline="javascript">
+        /*[<![CDATA[*/
+        const baseTongTien = /*[[${tongTien}]]*/ 0;
+        const addressMapJsonStr = /*[[${addressMapJson}]]*/ '{}';
+        const addressMap = JSON.parse(addressMapJsonStr);
+        /*]]>*/
+
+        // Global variables and helper functions for matching GHN address dropdowns
+        let targetProvinceToMatch = null;
+        let targetAddressToMatch = null;
+        let isGhnLoadingMasterData = false;
+        let quickAddressParseSeq = 0;
+        let diaChiNhanTouchedByUser = false;
+        let isShippingLoading = false;
+        let checkoutSubmitting = false;
+        let selectedSavedGhnMapping = null;
+
+        function getEffectiveGhnMapping() {
+            const savedAddressId = $('#selectDiaChiLuu').val();
+            if (savedAddressId
+                    && savedAddressId !== 'new_address'
+                    && selectedSavedGhnMapping
+                    && selectedSavedGhnMapping.addressId === String(savedAddressId)) {
+                return selectedSavedGhnMapping;
+            }
+            return {
+                provinceId: $('#ghnProvinceId').val() || '',
+                districtId: $('#ghnDistrictId').val() || '',
+                wardCode: $('#ghnWardCode').val() || ''
+            };
+        }
+
+        function setShippingFeeLoadingState(isLoading) {
+            isShippingLoading = isLoading;
+            const $btn = $('#btn-checkout-submit');
+            
+            if (isLoading) {
+                $('.js-ship-fee').html('<span style="color: #ff4500; font-size: 13px; font-weight: 600;"><i class="fas fa-spinner fa-spin me-1"></i> Đang tính phí...</span>');
+                if ($btn.length) {
+                    $btn.prop('disabled', true);
+                    if (!$btn.attr('data-original-text')) {
+                        $btn.attr('data-original-text', $btn.html());
+                    }
+                    $btn.html('<i class="fas fa-spinner fa-spin me-1"></i> ĐANG TÍNH PHÍ VẬN CHUYỂN...');
+                }
+            } else {
+                if ($btn.length) {
+                    $btn.prop('disabled', checkoutSubmitting);
+                    const origText = $btn.attr('data-original-text');
+                    if (origText) {
+                        $btn.html(origText);
+                    } else {
+                        $btn.html('ĐẶT HÀNG NGAY');
+                    }
+                }
+            }
+        }
+
+        function cleanString(str) {
+            if (!str) return '';
+            return str.toLowerCase()
+                .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // remove accents
+                .replace(/[đĐ]/g, 'd')
+                .replace(/\bq\b|\bq\./g, 'quan')  // q. or q -> quan
+                .replace(/\bp\b|\bp\./g, 'phuong') // p. or p -> phuong
+                .replace(/\btp\b|\btp\./g, 'thanh pho') // tp. or tp -> thanh pho
+                .replace(/[^a-z0-9\s]/g, ' ') // replace punctuation with spaces
+                .replace(/\s+/g, ' ') // replace multiple spaces with single space
+                .trim();
+        }
+
+        function stripAccents(str) {
+            return (str || '')
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .replace(/[đĐ]/g, 'd');
+        }
+
+        function normalizeQuickAddressText(str) {
+            return stripAccents(str)
+                .toLowerCase()
+                .replace(/\btp\.?\s*hcm\b/g, 'ho chi minh')
+                .replace(/\btphcm\b/g, 'ho chi minh')
+                .replace(/\bhcm\b/g, 'ho chi minh')
+                .replace(/\bsai\s+gon\b/g, 'ho chi minh')
+                .replace(/\bsg\b/g, 'ho chi minh')
+                .replace(/\bhn\b/g, 'ha noi')
+                .replace(/\bq\.?\s*(\d+)\b/g, 'quan $1')
+                .replace(/\bp\.?\s*(\d+)\b/g, 'phuong $1')
+                .replace(/\bp\.?\s+([a-z])/g, 'phuong $1')
+                .replace(/[,\s]+/g, ' ')
+                .replace(/[\/\-]+/g, ' ')
+                .replace(/\s+/g, ' ')
+                .trim();
+        }
+
+        function normalizeNameForCompare(name, type, keepPrefix) {
+            let normalized = normalizeQuickAddressText(name);
+            if (keepPrefix) return normalized;
+            if (type === 'province') {
+                return normalized.replace(/^(tinh|thanh pho|tp)\s+/, '').trim();
+            }
+            if (type === 'district') {
+                return normalized.replace(/^(quan|huyen|thi xa|thanh pho|tp)\s+/, '').trim();
+            }
+            if (type === 'ward') {
+                return normalized.replace(/^(phuong|xa|thi tran)\s+/, '').trim();
+            }
+            return normalized;
+        }
+
+        function splitQuickAddressSegments(rawAddress) {
+            return (rawAddress || '')
+                .split(',')
+                .map(function(part) { return part.trim(); })
+                .filter(Boolean);
+        }
+
+        function isExactOrPhraseMatch(candidate, optionName, optionShortName) {
+            if (!candidate || !optionName) return false;
+            if (candidate === optionName) return true;
+            if (optionShortName && candidate === optionShortName) return true;
+
+            const optionIsNumeric = /^\d+$/.test(optionShortName || optionName);
+            if (optionIsNumeric) {
+                return candidate === optionName;
+            }
+
+            return candidate.includes(optionName)
+                || (optionShortName && optionShortName.length >= 3 && candidate.includes(optionShortName));
+        }
+
+        function findMatchingOption($select, segments, fullAddress, type) {
+            const candidates = [];
+            for (let i = segments.length - 1; i >= 0; i--) {
+                candidates.push({ text: normalizeQuickAddressText(segments[i]), index: i });
+            }
+            candidates.push({ text: normalizeQuickAddressText(fullAddress), index: null });
+
+            const options = [];
+            $select.find('option').each(function() {
+                const val = $(this).val();
+                if (!val) return;
+                const text = $(this).text();
+                options.push({
+                    val: val,
+                    label: text,
+                    name: normalizeNameForCompare(text, type, true),
+                    shortName: normalizeNameForCompare(text, type, false)
+                });
+            });
+
+            options.sort(function(a, b) {
+                return b.shortName.length - a.shortName.length;
+            });
+
+            for (const candidate of candidates) {
+                for (const option of options) {
+                    if (isExactOrPhraseMatch(candidate.text, option.name, option.shortName)) {
+                        return {
+                            value: option.val,
+                            label: option.label,
+                            segmentIndex: candidate.index
+                        };
+                    }
+                }
+            }
+            return null;
+        }
+
+        function cleanSpecificAddress(value) {
+            return (value || '')
+                .replace(/[,\-\/\s]+$/g, '')
+                .replace(/^[,\-\/\s]+/g, '')
+                .replace(/\s+/g, ' ')
+                .trim();
+        }
+
+        function setQuickAddressFeedback(message, color) {
+            $('#quickAddressFeedback').text(message || '').css('color', color || '#64748b');
+        }
+
+        async function parseQuickAddress(rawAddress) {
+            const seq = ++quickAddressParseSeq;
+            const address = (rawAddress || '').trim();
+
+            if (!address) {
+                setQuickAddressFeedback('', '#64748b');
+                isGhnLoadingMasterData = false;
+                if (typeof setShippingFeeLoadingState === 'function') setShippingFeeLoadingState(false);
+                return;
+            }
+
+            const segments = splitQuickAddressSegments(address);
+            if (segments.length === 0) {
+                setQuickAddressFeedback('Không nhận diện được địa chỉ, vui lòng chọn thủ công', '#64748b');
+                isGhnLoadingMasterData = false;
+                if (typeof setShippingFeeLoadingState === 'function') setShippingFeeLoadingState(false);
+                return;
+            }
+
+            try {
+                if (typeof window.apiLoadProvinces === 'function') {
+                    await window.apiLoadProvinces();
+                    if (seq !== quickAddressParseSeq) return;
+                }
+
+                const provinceMatch = findMatchingOption($('#ghnProvinceId'), segments, address, 'province');
+                if (!provinceMatch) {
+                    setQuickAddressFeedback('Không nhận diện được địa chỉ, vui lòng chọn thủ công', '#64748b');
+                    isGhnLoadingMasterData = false;
+                    if (typeof setShippingFeeLoadingState === 'function') setShippingFeeLoadingState(false);
+                    return;
+                }
+
+                isGhnLoadingMasterData = true;
+                $('#ghnProvinceId').val(provinceMatch.value);
+                await window.apiLoadDistricts(provinceMatch.value);
+                if (seq !== quickAddressParseSeq) return;
+
+                const districtMatch = findMatchingOption($('#ghnDistrictId'), segments, address, 'district');
+                if (!districtMatch) {
+                    isGhnLoadingMasterData = false;
+                    setQuickAddressFeedback('Đã nhận diện tỉnh/thành, vui lòng chọn thêm quận/huyện hoặc phường/xã', '#d97706');
+                    if (typeof window.calculateShippingFee === 'function') window.calculateShippingFee();
+                    return;
+                }
+
+                $('#ghnDistrictId').val(districtMatch.value);
+                await window.apiLoadWards(districtMatch.value);
+                if (seq !== quickAddressParseSeq) return;
+
+                const wardMatch = findMatchingOption($('#ghnWardCode'), segments, address, 'ward');
+                if (wardMatch) {
+                    $('#ghnWardCode').val(wardMatch.value).trigger('change');
+                } else {
+                    $('#ghnWardCode').val('').trigger('change');
+                }
+
+                const recognizedIndexes = [provinceMatch.segmentIndex, districtMatch.segmentIndex, wardMatch ? wardMatch.segmentIndex : null]
+                    .filter(function(index) { return index !== null && index !== undefined; });
+                const firstRecognizedIndex = recognizedIndexes.length ? Math.min.apply(Math, recognizedIndexes) : -1;
+
+                if (firstRecognizedIndex > 0 && (!diaChiNhanTouchedByUser || !$('#diaChiNhan').val().trim())) {
+                    const specificAddress = cleanSpecificAddress(segments.slice(0, firstRecognizedIndex).join(', '));
+                    if (specificAddress) {
+                        $('#diaChiNhan').val(specificAddress).trigger('change');
+                    }
+                }
+
+                isGhnLoadingMasterData = false;
+                if (wardMatch) {
+                    setQuickAddressFeedback('Đã tự nhận diện: ' + provinceMatch.label + ' / ' + districtMatch.label + ' / ' + wardMatch.label, '#16a34a');
+                } else {
+                    setQuickAddressFeedback('Đã nhận diện tỉnh/thành và quận/huyện, vui lòng chọn thêm phường/xã', '#d97706');
+                    if (typeof window.calculateShippingFee === 'function') window.calculateShippingFee();
+                }
+            } catch (err) {
+                console.error("[parseQuickAddress] Error:", err);
+                setQuickAddressFeedback('Lỗi tự nhận diện địa chỉ, vui lòng chọn thủ công', '#64748b');
+                isGhnLoadingMasterData = false;
+                if (typeof setShippingFeeLoadingState === 'function') setShippingFeeLoadingState(false);
+            }
+        }
+
+        function matchAndSelectProvince(tinhThanhStr, fullAddressStr) {
+            if (!tinhThanhStr && !fullAddressStr) {
+                isGhnLoadingMasterData = false;
+                return;
+            }
+            if ($('#ghnProvinceId option').length <= 1) {
+                return;
+            }
+            
+            let matchedProvinceVal = null;
+            
+            // Pass 1: Try to match using tinhThanhStr
+            if (tinhThanhStr) {
+                const cleanedTinhThanh = cleanString(tinhThanhStr);
+                $('#ghnProvinceId option').each(function() {
+                    const text = $(this).text();
+                    const val = $(this).val();
+                    if (!val) return;
+                    
+                    const cleanText = cleanString(text);
+                    const cleanProvinceName = cleanText.replace(/^(tinh|thanh pho|tp)\s+/, '');
+                    
+                    if (cleanedTinhThanh.includes(cleanProvinceName) || cleanProvinceName.includes(cleanedTinhThanh)) {
+                        matchedProvinceVal = val;
+                        return false; // break
+                    }
+                });
+            }
+            
+            // Pass 2: Fallback to try to match using fullAddressStr
+            if (!matchedProvinceVal && fullAddressStr) {
+                const cleanedFullAddr = cleanString(fullAddressStr);
+                $('#ghnProvinceId option').each(function() {
+                    const text = $(this).text();
+                    const val = $(this).val();
+                    if (!val) return;
+                    
+                    const cleanText = cleanString(text);
+                    const cleanProvinceName = cleanText.replace(/^(tinh|thanh pho|tp)\s+/, '');
+                    
+                    if (cleanedFullAddr.includes(cleanProvinceName)) {
+                        matchedProvinceVal = val;
+                        return false; // break
+                    }
+                });
+            }
+            
+            if (matchedProvinceVal) {
+                $('#ghnProvinceId').val(matchedProvinceVal).trigger('change');
+            } else {
+                targetProvinceToMatch = null;
+                targetAddressToMatch = null;
+                isGhnLoadingMasterData = false;
+                if (typeof setShippingFeeLoadingState === 'function') setShippingFeeLoadingState(false);
+            }
+        }
+
+        function matchAndSelectDistrict(addressStr) {
+            if (!addressStr) {
+                isGhnLoadingMasterData = false;
+                return;
+            }
+            const cleanedAddr = cleanString(addressStr);
+            let matchedDistrictVal = null;
+            
+            $('#ghnDistrictId option').each(function() {
+                const text = $(this).text();
+                const val = $(this).val();
+                if (!val) return;
+                
+                const cleanText = cleanString(text);
+                const cleanDistrictName = cleanText.replace(/^(quan|huyen|thi xa|thanh pho|tp)\s+/, '');
+                
+                if (/^\d+$/.test(cleanDistrictName)) {
+                    if (cleanedAddr.includes(cleanText)) {
+                        matchedDistrictVal = val;
+                        return false;
+                    }
+                } else {
+                    if (cleanedAddr.includes(cleanDistrictName)) {
+                        matchedDistrictVal = val;
+                        return false;
+                    }
+                }
+            });
+            
+            if (matchedDistrictVal) {
+                $('#ghnDistrictId').val(matchedDistrictVal).trigger('change');
+            } else {
+                targetProvinceToMatch = null;
+                targetAddressToMatch = null;
+                isGhnLoadingMasterData = false;
+                if (typeof setShippingFeeLoadingState === 'function') setShippingFeeLoadingState(false);
+            }
+        }
+
+        function matchAndSelectWard(addressStr) {
+            if (!addressStr) {
+                isGhnLoadingMasterData = false;
+                return;
+            }
+            const cleanedAddr = cleanString(addressStr);
+            let matchedWardVal = null;
+            
+            $('#ghnWardCode option').each(function() {
+                const text = $(this).text();
+                const val = $(this).val();
+                if (!val) return;
+                
+                const cleanText = cleanString(text);
+                const cleanWardName = cleanText.replace(/^(phuong|xa|thi tran)\s+/, '');
+                
+                if (/^\d+$/.test(cleanWardName)) {
+                    if (cleanedAddr.includes(cleanText)) {
+                        matchedWardVal = val;
+                        return false;
+                    }
+                } else {
+                    if (cleanedAddr.includes(cleanWardName)) {
+                        matchedWardVal = val;
+                        return false;
+                    }
+                }
+            });
+            
+            if (matchedWardVal) {
+                $('#ghnWardCode').val(matchedWardVal).trigger('change');
+            } else {
+                targetProvinceToMatch = null;
+                targetAddressToMatch = null;
+                isGhnLoadingMasterData = false;
+                if (typeof setShippingFeeLoadingState === 'function') setShippingFeeLoadingState(false);
+            }
+            
+            // Clear match target after fully matching ward
+            targetProvinceToMatch = null;
+            targetAddressToMatch = null;
+            isGhnLoadingMasterData = false;
+        }
+
+        $(document).ready(function() {
+            // Initialize checkout state before the saved-address change handler
+            // can synchronously call calculateShippingFee().
+            let appliedVoucherCode = null;
+            let voucherDiscount = 0;
+            let currentShippingFee = 0;
+            let pendingShippingRequest = null;
+            let debounceTimeout = null;
+
+            // Helper sanitize user-facing messages
+            function getSafeCheckoutMessage(msg, fallback) {
+                if (!msg || typeof msg !== 'string') return fallback;
+                const lower = msg.toLowerCase();
+                const technicalPatterns = [
+                    'failed to fetch', 'networkerror', 'load failed', 'internal server error',
+                    'nullpointerexception', 'sql', 'hibernate', 'constraintviolation',
+                    'unexpected error', 'something went wrong', 'typeerror', 'syntaxerror',
+                    'invalid coupon', 'voucher invalid', 'promotion not found', 'failed to create',
+                    'maximum upload size exceeded'
+                ];
+                for (let i = 0; i < technicalPatterns.length; i++) {
+                    if (lower.includes(technicalPatterns[i])) {
+                        return fallback;
+                    }
+                }
+                return msg;
+            }
+
+            // CSRF Setup
+            const token = $("meta[name='_csrf']").attr("content");
+            const header = $("meta[name='_csrf_header']").attr("content");
+            $.ajaxSetup({
+                beforeSend: function(xhr) {
+                    if (header && token) {
+                        xhr.setRequestHeader(header, token);
+                    }
+                }
+            });
+
+            // Toggle password visibility
+            $(document).on('click', '.toggle-password', function() {
+                const targetId = $(this).attr('data-target');
+                const $input = $('#' + targetId);
+                const $icon = $(this).find('i');
+                if ($input.attr('type') === 'password') {
+                    $input.attr('type', 'text');
+                    $icon.removeClass('fa-eye').addClass('fa-eye-slash');
+                } else {
+                    $input.attr('type', 'password');
+                    $icon.removeClass('fa-eye-slash').addClass('fa-eye');
+                }
+            });
+
+            // ── Real-time Email Check for Guest Checkout ──────────────────────────────────
+            $('#email').on('blur', function() {
+                const email = $(this).val().trim();
+                if (!email) return;
+
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(email)) {
+                    $('#email-error').text('Email không đúng định dạng.').show();
+                    $('#email').css('border-color', '#ef4444');
+                    return;
+                }
+                $('#email-error').hide();
+                $('#email').css('border-color', '');
+
+                $.ajax({
+                    url: '/checkout/api/check-email',
+                    type: 'POST',
+                    data: { email: email },
+                    success: function(resp) {
+                        if (resp.status === 'ACTIVE') {
+                            // Account exists and is active -> Require password login
+                            $('#guest-modal-title-text').text('Xác thực tài khoản thành viên');
+                            $('#guest-modal-desc').html('Địa chỉ email <strong>' + email + '</strong> đã đăng ký tài khoản thành viên. Vui lòng nhập mật khẩu để tiếp tục đặt hàng và đồng bộ lịch sử mua hàng.');
+                            $('#guest-password-form-group').show();
+                            $('#guest-auth-overlay').addClass('active');
+                        }
+                    }
+                });
+            });
+
+            // Close verification overlay
+            $('#guest-auth-close-btn').on('click', function() {
+                $('#guest-auth-overlay').removeClass('active');
+                $('#email').val('').css('border-color', '');
+                $('#guest-password-input').val('');
+                $('#guest-password-error').hide();
+                $('#guest-password-success').hide();
+            });
+
+            // Handle Forgot Password link inside Member Verification modal
+            $('#btn-guest-forgot-password').on('click', function(e) {
+                e.preventDefault();
+                const email = $('#email').val().trim();
+                if (!email) {
+                    $('#guest-password-error').text('Vui lòng nhập địa chỉ email liên hệ.').show();
+                    return;
+                }
+
+                const $link = $(this);
+                $link.text('Đang gửi email...').css('pointer-events', 'none');
+                $('#guest-password-error').hide();
+                $('#guest-password-success').hide();
+
+                $.ajax({
+                    url: '/user/checkout/api/forgot-password',
+                    type: 'POST',
+                    data: { email: email },
+                    success: function(resp) {
+                        $link.text('Quên mật khẩu?').css('pointer-events', 'auto');
+                        if (resp.success) {
+                            const msg = getSafeCheckoutMessage(resp.message, 'Đã gửi liên kết khôi phục mật khẩu tới email của bạn.');
+                            $('#guest-password-success').text(msg).show();
+                            if (typeof showToast === 'function') {
+                                showToast(msg, 'success');
+                            }
+                        } else {
+                            const msg = getSafeCheckoutMessage(resp.message, 'Không thể gửi yêu cầu khôi phục mật khẩu. Vui lòng thử lại sau.');
+                            $('#guest-password-error').text(msg).show();
+                        }
+                    },
+                    error: function() {
+                        $link.text('Quên mật khẩu?').css('pointer-events', 'auto');
+                        $('#guest-password-error').text('Đã xảy ra lỗi kết nối hệ thống. Vui lòng thử lại sau.').show();
+                    }
+                });
+            });
+
+            // Verify active member password
+            $('#btn-guest-verify-password').on('click', function(e) {
+                e.preventDefault();
+                const email = $('#email').val().trim();
+                const password = $('#guest-password-input').val();
+                const checkoutToken = $('input[name="checkoutToken"]').val() || '';
+                
+                if (!password) {
+                    $('#guest-password-error').text('Vui lòng nhập mật khẩu.').show();
+                    return;
+                }
+                $('#guest-password-error').hide();
+
+                $('#btn-guest-verify-password').prop('disabled', true).text('ĐANG XÁC THỰC...');
+                $.ajax({
+                    url: '/checkout/api/verify-password',
+                    type: 'POST',
+                    data: { email: email, password: password, checkoutToken: checkoutToken },
+                    success: function(resp) {
+                        $('#btn-guest-verify-password').prop('disabled', false).text('XÁC NHẬN ĐĂNG NHẬP');
+                        if (resp.success) {
+                            showToast('Xác thực thành công!', 'success');
+                            $('#guest-auth-overlay').removeClass('active');
+                            if (resp.redirectUrl) {
+                                window.location.href = resp.redirectUrl;
+                            } else if (checkoutToken) {
+                                window.location.href = '/checkout?token=' + encodeURIComponent(checkoutToken);
+                            } else {
+                                window.location.reload();
+                            }
+                        } else {
+                            const msg = getSafeCheckoutMessage(resp.message, 'Mật khẩu không đúng. Vui lòng kiểm tra lại.');
+                            $('#guest-password-error').text(msg).show();
+                        }
+                    },
+                    error: function() {
+                        $('#btn-guest-verify-password').prop('disabled', false).text('XÁC NHẬN ĐĂNG NHẬP');
+                        $('#guest-password-error').text('Đã xảy ra lỗi kết nối hệ thống. Vui lòng thử lại sau.').show();
+                    }
+                });
+            });
+
+
+            // Autofill registered address or toggle new address
+            $('#selectDiaChiLuu').on('change', function() {
+                // Clear target and reset GHN dropdowns first
+                selectedSavedGhnMapping = null;
+                targetProvinceToMatch = null;
+                targetAddressToMatch = null;
+                isGhnLoadingMasterData = false;
+                $('#ghnProvinceId').val('').trigger('change');
+
+                const addressId = $(this).val();
+                if (addressId === 'new_address') {
+                    $('#manual-address-fields').slideDown(200);
+                    // Clear the shipping input fields for manual entry
+                    $('#hoTenNhan').val('');
+                    $('#sdtNhan').val('');
+                    $('#diaChiNhan').val('').trigger('change');
+                    targetProvinceToMatch = null;
+                    targetAddressToMatch = null;
+                    $('#ghnProvinceId').val('').trigger('change');
+                    clearValidationErrors();
+                    calculateShippingFee();
+                } else if (addressId && addressMap[addressId]) {
+                    $('#manual-address-fields').slideUp(200);
+                    clearValidationErrors();
+
+                    if (typeof setShippingFeeLoadingState === 'function') setShippingFeeLoadingState(true);
+                    isGhnLoadingMasterData = true;
+                    const details = addressMap[addressId];
+                    $('#hoTenNhan').val(details.hoTen);
+                    $('#sdtNhan').val(details.sdt);
+                    $('#diaChiNhan').val(details.diaChiCuThe || details.diaChi).trigger('change');
+                    
+                    // Validate autofilled fields
+                    setTimeout(function() {
+                        validateHoTen();
+                        validateSdt();
+                        validateDiaChi();
+                    }, 150);
+                    
+                    if (details.ghnReady
+                            && details.ghnProvinceId
+                            && details.ghnDistrictId
+                            && details.ghnWardCode) {
+                        // A normalized address book entry already contains the exact
+                        // GHN mapping. Reuse it directly instead of guessing from the
+                        // Vietnamese display text again.
+                        selectedSavedGhnMapping = {
+                            addressId: String(addressId),
+                            provinceId: String(details.ghnProvinceId),
+                            districtId: String(details.ghnDistrictId),
+                            wardCode: String(details.ghnWardCode)
+                        };
+                        isGhnLoadingMasterData = false;
+                        calculateShippingFee();
+                    } else {
+                        // Compatibility path for legacy rows created before GHN IDs
+                        // were stored. A successful match is submitted once so the
+                        // server can auto-heal that saved address.
+                        targetProvinceToMatch = details.tinhThanh;
+                        targetAddressToMatch = details.diaChi;
+                        matchAndSelectProvince(targetProvinceToMatch, targetAddressToMatch);
+                    }
+                } else {
+                    $('#manual-address-fields').slideUp(200);
+                    $('#hoTenNhan').val('');
+                    $('#sdtNhan').val('');
+                    $('#diaChiNhan').val('').trigger('change');
+                    targetProvinceToMatch = null;
+                    targetAddressToMatch = null;
+                    $('#ghnProvinceId').val('').trigger('change');
+                    clearValidationErrors();
+                    calculateShippingFee();
+                }
+            });
+
+            // Clear matching targets if user manually interacts with GHN dropdowns
+            $('#ghnProvinceId, #ghnDistrictId, #ghnWardCode').on('mousedown keydown', function() {
+                targetProvinceToMatch = null;
+                targetAddressToMatch = null;
+                quickAddressParseSeq++;
+            });
+
+            let quickAddressDebounceTimeout = null;
+            $('#quickAddressInput').on('input', function() {
+                clearTimeout(quickAddressDebounceTimeout);
+                diaChiNhanTouchedByUser = false;
+                const value = $(this).val();
+                if (!value.trim()) {
+                    quickAddressParseSeq++;
+                    setQuickAddressFeedback('', '#64748b');
+                    return;
+                }
+                quickAddressDebounceTimeout = setTimeout(function() {
+                    parseQuickAddress(value);
+                }, 500);
+            });
+
+            $('.payment-card').on('click', function() {
+                $('.payment-card').removeClass('active');
+                $(this).addClass('active');
+                const pMethod = $(this).attr('data-value');
+                $('#phuongThucThanhToan').val(pMethod);
+            });
+
+            // Initial visibility & trigger on load
+            if ($('#selectDiaChiLuu').length > 0) {
+                let initialVal = $('#selectDiaChiLuu').val();
+                if (!initialVal && $('#selectDiaChiLuu option').length > 1) {
+                    const firstVal = $('#selectDiaChiLuu option').eq(1).val();
+                    if (firstVal && firstVal !== 'new_address') {
+                        $('#selectDiaChiLuu').val(firstVal);
+                        initialVal = firstVal;
+                    }
+                }
+                if (initialVal && initialVal !== 'new_address') {
+                    $('#selectDiaChiLuu').trigger('change');
+                } else {
+                    $('#manual-address-fields').show();
+                }
+            } else {
+                $('#manual-address-fields').show();
+            }
+
+
+
+            // Voucher logic
+
+            function updateUITotal() {
+                const totalAmount = Math.max(0, baseTongTien - voucherDiscount) + currentShippingFee;
+                const formattedTotal = new Intl.NumberFormat('vi-VN').format(totalAmount) + ' đ';
+                $('.js-checkout-total').text(formattedTotal);
+            }
+
+            $('#btn-apply-voucher').on('click', function() {
+                const $btn = $(this);
+                const $input = $('#voucher-code-input');
+                const $msg = $('#voucher-status-msg');
+
+                if (appliedVoucherCode) {
+                    // Remove voucher
+                    appliedVoucherCode = null;
+                    voucherDiscount = 0;
+                    $input.val('').prop('readonly', false);
+                    $btn.text('Áp dụng').removeClass('btn--e-brand-b-2').addClass('btn--e-secondary');
+                    $('#voucher-discount-row').hide();
+                    $msg.hide().text('');
+                    updateUITotal();
+                    return;
+                }
+
+                const code = $input.val().trim().toUpperCase();
+                if (!code) {
+                    showToast('Vui lòng nhập mã giảm giá.', 'warning');
+                    return;
+                }
+
+                $btn.prop('disabled', true);
+                $msg.removeClass('text-danger text-success').css('color', '#64748b').text('Đang kiểm tra mã...').show();
+
+                $.ajax({
+                    url: '/api/voucher/apply',
+                    type: 'POST',
+                    data: { 
+                        voucherCode: code,
+                        checkoutToken: $('#checkoutToken').val() || ''
+                    },
+
+                    success: function(response) {
+                        $btn.prop('disabled', false);
+                        if (response.trangThai === 'ok') {
+                            appliedVoucherCode = response.maPhieu;
+                            voucherDiscount = response.giamGia;
+
+                            $input.prop('readonly', true);
+                            $btn.text('Hủy bỏ').removeClass('btn--e-secondary').addClass('btn--e-brand-b-2');
+                            $('.js-voucher-discount').text('-' + response.giamGiaFormatted);
+                            $('#voucher-discount-row').show();
+
+                            const successMsg = getSafeCheckoutMessage(response.message, 'Áp dụng mã giảm giá thành công!');
+                            $msg.css('color', '#10b981').text(successMsg).show();
+                            updateUITotal();
+                            showToast(successMsg, 'success');
+                        } else {
+                            const errorMsg = getSafeCheckoutMessage(response.message, 'Mã giảm giá không hợp lệ hoặc đã hết hạn.');
+                            $msg.css('color', '#ef4444').text(errorMsg).show();
+                            showToast(errorMsg, 'error');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        $btn.prop('disabled', false);
+                        $msg.css('color', '#ef4444').text('Không thể kiểm tra mã lúc này.').show();
+                        showToast('Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại kết nối Internet và thử lại.', 'error');
+                    }
+                });
+            });
+
+            // Recalculate Shipping Fee dynamically
+
+            function calculateShippingFee() {
+                const carrierId = $('#idDonViVanChuyen').val();
+                let address = $('#diaChiNhan').val().trim();
+
+                if (!carrierId) {
+                    $('.js-ship-fee').text('0 đ');
+                    currentShippingFee = 0;
+                    updateUITotal();
+                    setShippingFeeLoadingState(false);
+                    return;
+                }
+
+                const carrierText = $('#idDonViVanChuyen option:selected').text().toUpperCase();
+                const isGhn = carrierText.includes('GIAO HÀNG NHANH') || carrierText.includes('GHN');
+                
+                const effectiveGhnMapping = getEffectiveGhnMapping();
+                const provinceVal = effectiveGhnMapping.provinceId;
+                const districtVal = effectiveGhnMapping.districtId;
+                const wardVal = effectiveGhnMapping.wardCode;
+
+                if (isGhn) {
+                    if (!provinceVal || !districtVal || !wardVal) {
+                        // Keep loading active if still cascading/loading
+                        if (isGhnLoadingMasterData) {
+                            setShippingFeeLoadingState(true);
+                        } else {
+                            setShippingFeeLoadingState(false);
+                        }
+                        return; 
+                    }
+                    if (isGhnLoadingMasterData) {
+                        setShippingFeeLoadingState(true);
+                        return; 
+                    }
+                }
+
+                // Concatenate province, district, ward if in new address mode to ensure correct local/nationwide shipping fee resolution
+                let addressType = 'new';
+                if ($('#selectDiaChiLuu').length > 0) {
+                    const selectVal = $('#selectDiaChiLuu').val();
+                    if (selectVal && selectVal !== 'new_address') {
+                        addressType = 'saved';
+                    }
+                }
+                if (addressType === 'new') {
+                    const provinceText = $('#ghnProvinceId option:selected').text();
+                    const districtText = $('#ghnDistrictId option:selected').text();
+                    const wardText = $('#ghnWardCode option:selected').text();
+                    
+                    let parts = [address];
+                    if (wardText && !wardText.includes('--')) parts.push(wardText);
+                    if (districtText && !districtText.includes('--')) parts.push(districtText);
+                    if (provinceText && !provinceText.includes('--')) parts.push(provinceText);
+                    
+                    address = parts.filter(Boolean).join(', ');
+                }
+
+                // Abort any pending requests to prevent race conditions
+                if (pendingShippingRequest) {
+                    pendingShippingRequest.abort();
+                }
+
+                setShippingFeeLoadingState(true);
+
+                pendingShippingRequest = $.ajax({
+                    url: '/api/shipping/fee',
+                    type: 'GET',
+                    data: {
+                        carrierId: carrierId,
+                        districtId: districtVal || '',
+                        wardCode: wardVal || '',
+                        address: address
+                    },
+                    success: function(response) {
+                        const fee = response.shippingFee;
+                        currentShippingFee = fee;
+                        const formattedFee = new Intl.NumberFormat('vi-VN').format(fee) + ' đ';
+                        $('.js-ship-fee').text(formattedFee);
+                        updateUITotal();
+                        setShippingFeeLoadingState(false);
+                    },
+                    error: function(xhr, status, error) {
+                        if (status !== 'abort') {
+                            console.error("Lỗi tính phí vận chuyển:", error);
+                            showToast('Không thể tính phí vận chuyển. Vui lòng kiểm tra địa chỉ và thử lại.', 'error');
+                            setShippingFeeLoadingState(false);
+                        }
+                    },
+                    complete: function(xhr, status) {
+                        if (status !== 'abort') {
+                            setShippingFeeLoadingState(false);
+                        }
+                    }
+                });
+            }
+            window.calculateShippingFee = calculateShippingFee;
+
+            $('#idDonViVanChuyen').on('change', function() {
+                calculateShippingFee();
+                
+                const carrierText = $('#idDonViVanChuyen option:selected').text().toUpperCase();
+                const isGhn = carrierText.includes('GIAO HÀNG NHANH') || carrierText.includes('GHN');
+                if (isGhn) {
+                    $('label[for="ghnProvinceId"]').html('TỈNH/THÀNH PHỐ <span style="color:red">*</span>');
+                    $('label[for="ghnDistrictId"]').html('QUẬN/HUYỆN <span style="color:red">*</span>');
+                    $('label[for="ghnWardCode"]').html('PHƯỜNG/XÃ <span style="color:red">*</span>');
+                } else {
+                    $('label[for="ghnProvinceId"]').text('TỈNH/THÀNH PHỐ');
+                    $('label[for="ghnDistrictId"]').text('QUẬN/HUYỆN');
+                    $('label[for="ghnWardCode"]').text('PHƯỜNG/XÃ');
+                }
+            });
+
+            $('#diaChiNhan').on('input change', function() {
+                clearTimeout(debounceTimeout);
+                debounceTimeout = setTimeout(calculateShippingFee, 300);
+            });
+
+            $('#diaChiNhan').on('input', function() {
+                diaChiNhanTouchedByUser = true;
+            });
+
+            $('#ghnProvinceId, #ghnDistrictId, #ghnWardCode').on('change', function() {
+                clearTimeout(debounceTimeout);
+                debounceTimeout = setTimeout(calculateShippingFee, 300);
+            });
+
+            // Validation functions
+            function validateHoTen() {
+                const val = $('#hoTenNhan').val().trim();
+                const $error = $('#hoTenNhan-error');
+                if (!val) {
+                    $error.text('Họ và tên người nhận không được để trống.').show();
+                    $('#hoTenNhan').css('border-color', '#ef4444');
+                    return false;
+                }
+                if (val.length < 2 || val.length > 100) {
+                    $error.text('Họ và tên người nhận phải từ 2 đến 100 ký tự.').show();
+                    $('#hoTenNhan').css('border-color', '#ef4444');
+                    return false;
+                }
+                $error.hide();
+                $('#hoTenNhan').css('border-color', '');
+                return true;
+            }
+
+            function validateSdt() {
+                const val = $('#sdtNhan').val().trim();
+                const $error = $('#sdtNhan-error');
+                const phoneRegex = /^(\+84|0)(3|5|7|8|9)[0-9]{8}$/;
+                if (!val) {
+                    $error.text('Số điện thoại không được để trống.').show();
+                    $('#sdtNhan').css('border-color', '#ef4444');
+                    return false;
+                }
+                if (!phoneRegex.test(val)) {
+                    $error.text('Số điện thoại không đúng định dạng (phải có 10 chữ số và bắt đầu bằng 0 hoặc +84).').show();
+                    $('#sdtNhan').css('border-color', '#ef4444');
+                    return false;
+                }
+                $error.hide();
+                $('#sdtNhan').css('border-color', '');
+                return true;
+            }
+
+            function validateDiaChi() {
+                const val = $('#diaChiNhan').val().trim();
+                const $error = $('#diaChiNhan-error');
+                if (!val) {
+                    $error.text('Địa chỉ cụ thể không được để trống.').show();
+                    $('#diaChiNhan').css('border-color', '#ef4444');
+                    return false;
+                }
+                if (val.length < 5 || val.length > 255) {
+                    $error.text('Địa chỉ cụ thể phải từ 5 đến 255 ký tự.').show();
+                    $('#diaChiNhan').css('border-color', '#ef4444');
+                    return false;
+                }
+                $error.hide();
+                $('#diaChiNhan').css('border-color', '');
+                return true;
+            }
+
+            function validateGhiChu() {
+                const val = $('#ghiChu').val();
+                const length = val ? val.length : 0;
+                $('#ghiChu-counter').text(`${length}/500`);
+                if (length > 500) {
+                    $('#ghiChu-counter').css('color', '#ef4444');
+                } else {
+                    $('#ghiChu-counter').css('color', '#64748b');
+                }
+
+                const $error = $('#ghiChu-error');
+                if (length > 500) {
+                    $error.text('Ghi chú đơn hàng tối đa 500 ký tự.').show();
+                    $('#ghiChu').css('border-color', '#ef4444');
+                    return false;
+                }
+                $error.hide();
+                $('#ghiChu').css('border-color', '');
+                return true;
+            }
+
+            function clearValidationErrors() {
+                $('.invalid-feedback').hide();
+                $('#hoTenNhan, #sdtNhan, #diaChiNhan, #ghiChu').css('border-color', '');
+                validateGhiChu();
+            }
+
+            // Register event listeners
+            $('#hoTenNhan').on('input blur', validateHoTen);
+            $('#sdtNhan').on('input blur', validateSdt);
+            $('#diaChiNhan').on('input blur', validateDiaChi);
+            $('#ghiChu').on('input blur', validateGhiChu);
+
+            // Form Submit Interceptor
+            let pollingInterval = null;
+            let currentAppTransId = null;
+            let attempts = 0;
+
+            function showCheckoutNotice(message, canCheckAgain) {
+                $('#checkout-result-message').text(message);
+                $('#checkout-result-notice').show();
+                $('#btn-checkout-status').toggle(canCheckAgain);
+            }
+
+            const checkoutRequest = createCheckoutRequest({
+                post: function(data) {
+                    return $.ajax({ url: '/checkout/submit', type: 'POST', data: data, timeout: 30000 });
+                },
+                getStatus: function() {
+                    return $.ajax({ url: '/checkout/status', type: 'GET', cache: false, timeout: 10000,
+                        data: { checkoutToken: $('#checkoutToken').val() || '' } });
+                },
+                onBusy: function(busy) {
+                    checkoutSubmitting = busy;
+                    $('#btn-checkout-submit').prop('disabled', busy || isShippingLoading);
+                    $('.preloader').removeClass('is-active');
+                },
+                onUncertain: showCheckoutNotice,
+                onResult: function(response) {
+                    $('#checkout-result-notice').hide();
+                    if (response.status === 'error' || response.errorCode === 'PAYMENT_INIT_FAILED') {
+                        console.error('[Diagnostics] Payment initialization failed:', response);
+                        const errMsg = getSafeCheckoutMessage(response.message, 'Không thể khởi tạo thanh toán. Vui lòng thử lại sau.');
+                        showCheckoutNotice(errMsg, false);
+                        showToast(errMsg, 'error');
+                        return;
+                    }
+
+                    if (response.trangThai === 'ok') {
+                        const orderId = response.orderId;
+                        const paymentMethod = String(response.paymentMethod || '').toUpperCase();
+                        const redirectUrl = response.redirectUrl || ((paymentMethod === 'COD')
+                            ? (response.isGuest ? '/user/manage-order/' + orderId : '/user/my-order')
+                            : '/payment/sepay/simulate?maDonHang=' + encodeURIComponent(response.maDonHang));
+
+                        if (response.replayed) {
+                            showToast(response.message || 'Đơn hàng đã được ghi nhận.', 'success');
+                            window.location.href = redirectUrl;
+                        } else if (paymentMethod === 'COD') {
+                            if (response.isGuest === true && response.isNewAccount === true) {
+                                $('#btn-success-close').off('click').on('click', function() {
+                                    window.location.href = redirectUrl;
+                                });
+                                $('#guest-success-overlay').addClass('active');
+                            } else {
+                                showToast('Đặt hàng thành công! Đơn hàng của bạn đang được xử lý.', 'success');
+                                setTimeout(function() {
+                                    window.location.href = redirectUrl;
+                                }, 1200);
+                            }
+                        } else {
+                            window.location.href = redirectUrl;
+                        }
+                    } else if (response.trangThai === 'yeucaudangnhap') {
+                        showToast('Tài khoản đã tồn tại. Vui lòng đăng nhập.', 'warning');
+                        const email = response.email || $('#email').val().trim();
+                        if (email) $('#email').val(email);
+                        $('#guest-modal-title-text').text('Xác thực tài khoản thành viên');
+                        $('#guest-modal-desc').html('Địa chỉ email <strong>' + email + '</strong> đã đăng ký tài khoản thành viên. Vui lòng nhập mật khẩu để tiếp tục đặt hàng.');
+                        $('#guest-password-form-group').show();
+                        $('#guest-auth-overlay').addClass('active');
+                    } else {
+                        const errMsg = getSafeCheckoutMessage(response.message, 'Vui lòng kiểm tra thông tin và thử lại.');
+                        showCheckoutNotice(errMsg, false);
+                        showToast(errMsg, response.checkoutStatus === 'READY' ? 'warning' : 'error');
+                    }
+                }
+            });
+            $('#btn-checkout-status').on('click', function() { checkoutRequest.recover(); });
+
+            $('#checkout-form').on('submit', function(e) {
+                e.preventDefault();
+
+                if (typeof isShippingLoading !== 'undefined' && isShippingLoading) {
+                    showToast('Hệ thống đang tính toán phí vận chuyển, vui lòng đợi trong giây lát...', 'warning');
+                    return;
+                }
+
+                let addressType = 'new';
+                if ($('#selectDiaChiLuu').length > 0) {
+                    const selectVal = $('#selectDiaChiLuu').val();
+                    if (selectVal === '') {
+                        showToast('Vui lòng chọn một địa chỉ đã lưu hoặc chọn "Nhập địa chỉ mới".', 'error');
+                        return;
+                    }
+                    if (selectVal !== 'new_address') {
+                        addressType = 'saved';
+                    }
+                }
+
+                if (addressType === 'saved') {
+                    const savedAddressId = $('#selectDiaChiLuu').val();
+                    if (!savedAddressId) {
+                        showToast('Vui lòng chọn một địa chỉ đã lưu hoặc chọn "Nhập địa chỉ mới".', 'error');
+                        return;
+                    }
+                } else {
+                    // Run all validations for new address
+                    const isHoTenValid = validateHoTen();
+                    const isSdtValid = validateSdt();
+                    const isDiaChiValid = validateDiaChi();
+
+                    if (!isHoTenValid || !isSdtValid || !isDiaChiValid) {
+                        showToast('Vui lòng sửa các lỗi nhập liệu trước khi đặt hàng.', 'error');
+                        return;
+                    }
+                }
+
+                // Check Ghi Chu character limit
+                const isGhiChuValid = validateGhiChu();
+                if (!isGhiChuValid) {
+                    showToast('Vui lòng sửa các lỗi nhập liệu trước khi đặt hàng.', 'error');
+                    return;
+                }
+
+                let hoTen = $('#hoTenNhan').val().trim();
+                let sdt = $('#sdtNhan').val().trim();
+                let diaChi = $('#diaChiNhan').val().trim();
+                const dvvcId = $('#idDonViVanChuyen').val();
+                const paymentMethod = $('#phuongThucThanhToan').val();
+                const ghiChu = $('#ghiChu').val();
+
+                if (!dvvcId) {
+                    showToast('Vui lòng chọn phương thức vận chuyển.', 'error');
+                    return;
+                }
+
+                // Validate GHN fields if Giao Hàng Nhanh is selected
+                const carrierText = $('#idDonViVanChuyen option:selected').text().toUpperCase();
+                const isGhn = carrierText.includes('GIAO HÀNG NHANH') || carrierText.includes('GHN');
+                if (isGhn) {
+                    if (isGhnLoadingMasterData) {
+                        showToast('Hệ thống đang chuẩn hóa địa chỉ GHN, vui lòng đợi trong giây lát.', 'warning');
+                        return;
+                    }
+                    const effectiveGhnMapping = getEffectiveGhnMapping();
+                    const provinceVal = effectiveGhnMapping.provinceId;
+                    const districtVal = effectiveGhnMapping.districtId;
+                    const wardVal = effectiveGhnMapping.wardCode;
+                    if (!provinceVal || !districtVal || !wardVal) {
+                        if (addressType === 'saved') {
+                            showToast('Địa chỉ đã lưu của bạn chưa được chuẩn hóa địa chỉ GHN. Vui lòng cập nhật sổ địa chỉ hoặc chọn "Nhập địa chỉ mới" để chọn thủ công.', 'error');
+                        } else {
+                            showToast('Vui lòng chọn đầy đủ Tỉnh/Thành phố, Quận/Huyện và Phường/Xã (GHN) để sử dụng phương thức vận chuyển Giao Hàng Nhanh.', 'error');
+                        }
+                        return;
+                    }
+                }
+
+                // Concatenate address if new address
+                if (addressType === 'new') {
+                    const provinceText = $('#ghnProvinceId option:selected').text();
+                    const districtText = $('#ghnDistrictId option:selected').text();
+                    const wardText = $('#ghnWardCode option:selected').text();
+                    
+                    let parts = [diaChi];
+                    if (wardText && !wardText.includes('--')) parts.push(wardText);
+                    if (districtText && !districtText.includes('--')) parts.push(districtText);
+                    if (provinceText && !provinceText.includes('--')) parts.push(provinceText);
+                    
+                    diaChi = parts.filter(Boolean).join(', ');
+                }
+
+                // Validate email field if guest user
+                if ($('#email').length > 0) {
+                    const emailVal = $('#email').val().trim();
+                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                    if (!emailVal) {
+                        $('#email-error').text('Email không được để trống.').show();
+                        $('#email').css('border-color', '#ef4444');
+                        showToast('Vui lòng nhập email liên hệ.', 'error');
+                        return;
+                    }
+                    if (!emailRegex.test(emailVal)) {
+                        $('#email-error').text('Email không đúng định dạng.').show();
+                        $('#email').css('border-color', '#ef4444');
+                        showToast('Email không đúng định dạng.', 'error');
+                        return;
+                    }
+                    $('#email-error').hide();
+                    $('#email').css('border-color', '');
+                }
+
+                // Call submitCheckout
+                const effectiveGhnMapping = getEffectiveGhnMapping();
+                const submitData = {
+                    checkoutToken: $('#checkoutToken').val() || '',
+                    hoTenNhan: hoTen,
+
+                    sdtNhan: sdt,
+                    diaChiNhan: diaChi,
+                    idDonViVanChuyen: parseInt(dvvcId),
+                    phuongThucThanhToan: paymentMethod,
+                    ghiChu: ghiChu,
+                    ghnToDistrictId: effectiveGhnMapping.districtId,
+                    ghnToWardCode: effectiveGhnMapping.wardCode,
+                    ghnProvinceId: effectiveGhnMapping.provinceId,
+                    voucherCode: appliedVoucherCode || '',
+                    tinhThanhText: $('#ghnProvinceId option:selected').val() ? $('#ghnProvinceId option:selected').text().trim() : '',
+                    thanhPhoText: $('#ghnDistrictId option:selected').val() ? $('#ghnDistrictId option:selected').text().trim() : '',
+                    phuongXaText: $('#ghnWardCode option:selected').val() ? $('#ghnWardCode option:selected').text().trim() : '',
+                    diaChiCuThe: $('#diaChiNhan').val() ? $('#diaChiNhan').val().trim() : '',
+                    saveAddress: $('#saveAddress').is(':checked')
+                };
+
+                if ($('#email').length > 0) {
+                    submitData.email = $('#email').val().trim();
+                }
+
+                if (addressType === 'saved') {
+                    submitData.idDiaChiLuu = parseInt($('#selectDiaChiLuu').val());
+                }
+
+                function escapeHtml(str) {
+                    if (!str) return '';
+                    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+                }
+
+                const totalText = $('.js-checkout-total').text().trim();
+                const paymentName = paymentMethod === 'COD' ? 'Thanh toán khi nhận hàng (COD)' : 'Chuyển khoản Ngân hàng';
+
+                if (!checkoutRequest.begin()) return;
+                $('#checkout-result-notice').hide();
+                Swal.fire({
+                    title: 'Xác nhận tiến hành thanh toán',
+                    html: `
+                        <div style="text-align: left; font-size: 14px; line-height: 1.6; padding: 5px;">
+                            <p style="margin-bottom: 6px;"><strong>Người nhận:</strong> ${escapeHtml(hoTen)} - ${escapeHtml(sdt)}</p>
+                            <p style="margin-bottom: 6px;"><strong>Địa chỉ giao:</strong> ${escapeHtml(diaChi)}</p>
+                            <p style="margin-bottom: 6px;"><strong>Phương thức:</strong> ${escapeHtml(paymentName)}</p>
+                            <div style="font-size: 16px; color: #ff4500; font-weight: 700; margin-top: 10px; border-top: 1px dashed #cbd5e1; padding-top: 8px;">
+                                Tổng thanh toán: <span>${escapeHtml(totalText)}</span>
+                            </div>
+                        </div>
+                    `,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#ff4500',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: '<i class="fas fa-check me-1"></i> Đồng Ý Đặt Hàng',
+                    cancelButtonText: 'Hủy bỏ',
+                    reverseButtons: true
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        showCheckoutNotice('Đang gửi yêu cầu đặt hàng...', false);
+
+                        checkoutRequest.send(submitData);
+                    } else {
+                        checkoutRequest.cancel();
+                    }
+                });
+            });
+
+            function createSePayOrder(orderId, maDonHang, amount) {
+                attempts = 0;
+                if (pollingInterval) {
+                    clearInterval(pollingInterval);
+                    pollingInterval = null;
+                }
+
+                // Build VietQR image URL
+                const sepayAcc = /*[[${sepayBankAccount}]]*/ '';
+                const sepayBank = /*[[${sepayBankName}]]*/ '';
+                const sepayPrefix = /*[[${sepayMemoPrefix}]]*/ '';
+                
+                // Formulate the full memo with optional prefix
+                const fullMemo = sepayPrefix ? (sepayPrefix.trim() + ' ' + maDonHang) : maDonHang;
+                
+                const qrUrl = 'https://qr.sepay.vn/img?acc=' + sepayAcc + 
+                              '&bank=' + encodeURIComponent(sepayBank) + 
+                              '&amount=' + amount + 
+                              '&des=' + encodeURIComponent(fullMemo);
+
+                // Update Modal details
+                $('#zp-qr-img').attr('src', qrUrl);
+                $('#zp-modal-amount').text(new Intl.NumberFormat('vi-VN').format(amount) + ' đ');
+                $('#sepay-modal-memo').text(fullMemo);
+
+                // Reset status view
+                $('#zp-spinner-loading').show();
+                $('#zp-status-msg').removeClass('zp-status-success zp-status-error').addClass('zp-status-pending')
+                    .html('<i class="fas fa-spinner fa-spin"></i> Đang chờ hệ thống ghi nhận chuyển khoản...');
+                
+                // Show modal
+                $('#zp-modal-overlay').addClass('active');
+
+                // Start polling every 2 seconds
+                pollingInterval = setInterval(function() {
+                    queryPaymentStatus(maDonHang);
+                }, 2000);
+            }
+
+            function queryPaymentStatus(maDonHang) {
+                attempts++;
+                if (attempts > 90) { // 90 attempts * 2 seconds = 180 seconds (3 minutes)
+                    if (pollingInterval) clearInterval(pollingInterval);
+                    $('#zp-spinner-loading').hide();
+                    $('#zp-status-msg').removeClass('zp-status-pending zp-status-success').addClass('zp-status-error')
+                        .html('<i class="fas fa-exclamation-triangle"></i> Đã hết thời gian chờ thanh toán. Phiên thanh toán đã bị hủy. Đang quay lại giỏ hàng...');
+                    setTimeout(function() {
+                        window.location.href = '/gio-hang';
+                    }, 2000);
+                    return;
+                }
+
+                $.ajax({
+                    url: '/api/payment/sepay/query/' + encodeURIComponent(maDonHang),
+                    type: 'GET',
+                    success: function(resp) {
+                        window.queryConsecutiveErrors = 0;
+                        if (resp && (resp.paymentStatus === 'paid' || resp.paymentStatus === 'DA_THANH_TOAN')) {
+                            if (pollingInterval) clearInterval(pollingInterval);
+                            $('#zp-spinner-loading').hide();
+                            $('#zp-modal-overlay').removeClass('active');
+                            
+                            if (resp.isGuest) {
+                                const targetOrderId = resp.orderId || orderId;
+                                $('#btn-success-close').off('click').on('click', function() {
+                                    window.location.href = '/user/manage-order/' + targetOrderId;
+                                });
+                                $('#guest-success-overlay').addClass('active');
+                            } else {
+                                $('#zp-status-msg').removeClass('zp-status-pending zp-status-error').addClass('zp-status-success')
+                                    .html('<i class="fas fa-check-circle"></i> Thanh toán thành công! Đang chuyển hướng...');
+                                setTimeout(function() {
+                                    window.location.href = '/user/my-order?payment=success';
+                                }, 1000);
+                            }
+                        } else if (resp && resp.paymentStatus === 'expired') {
+                            if (pollingInterval) clearInterval(pollingInterval);
+                            $('#zp-spinner-loading').hide();
+                            $('#zp-status-msg').removeClass('zp-status-pending zp-status-success').addClass('zp-status-error')
+                                .html('<i class="fas fa-exclamation-triangle"></i> Đã hết thời gian chờ thanh toán. Phiên thanh toán đã bị hủy. Đang quay lại giỏ hàng...');
+                            setTimeout(function() {
+                                window.location.href = '/gio-hang';
+                            }, 2000);
+                        }
+                    },
+                    error: function() {
+                        window.queryConsecutiveErrors = (window.queryConsecutiveErrors || 0) + 1;
+                        console.warn('Query transaction error count:', window.queryConsecutiveErrors);
+                        if (window.queryConsecutiveErrors >= 5) {
+                            if (pollingInterval) clearInterval(pollingInterval);
+                            console.error('Stopped payment polling due to 5 consecutive network errors.');
+                            showToast('Mất kết nối khi kiểm tra thanh toán. Vui lòng tải lại trang hoặc kiểm tra đơn hàng sau.', 'error');
+                        }
+                    }
+                });
+            }
+
+            // Close Modal handler
+            $('#zp-close-btn').on('click', function() {
+                if (pollingInterval) clearInterval(pollingInterval);
+                $('#zp-modal-overlay').removeClass('active');
+                window.location.href = '/gio-hang';
+            });
+        });
+    </script>
+
+    <!-- GHN Address Dropdowns Script -->
+    <script th:inline="none">
+        let ghnProvinceLoadPromise = null;
+
+        window.apiLoadProvinces = function() {
+            const $sel = $('#ghnProvinceId');
+            if ($sel.find('option').length > 1) {
+                return $.Deferred().resolve().promise();
+            }
+            if (ghnProvinceLoadPromise) {
+                return ghnProvinceLoadPromise;
+            }
+            const request = $.ajax({
+                url: '/api/ghn/provinces',
+                type: 'GET'
+            });
+            ghnProvinceLoadPromise = request.then(function(resp) {
+                if (resp.status === 'ok' && resp.data) {
+                    resp.data.sort(function(a, b) {
+                        return (a.ProvinceName || '').localeCompare(b.ProvinceName || '', 'vi');
+                    }).forEach(function(p) {
+                        $sel.append($('<option>').val(p.ProvinceID).text(p.ProvinceName));
+                    });
+                }
+            }, function() {
+                console.warn('[GHN] Không thể tải danh sách tỉnh/thành');
+                showToast('Không thể tải danh sách tỉnh/thành từ đơn vị vận chuyển. Vui lòng thử lại.', 'warning');
+            });
+            request.always(function() {
+                ghnProvinceLoadPromise = null;
+            });
+            return ghnProvinceLoadPromise;
+        };
+
+        window.apiLoadDistricts = function(provinceId) {
+            const $distSel = $('#ghnDistrictId');
+            const $wardSel = $('#ghnWardCode');
+
+            $distSel.html('<option value="">-- Chọn quận/huyện --</option>').prop('disabled', true);
+            $wardSel.html('<option value="">-- Chọn phường/xã --</option>').prop('disabled', true);
+
+            if (!provinceId) {
+                return $.Deferred().resolve().promise();
+            }
+
+            return $.ajax({
+                url: '/api/ghn/districts?provinceId=' + provinceId,
+                type: 'GET'
+            }).then(function(resp) {
+                if (resp.status === 'ok' && resp.data) {
+                    resp.data.forEach(function(d) {
+                        $distSel.append($('<option>').val(d.DistrictID).text(d.DistrictName));
+                    });
+                    $distSel.prop('disabled', false);
+                }
+            }, function() {
+                console.warn('[GHN] Không thể tải danh sách quận/huyện');
+                showToast('Không thể tải danh sách quận/huyện. Vui lòng chọn lại tỉnh/thành hoặc thử lại.', 'warning');
+            });
+        };
+
+        window.apiLoadWards = function(districtId) {
+            const $wardSel = $('#ghnWardCode');
+            $wardSel.html('<option value="">-- Chọn phường/xã --</option>').prop('disabled', true);
+
+            if (!districtId) {
+                return $.Deferred().resolve().promise();
+            }
+
+            return $.ajax({
+                url: '/api/ghn/wards?districtId=' + districtId,
+                type: 'GET'
+            }).then(function(resp) {
+                if (resp.status === 'ok' && resp.data) {
+                    resp.data.forEach(function(w) {
+                        $wardSel.append($('<option>').val(w.WardCode).text(w.WardName));
+                    });
+                    $wardSel.prop('disabled', false);
+                }
+            }, function() {
+                console.warn('[GHN] Không thể tải danh sách phường/xã');
+                showToast('Không thể tải danh sách phường/xã. Vui lòng chọn lại quận/huyện hoặc thử lại.', 'warning');
+            });
+        };
+
+        $(document).ready(function() {
+            // ── Load danh sách tỉnh/thành từ GHN ────────────────────────────────────
+            window.apiLoadProvinces().then(function() {
+                if (targetAddressToMatch) {
+                    matchAndSelectProvince(targetProvinceToMatch, targetAddressToMatch);
+                }
+            });
+
+            // ── Khi chọn tỉnh → load quận/huyện ─────────────────────────────────────
+            $('#ghnProvinceId').on('change', function() {
+                const provinceId = $(this).val();
+                const $distSel = $('#ghnDistrictId');
+                const $wardSel = $('#ghnWardCode');
+
+                $distSel.html('<option value="">-- Chọn quận/huyện --</option>').prop('disabled', true);
+                $wardSel.html('<option value="">-- Chọn phường/xã --</option>').prop('disabled', true);
+
+                if (!provinceId) return;
+
+                $.ajax({
+                    url: '/api/ghn/districts?provinceId=' + provinceId,
+                    type: 'GET',
+                    success: function(resp) {
+                        if (resp.status === 'ok' && resp.data) {
+                            resp.data.forEach(function(d) {
+                                $distSel.append($('<option>').val(d.DistrictID).text(d.DistrictName));
+                            });
+                            $distSel.prop('disabled', false);
+
+                            if (targetAddressToMatch) {
+                                matchAndSelectDistrict(targetAddressToMatch);
+                            }
+                        }
+                    },
+                    error: function() {
+                        console.warn('[GHN] Không thể tải danh sách quận/huyện');
+                        showToast('Không thể tải danh sách quận/huyện. Vui lòng thử lại.', 'warning');
+                    }
+                });
+            });
+
+            // ── Khi chọn quận/huyện → load phường/xã ────────────────────────────────
+            $('#ghnDistrictId').on('change', function() {
+                const districtId = $(this).val();
+                const $wardSel = $('#ghnWardCode');
+                $wardSel.html('<option value="">-- Chọn phường/xã --</option>').prop('disabled', true);
+
+                if (!districtId) return;
+
+                $.ajax({
+                    url: '/api/ghn/wards?districtId=' + districtId,
+                    type: 'GET',
+                    success: function(resp) {
+                        if (resp.status === 'ok' && resp.data) {
+                            resp.data.forEach(function(w) {
+                                $wardSel.append($('<option>').val(w.WardCode).text(w.WardName));
+                            });
+                            $wardSel.prop('disabled', false);
+
+                            if (targetAddressToMatch) {
+                                matchAndSelectWard(targetAddressToMatch);
+                            }
+                        }
+                    },
+                    error: function() {
+                        console.warn('[GHN] Không thể tải danh sách phường/xã');
+                        showToast('Không thể tải danh sách phường/xã. Vui lòng thử lại.', 'warning');
+                    }
+                });
+            });
+
+            // ── Khi chọn xong phường/xã → tính lại phí ship GHN ─────────────────────
+            $('#ghnWardCode').on('change', function() {
+                const districtId = $('#ghnDistrictId').val();
+                const wardCode = $(this).val();
+                if (!districtId || !wardCode) return;
+
+                $.ajax({
+                    url: '/api/ghn/fee',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ toDistrictId: parseInt(districtId), toWardCode: wardCode }),
+                    success: function(resp) {
+                        if (resp.status === 'ok') {
+                            // Cập nhật hiển thị phí ship nếu có element
+                            if ($('#shipping-fee-ghn').length) {
+                                $('#shipping-fee-ghn').text(resp.feeFormatted);
+                            }
+                        }
+                    }
+                });
+            });
+
+            // Auto-select shipping carrier (GHN) to reduce user steps
+            const $carrierSelect = $('#idDonViVanChuyen');
+            if ($carrierSelect.length > 0) {
+                const options = $carrierSelect.find('option');
+                if (options.length > 0) {
+                    let selectedVal = null;
+                    const ghnOption = options.filter(function() {
+                        const txt = $(this).text().toUpperCase();
+                        return txt.includes('GIAO HÀNG NHANH') || txt.includes('GHN');
+                    });
+                    if (ghnOption.length > 0) {
+                        selectedVal = ghnOption.first().val();
+                    } else {
+                        selectedVal = options.first().val();
+                    }
+                    if (selectedVal) {
+                        $carrierSelect.val(selectedVal).trigger('change');
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

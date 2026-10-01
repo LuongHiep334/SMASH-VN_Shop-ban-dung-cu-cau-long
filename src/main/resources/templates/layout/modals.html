@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+</head>
+<body>
+        <!--====== Modal trỏ vào sản phẩm ======-->
+
+	<div th:fragment="all-modals">
+	
+		<div class="modal fade" id="quick-look">
+	    <div class="modal-dialog modal-dialog-centered">
+	        <div class="modal-content modal--shadow">
+	            <button class="btn dismiss-button fas fa-times" type="button" data-dismiss="modal"></button>
+	            
+	            <div class="modal-body" id="quick-look-content">
+                <th:block th:fragment="quick-look-fragment">
+                    <div class="row" th:if="${spQuickLook != null}">
+                        
+                        <!-- CỘT TRÁI: Ảnh sản phẩm -->
+                        <div class="col-lg-5">
+                            <!-- Breadcrumb -->
+                            <div class="pd-breadcrumb u-s-m-b-20" style="font-size:12px; color:#888;">
+                                <a th:href="@{/}" style="color:#888; text-decoration:none;">Trang chủ</a>
+                                <span style="margin:0 6px;">-</span>
+                                <a th:href="@{/shop(categoryId=${spQuickLook.danhMuc.id})}"
+                                   th:text="${spQuickLook.danhMuc.tenDanhMuc}"
+                                   style="color:#888; text-decoration:none;"
+                                   th:if="${spQuickLook.danhMuc != null}">Danh mục</a>
+                                <span style="margin:0 6px;" th:if="${spQuickLook.danhMuc != null}">-</span>
+                                <strong th:text="${spQuickLook.tenSanPham}" style="color:#333;">Tên SP</strong>
+                            </div>
+
+                            <!-- Ảnh chính -->
+                            <div class="pd u-s-m-b-20">
+                                <div class="pd-wrap">
+                                    <div id="js-product-detail-modal">
+                                        <div th:each="chitiet : ${listChiTiet}">
+                                            <img class="u-img-fluid" th:src="@{${chitiet.hinhAnhUrl}}" onerror="this.onerror=null; this.src='/images/placeholder.png';" alt="Ảnh Sản Phẩm">
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Thumbnail -->
+                                <div class="u-s-m-t-15">
+                                    <div id="js-product-detail-modal-thumbnail">
+                                        <div th:each="chitiet : ${listChiTiet}">
+                                            <img class="u-img-fluid" th:src="@{${chitiet.hinhAnhUrl}}" onerror="this.onerror=null; this.src='/images/placeholder.png';" alt="Ảnh thu nhỏ sản phẩm">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- CỘT PHẢI: Thông tin sản phẩm -->
+                        <div class="col-lg-7">
+                            <div id="quick-look-modal-container" class="pd-detail">
+
+                                <!-- Tên sản phẩm -->
+                                <div class="u-s-m-b-10">
+                                    <span class="pd-detail__name" th:text="${spQuickLook.tenSanPham}">Tên Sản Phẩm</span>
+                                </div>
+
+                                <!-- Giá: giá gốc gạch ngang + giá sale + badge % -->
+                                <div class="u-s-m-b-12" th:if="${!listChiTiet.isEmpty()}">
+                                    <div class="pd-detail__inline" style="display:flex; align-items:baseline; gap:10px; flex-wrap:wrap;" th:with="percent=${spQuickLook.getActiveGiamGiaPhanTram()}">
+                                        <span class="pd-detail__price js-display-price" style="color:#ff4500; font-size:24px; font-weight:700;"
+                                              th:text="${#numbers.formatDecimal(percent > 0 ? spQuickLook.getGiaSauGiam(listChiTiet[0].giaBan) : listChiTiet[0].giaBan, 0, 'COMMA', 0, 'POINT') + ' đ'}">Giá tiền</span>
+                                        
+                                        <span class="pd-detail__del js-display-original-price" 
+                                              th:style="${percent > 0 ? 'color:#aaa; font-size:14px; text-decoration:line-through; display:inline-block;' : 'display:none;'}"
+                                              th:text="${#numbers.formatDecimal(listChiTiet[0].giaBan, 0, 'COMMA', 0, 'POINT') + ' đ'}">Giá gốc</span>
+                                              
+                                        <span class="pd-detail__discount js-display-discount-badge" 
+                                              th:style="${percent > 0 ? 'background:#ffeee8; color:#ff4500; font-size:12px; font-weight:700; padding:3px 8px; border-radius:12px; display:inline-block;' : 'display:none;'}"
+                                              th:text="'(Giảm ' + ${percent} + '%)'">% GIẢM</span>
+                                    </div>
+                                </div>
+
+                                <!-- Đánh giá sao -->
+                                <div class="u-s-m-b-12">
+                                    <div class="pd-detail__rating gl-rating-style" style="display:flex; align-items:center; gap:8px;">
+                                        <div style="color:#ffb300; display:inline-flex; gap:2px;">
+                                            <i th:each="i : ${#numbers.sequence(1, 5)}"
+                                               th:class="${i <= spQuickLook.diemTrungBinh} ? 'fas fa-star' : (${i - 0.5 <= spQuickLook.diemTrungBinh} ? 'fas fa-star-half-alt' : 'far fa-star')"></i>
+                                        </div>
+                                        <span class="pd-detail__review u-s-m-l-4" style="font-size:13px; color:#888;">
+                                            <a th:href="@{/san-pham/{id}(id=${spQuickLook.id})}" style="color:#888; text-decoration:none;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'"
+                                               th:text="${spQuickLook.soDanhGia} + ' Đánh giá'">0 Đánh giá</a>
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <!-- Stock badges -->
+                                <div class="u-s-m-b-15 js-stock-status" style="display:none;"></div>
+                                <div class="u-s-m-b-15 js-variant-stock-info" style="display:flex; gap:8px; align-items:center;">
+                                    <span class="js-variant-stock-badge pd-detail__stock" style="display:none;"></span>
+                                    <span class="js-variant-low-stock pd-detail__left" style="display:none;"></span>
+                                </div>
+
+                                <!-- Mô tả ngắn -->
+                                <div class="u-s-m-b-15">
+                                    <div class="pd-detail__preview-desc" th:utext="${spQuickLook.moTa}"
+                                           style="font-size:13px; color:#666; line-height:1.6;">Mô tả ngắn...</div>
+                                </div>
+
+                                <!-- Chọn thuộc tính động -->
+                                <div class="u-s-m-b-15" th:each="entry, iterStat : ${dynamicAttributes}">
+                                    <span class="pd-detail__label u-s-m-b-8" th:text="${iterStat.count} + '. ' + ${entry.key} + ':'">Thuộc tính:</span>
+                                    <div class="d-flex flex-wrap">
+                                        <button th:each="val : ${entry.value}"
+                                                type="button"
+                                                class="variant-btn u-s-m-r-8 u-s-m-b-8 dynamic-attr-btn"
+                                                th:classappend="'attr-btn-' + ${#strings.replace(entry.key, ' ', '_')}"
+                                                th:attr="data-attr-name=${entry.key}, data-attr-value=${val}"
+                                                onclick="selectDynamicAttribute(this)"
+                                                th:text="${val}">
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Add to Wishlist link -->
+                                <div class="u-s-m-b-8">
+                                    <a href="javascript:void(0)"
+                                       th:onclick="'addToWishlist(' + ${spQuickLook.id} + ', this)'"
+                                       class="pd-detail__wishlist-lnk">
+                                        <i th:class="${inWishlist} ? 'fas fa-heart' : 'far fa-heart'"
+                                           th:style="${inWishlist} ? 'color:#ff4500;' : 'color:#888;'"></i>
+                                        <span style="display:inline-flex; align-items:center;">
+                                            <span class="js-wishlist-lnk-text">Thêm vào danh sách yêu thích</span>
+                                            <span class="js-wishlist-count" style="color:#aaa; margin-left:4px;" th:text="'(' + ${soLuongYeuThich} + ')'">(0)</span>
+                                        </span>
+                                    </a>
+                                </div>
+
+                                <!-- Email me When the price drops -->
+                                <div class="u-s-m-b-15">
+                                    <a href="javascript:void(0)"
+                                       style="display:inline-flex; align-items:center; gap:8px; font-size:13px; color:#555; text-decoration:none; transition:color 0.2s;"
+                                       onmouseover="this.style.color='#ff4500'" onmouseout="this.style.color='#555'">
+                                        <i class="far fa-envelope" style="color:#888;"></i>
+                                        <span>Nhận email khi giảm giá</span>
+                                    </a>
+                                </div>
+
+                                <!-- Chia sẻ mạng xã hội -->
+                                <div class="u-s-m-b-20">
+                                    <ul class="pd-social-list" style="list-style:none; padding:0; display:flex; gap:16px; align-items:center; margin-bottom:0;">
+                                        <li><a class="s-fb--color-hover" href="#" style="font-size:18px; color:#555; transition:color 0.2s;"><i class="fab fa-facebook-f"></i></a></li>
+                                        <li><a class="s-tw--color-hover" href="#" style="font-size:18px; color:#555; transition:color 0.2s;"><i class="fab fa-twitter"></i></a></li>
+                                        <li><a class="s-insta--color-hover" href="#" style="font-size:18px; color:#555; transition:color 0.2s;"><i class="fab fa-instagram"></i></a></li>
+                                        <li><a href="#" style="font-size:18px; color:#555; transition:color 0.2s;"><i class="fab fa-whatsapp"></i></a></li>
+                                        <li><a href="#" style="font-size:18px; color:#555; transition:color 0.2s;"><i class="fab fa-google-plus-g"></i></a></li>
+                                    </ul>
+                                </div>
+
+                                <!-- Form thêm vào giỏ + bộ đếm số lượng -->
+                                <div class="u-s-m-b-25">
+                                    <form class="pd-detail__form" th:action="@{/gio-hang/them}" method="post">
+                                        <input type="hidden" name="idSanPhamChiTiet" class="js-variant-id" th:value="${listChiTiet != null and listChiTiet.size() == 1 ? listChiTiet[0].id : ''}" required>
+                                        <div class="pd-detail-inline-2" style="display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
+                                            <!-- Bộ đếm số lượng -->
+                                            <div class="input-counter" style="background:#f1f3f5; border:none; border-radius:30px; display:inline-block; position:relative !important; overflow:hidden; height:45px; min-width:120px !important; max-width:120px !important;">
+                                                <span class="input-counter__minus fas fa-minus"
+                                                      style="position: absolute !important; top: 0 !important; left: 0 !important; width: 40px !important; height: 45px !important; line-height: 45px !important; padding: 0 !important; text-align: center !important; cursor: pointer; color: #666; font-size: 12px; transition: color 0.2s;"
+                                                      onmouseover="this.style.color='#333'" onmouseout="this.style.color='#666'"></span>
+                                                <input class="js-quantity-input input-counter__text input-counter--text-primary-style"
+                                                       type="text" name="soLuong" value="1"
+                                                       data-min="1" data-max="1000"
+                                                       style="display: block !important; width: 100% !important; height: 45px !important; line-height: 45px !important; padding: 0 40px !important; margin: 0 !important; border: none !important; background: transparent !important; outline: none !important; font-size: 15px !important; font-weight: 600 !important; color: #333 !important; text-align: center !important; box-shadow: none !important;">
+                                                <span class="input-counter__plus fas fa-plus"
+                                                      style="position: absolute !important; top: 0 !important; right: 0 !important; width: 40px !important; height: 45px !important; line-height: 45px !important; padding: 0 !important; text-align: center !important; cursor: pointer; color: #666; font-size: 12px; transition: color 0.2s;"
+                                                      onmouseover="this.style.color='#333'" onmouseout="this.style.color='#666'"></span>
+                                            </div>
+                                            <!-- Nút thêm giỏ -->
+                                            <button class="js-btn-add-cart btn btn--e-brand-b-2"
+                                                    type="submit"
+                                                    style="height:45px; border-radius:8px; padding:0 35px; font-size:14px; font-weight:700; letter-spacing:0.5px; background-color:#ff4500; border-color:#ff4500; color:#fff; transition:all 0.2s;">
+                                                Thêm vào giỏ
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+
+                                <!-- Chính sách sản phẩm -->
+                                <div style="margin-top:20px; border-top:1px solid #f0f0f0; padding-top:18px;">
+                                    <span style="font-weight:700; font-size:14px; color:#333; display:block; margin-bottom:10px;">Chính sách sản phẩm:</span>
+                                    <ul style="list-style:none; padding:0; margin:0;">
+                                        <li style="display:flex; align-items:center; gap:8px; margin-bottom:8px; font-size:13px; color:#555;">
+                                            <i class="fas fa-check-circle" style="color:#2ecc71; font-size:16px;"></i>
+                                            <span>Bảo vệ người mua hàng.</span>
+                                        </li>
+                                        <li style="display:flex; align-items:center; gap:8px; margin-bottom:8px; font-size:13px; color:#555;">
+                                            <i class="fas fa-check-circle" style="color:#2ecc71; font-size:16px;"></i>
+                                            <span>Hoàn tiền 100% nếu không nhận được hàng.</span>
+                                        </li>
+                                        <li style="display:flex; align-items:center; gap:8px; font-size:13px; color:#555;">
+                                            <i class="fas fa-check-circle" style="color:#2ecc71; font-size:16px;"></i>
+                                            <span>Chấp nhận trả hàng nếu sản phẩm không đúng mô tả.</span>
+                                        </li>
+                                    </ul>
+                                </div>
+
+                                <!-- Script khởi tạo biến thể -->
+                                <script th:inline="javascript">
+                                    /*<![CDATA[*/
+                                    (function() {
+                                        var variants = /*[[${listBienTheJS}]]*/ [];
+                                        var container = document.getElementById('quick-look-modal-container');
+                                        if (container) {
+                                            container.danhSachBienThe = variants;
+                                            if (typeof checkAndApplyVariant === 'function') {
+                                                checkAndApplyVariant(container);
+                                            }
+                                        }
+                                    })();
+                                    /*]]>*/
+                                </script>
+
+                            </div>
+                        </div>
+                    </div>
+                </th:block>
+	            </div>
+	        </div>
+	    </div>
+	</div>
+        
+    <!-- thêm sảm phẩm vào giỏ nhanh  -->
+	  <div class="modal fade" id="add-to-cart">
+	    <div class="modal-dialog modal-dialog-centered">
+	        <div class="modal-content modal-radius modal-shadow">
+	            <button class="btn dismiss-button fas fa-times" type="button" data-dismiss="modal"></button>
+	            <div class="modal-body">
+	                <div class="row">
+	                    <div class="col-lg-6 col-md-12">
+	                        <div class="success u-s-m-b-30">
+	                            <div class="success__text-wrap">
+	                                <i class="fas fa-check"></i>
+	                                <span>Thêm vào giỏ hàng thành công!</span>
+	                            </div>
+	                            <div class="success__img-wrap">
+	                                <img class="u-img-fluid" id="js-modal-cart-img" src="" alt="Hình ảnh sản phẩm">
+	                            </div>
+	                            <div class="success__info-wrap">
+	                                <span class="success__name" id="js-modal-cart-name">Tên SP</span>
+	                                <span class="success__desc" id="js-modal-cart-variant">Phân loại</span>
+	                                <span class="success__quantity" id="js-modal-cart-qty">Số lượng</span>
+	                                <span class="success__price" id="js-modal-cart-price">Giá</span>
+	                            </div>
+	                        </div>
+	                    </div>
+	                    <div class="col-lg-6 col-md-12">
+	                        <div class="s-option">
+	                            <span class="s-option__text">Giỏ hàng của bạn đã được cập nhật</span>
+	                            <div class="s-option__link-box">
+	                                <a class="s-option__link btn--e-white-brand-shadow" data-dismiss="modal">TIẾP TỤC MUA SẮM</a>
+	                                <a class="s-option__link btn--e-white-brand-shadow" th:href="@{/gio-hang}" onclick="$('#add-to-cart').modal('hide');">XEM GIỎ HÀNG</a>
+	                                <button type="button" class="s-option__link btn--e-brand-shadow js-quick-add-checkout-btn" id="js-quick-add-checkout-btn" disabled>THANH TOÁN TỚI ĐÂY</button>
+
+	                            </div>
+	                        </div>
+	                    </div>
+	                </div>
+	            </div>
+	        </div>
+	    </div>
+	</div>
+    
+    <!-- nhận tin tức mới  -->
+    <div class="modal fade new-l" id="newsletter-modal">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content modal--shadow">
+
+                    <button class="btn new-l__dismiss fas fa-times" type="button" data-dismiss="modal"></button>
+                    <div class="modal-body">
+                        <div class="row u-s-m-x-0">
+                            <div class="col-lg-6 new-l__col-1 u-s-p-x-0">
+
+                                <a class="new-l__img-wrap u-d-block" th:href="@{/shop}">
+
+                                    <img class="u-img-fluid u-d-block" th:src="@{/images/newsletter/newsletter.jpg}" alt=""></a></div>
+                            <div class="col-lg-6 new-l__col-2">
+                                <div class="new-l__section u-s-m-t-30">
+                                    <div class="u-s-m-b-8 new-l--center">
+                                        <h3 class="new-l__h3">Nhận tin tức mới</h3>
+                                    </div>
+                                    <div class="u-s-m-b-30 new-l--center">
+                                        <p class="new-l__p1">Đăng ký nhận email để cập nhật thông tin về sản phẩm mới, các chương trình khuyến mãi và hơn thế nữa.</p>
+                                    </div>
+                                    <form class="new-l__form">
+                                        <div class="u-s-m-b-15">
+
+                                            <input class="news-l__input" type="text" placeholder="Nhập địa chỉ email..."></div>
+                                        <div class="u-s-m-b-15">
+
+                                            <button class="btn btn--e-brand-b-2" type="submit">Đăng ký ngay!</button></div>
+                                    </form>
+                                    <div class="u-s-m-b-15 new-l--center">
+                                        <p class="new-l__p2">Bằng cách đăng ký, bạn đồng ý nhận các ưu đãi, khuyến mãi và các tin nhắn thương mại khác từ SMASH-VN.<br\> Bạn có thể hủy đăng ký bất cứ lúc nào.</p>
+                                    </div>
+                                    <div class="u-s-m-b-15 new-l--center">
+
+                                        <a class="new-l__link" data-dismiss="modal">Không cảm ơn</a></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+</div>
+</body>
+</html>

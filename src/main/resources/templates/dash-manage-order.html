@@ -1,0 +1,1621 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="Chi tiết đơn hàng - Smash VN">
+    <meta name="author" content="SmashVN">
+    <link th:href="@{/images/favicon.png}" rel="shortcut icon">
+    <title>Smash VN - Chi Tiết Đơn Hàng</title>
+
+    <!-- CSRF Token -->
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+
+    <!--====== Phông chữ Google ======-->
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,600,700,800" rel="stylesheet">
+
+    <!--====== CSS Nhà cung cấp ======-->
+    <link rel="stylesheet" th:href="@{/css/vendor.css}">
+
+    <!--====== Tiện ích khoảng cách ======-->
+    <link rel="stylesheet" th:href="@{/css/utility.css}">
+
+    <!--====== Ứng dụng ======-->
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+    <style>
+        /* ===== Badge Trạng thái ===== */
+        .manage-o__badge {
+            width: auto !important;
+            min-width: 5.9375rem !important;
+            white-space: nowrap !important;
+            padding: 6px 14px !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+        .badge--pending   { background-color: #fff3cd !important; color: #856404 !important; }
+        .badge--warning   { background-color: #ffeeb3 !important; color: #856404 !important; }
+        .badge--processing{ background-color: #cce5ff !important; color: #004085 !important; }
+        .badge--confirmed { background-color: #d0f0fd !important; color: #005f7a !important; }
+        .badge--shipping  { background-color: #d1ecf1 !important; color: #0c5460 !important; }
+        .badge--delivered { background-color: #d4edda !important; color: #155724 !important; }
+        .badge--cancelled { background-color: #f8d7da !important; color: #721c24 !important; }
+        .badge--conflict  { background-color: #ffe5b4 !important; color: #7a4500 !important; }
+
+        /* ===== Nút hủy đơn ===== */
+        #btn-huy-don {
+            background-color: #e53935;
+            border: none;
+            color: #fff;
+            font-weight: 700;
+            padding: 10px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.25s ease, transform 0.15s ease, box-shadow 0.2s ease;
+            font-size: 14px;
+            letter-spacing: 0.3px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        #btn-huy-don:hover { background-color: #c62828; transform: translateY(-1px); box-shadow: 0 4px 14px rgba(229,57,53,.35); }
+        #btn-huy-don:active { transform: translateY(0); }
+        #btn-huy-don:disabled { background-color: #aaa; cursor: not-allowed; transform: none; box-shadow: none; }
+
+        /* ===== Modal Xác nhận hủy ===== */
+        .cancel-modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.55);
+            z-index: 99999;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(3px);
+        }
+        .cancel-modal-overlay.active { display: flex; }
+        .cancel-modal {
+            background: #fff;
+            border-radius: 14px;
+            padding: 36px 32px 28px;
+            max-width: 440px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,.22);
+            animation: modalIn 0.28s cubic-bezier(.34,1.56,.64,1) both;
+        }
+        @keyframes modalIn {
+            from { opacity:0; transform: scale(0.88) translateY(20px); }
+            to   { opacity:1; transform: scale(1) translateY(0); }
+        }
+        .cancel-modal__icon { font-size: 52px; margin-bottom: 14px; display: block; }
+        .cancel-modal__title { font-size: 20px; font-weight: 800; color: #212121; margin-bottom: 8px; }
+        .cancel-modal__desc  { font-size: 14px; color: #666; margin-bottom: 24px; line-height: 1.6; }
+        .cancel-modal__actions { display: flex; gap: 12px; justify-content: center; }
+        .btn-modal-confirm {
+            background: #e53935; color: #fff; border: none;
+            padding: 11px 28px; border-radius: 7px; font-weight: 700;
+            cursor: pointer; font-size: 14px; transition: background 0.2s ease;
+        }
+        .btn-modal-confirm:hover { background: #c62828; }
+        .btn-modal-cancel {
+            background: #f5f5f5; color: #555; border: 1px solid #ddd;
+            padding: 11px 28px; border-radius: 7px; font-weight: 600;
+            cursor: pointer; font-size: 14px; transition: background 0.2s ease;
+        }
+        .btn-modal-cancel:hover { background: #e8e8e8; }
+
+        /* ===== Guest First Order Success Modal ===== */
+        .guest-success-modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.65);
+            z-index: 99999;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .guest-success-modal-overlay.active {
+            display: flex;
+        }
+        .guest-success-modal {
+            background: #ffffff;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 480px;
+            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+            animation: modalIn 0.25s cubic-bezier(.34,1.56,.64,1) both;
+            color: #1e293b;
+        }
+        .guest-success-modal__header {
+            padding: 24px 24px 0;
+            display: flex;
+            align-items: center;
+            color: #10b981;
+            font-size: 20px;
+            font-weight: 700;
+            gap: 10px;
+        }
+        .guest-success-modal__body {
+            padding: 16px 24px 24px;
+            text-align: left;
+        }
+        .guest-success-modal__btn {
+            background: #ff4500;
+            color: #ffffff;
+            font-weight: 600;
+            font-size: 13px;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            width: 100%;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+        .guest-success-modal__btn:hover {
+            background: #e03e00;
+        }
+
+        /* ===== Timeline: connect adjacent circles at their centers ===== */
+        .timeline-stepper {
+            --timeline-circle-size: 68px;
+            --timeline-line-size: 4px;
+            display: flex !important;
+            flex-direction: row !important;
+            justify-content: space-between !important;
+            align-items: flex-start !important;
+            position: relative !important;
+            padding: 24px 0 !important;
+            margin: 20px 0 !important;
+            width: 100% !important;
+            overflow-x: auto;
+            isolation: isolate;
+        }
+        .timeline-stepper-step {
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            text-align: center !important;
+            flex: 1 0 120px !important;
+            min-width: 0;
+            position: relative !important;
+            width: auto !important;
+        }
+        .timeline-stepper-step + .timeline-stepper-step::before {
+            content: "";
+            position: absolute;
+            top: calc((var(--timeline-circle-size) - var(--timeline-line-size)) / 2);
+            left: -50%;
+            width: 100%;
+            height: var(--timeline-line-size);
+            background-color: #e0e0e0;
+            z-index: 0;
+        }
+        .timeline-stepper-step.finish + .timeline-stepper-step.finish::before {
+            background-color: var(--step-color, #2ec155);
+        }
+        .timeline-stepper-icon-circle {
+            box-sizing: border-box;
+            width: var(--timeline-circle-size) !important;
+            height: var(--timeline-circle-size) !important;
+            flex-shrink: 0;
+            position: relative;
+            z-index: 1;
+            border-radius: 50% !important;
+            background-color: #fff !important;
+            border: 4px solid #e0e0e0 !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            font-size: 20px !important;
+            color: #bdbdbd !important;
+            margin-bottom: 12px !important;
+            transition: all 0.3s ease !important;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05) !important;
+        }
+        .timeline-stepper-step.active .timeline-stepper-icon-circle {
+            border-color: var(--step-color, #2ec155) !important;
+            color: var(--step-color, #2ec155) !important;
+        }
+        .timeline-stepper-step.finish .timeline-stepper-icon-circle {
+            border-color: var(--step-color, #2ec155) !important;
+            background-color: var(--step-color, #2ec155) !important;
+            color: #fff !important;
+        }
+        .timeline-stepper-label {
+            box-sizing: border-box;
+            padding: 0 4px;
+            font-size: 13px;
+            font-weight: 700;
+            color: #757575;
+            margin-bottom: 4px;
+            max-width: 140px;
+            line-height: 1.3;
+        }
+        .timeline-stepper-step.active .timeline-stepper-label,
+        .timeline-stepper-step.finish .timeline-stepper-label {
+            color: #212121;
+        }
+        .timeline-stepper-time {
+            font-size: 11px;
+            color: #9e9e9e;
+        }
+        .timeline-stepper-step.active .timeline-stepper-time,
+        .timeline-stepper-step.finish .timeline-stepper-time {
+            color: #616161;
+        }
+
+        /* Section order header */
+        .order-header-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+        .order-meta-group { display: flex; flex-direction: column; gap: 6px; }
+        .order-status-group { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
+
+        /* Overrides to make the product list stack vertically and display beautifully */
+        .manage-o__description {
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: stretch !important;
+            width: 100% !important;
+        }
+
+        .manage-o__description-item {
+            display: flex !important;
+            flex-direction: row !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+            flex-wrap: wrap !important;
+            gap: 16px !important;
+            padding: 20px 0 !important;
+            border-bottom: 1px solid #eee !important;
+        }
+
+        .description__container {
+            display: flex !important;
+            align-items: center !important;
+            flex: 1 1 300px !important;
+        }
+
+        .description__img-wrap {
+            width: 80px !important;
+            height: 80px !important;
+            margin-right: 16px !important;
+            border-radius: 8px !important;
+            overflow: hidden !important;
+            border: 1px solid #e9ecef !important;
+            flex-shrink: 0 !important;
+            background: #fff !important;
+        }
+
+        .description__img-wrap img {
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: cover !important;
+            border-radius: 8px !important;
+            min-width: unset !important;
+        }
+
+        .description-title {
+            font-size: 0.95rem !important;
+            font-weight: 700 !important;
+            color: #1e2229 !important;
+            margin-left: 0 !important;
+            margin-bottom: 6px !important;
+            line-height: 1.4 !important;
+        }
+
+        .description__info-wrap {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: flex-end !important;
+            flex-wrap: wrap !important;
+            gap: 24px !important;
+            flex: 2 1 400px !important;
+        }
+
+        .info-detail-col {
+            display: flex !important;
+            flex-direction: column !important;
+            font-size: 0.82rem !important;
+            color: #6c757d !important;
+        }
+
+        .info-detail-val {
+            color: #1e2229 !important;
+            font-weight: 700 !important;
+            font-size: 0.9rem !important;
+            white-space: nowrap !important;
+            margin-top: 4px !important;
+        }
+
+        .info-detail-val.price {
+            color: #ff4500 !important;
+        }
+
+        @media (max-width: 767.98px) {
+            .manage-o__description-item {
+                flex-direction: column !important;
+                align-items: flex-start !important;
+            }
+            .description__container,
+            .description__info-wrap {
+                flex: 0 1 auto !important;
+                min-width: 0;
+                width: 100% !important;
+            }
+            .description__container > div:last-child {
+                min-width: 0;
+                overflow-wrap: anywhere;
+            }
+            .description__info-wrap {
+                justify-content: flex-start !important;
+                width: 100% !important;
+                border-top: 1px dashed #eee !important;
+                padding-top: 12px !important;
+                gap: 16px !important;
+            }
+        }
+    </style>
+</head>
+<body class="config">
+    <div class="preloader is-active">
+        <div class="preloader__wrap">
+            <img class="preloader__img" th:src="@{/images/preloader.svg}" alt="Đang tải" width="64" height="64"></div>
+    </div>
+
+    <!--====== Ứng dụng chính ======-->
+    <div id="app">
+
+        <!--====== Tiêu đề chính ======-->
+        <header class="header--style-1">
+            <div th:replace="~{layout/header :: header}"></div>
+        </header>
+        <!--====== End - Main Header ======-->
+
+        <!--====== App Content ======-->
+        <div class="app-content">
+
+            <!--====== Breadcrumb ======-->
+            <div class="u-s-p-y-60">
+                <div class="section__content">
+                    <div class="container">
+                        <div class="breadcrumb">
+                            <div class="breadcrumb__wrap">
+                                <ul class="breadcrumb__list">
+                                    <li class="has-separator">
+                                        <a th:href="@{/}">Trang chủ</a></li>
+                                    <li class="has-separator">
+                                        <a th:href="@{/user/my-order}">Đơn hàng của tôi</a></li>
+                                    <li class="is-marked">
+                                        <a th:href="@{/user/manage-order}">Chi tiết đơn hàng</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!--====== End Breadcrumb ======-->
+
+
+            <!--====== Section 2 ======-->
+            <div class="u-s-p-b-60">
+                <div class="section__content">
+                    <div class="dash">
+                        <div class="container">
+                            <div class="row">
+                                <!-- Sidebar -->
+                                <div class="col-lg-3 col-md-12">
+                                    <div class="dash__box dash__box--bg-white dash__box--shadow u-s-m-b-30">
+                                        <div class="dash__pad-1">
+                                            <span class="dash__text u-s-m-b-16" th:text="'Hello, ' + (${kh != null} ? (${kh.hoKh} + ' ' + ${kh.tenKh}) : 'Quý khách')"></span>
+                                            <ul class="dash__f-list" th:if="${isGuestView != true}">
+                                                 <li>
+                                                     <a th:href="@{/user/dashboard}">Quản lý tài khoản</a></li>
+                                                 <li>
+                                                     <a th:href="@{/user/profile}">Thông tin cá nhân</a></li>
+                                                 <li>
+                                                     <a th:href="@{/user/address}">Địa chỉ</a></li>
+                                                 <li>
+                                                     <a th:href="@{/user/track-order}">Theo dõi đơn hàng</a></li>
+                                                 <li>
+                                                     <a class="dash-active" th:href="@{/user/my-order}">Đơn hàng</a></li>
+                                                 <li>
+                                                     <a th:href="@{/user/payment-option}">Các tùy chọn thanh toán</a></li>
+                                                 <li>
+                                                     <a th:href="@{/user/cancellation}">Chính sách hoàn trả hàng</a></li>
+                                                 <li>
+                                                     <a th:href="@{/user/notifications}">Thông báo</a></li>
+                                             </ul>
+                                             <ul class="dash__f-list" th:if="${isGuestView == true}">
+                                                 <li>
+                                                     <a th:href="@{/}">Trang chủ cửa hàng</a></li>
+                                                 <li>
+                                                     <a th:href="@{/user/track-order}">Theo dõi đơn hàng khác</a></li>
+                                                 <li>
+                                                     <a th:href="@{/user/thiet-lap-mat-khau}">Thiết lập mật khẩu</a></li>
+                                             </ul>
+                                             <div class="u-s-m-t-20" th:if="${isGuestView == true}" style="background-color: #fff5f5; border: 1px solid #fed7d7; border-radius: 8px; padding: 14px; color: #9b2c2c; font-size: 13px; line-height: 1.5;">
+                                                 <div style="font-weight: 700; margin-bottom: 6px; display: flex; align-items: center; color: #c53030;">
+                                                     <i class="fas fa-info-circle" style="margin-right: 6px;"></i> Thông báo
+                                                 </div>
+                                                 <span>Tài khoản của bạn vẫn là Guest. Vui lòng kiểm tra email để dùng mật khẩu tạm hoặc activation link khi bạn muốn kích hoạt tài khoản Member.</span>
+                                             </div>
+                                         </div>
+                                     </div>
+                                     <div class="dash__box dash__box--bg-white dash__box--shadow dash__box--w" th:if="${isGuestView != true}">
+                                         <div class="dash__pad-1">
+                                             <ul class="dash__w-list">
+                                                 <li>
+                                                     <div class="dash__w-wrap">
+                                                         <span class="dash__w-icon dash__w-icon-style-1"><i class="fas fa-cart-arrow-down"></i></span>
+                                                         <span class="dash__w-text" th:text="${orderPlaced}">4</span>
+                                                         <span class="dash__w-name">Đơn Hàng Đã Đặt</span></div>
+                                                 </li>
+                                                 <li>
+                                                     <div class="dash__w-wrap">
+                                                         <span class="dash__w-icon dash__w-icon-style-2"><i class="fas fa-times"></i></span>
+                                                         <span class="dash__w-text" th:text="${cancelOrders}">0</span>
+                                                         <span class="dash__w-name">Đơn Hàng Đã Hủy</span></div>
+                                                 </li>
+                                                 <li>
+                                                     <div class="dash__w-wrap">
+                                                         <span class="dash__w-icon dash__w-icon-style-3"><i class="far fa-heart"></i></span>
+                                                         <span class="dash__w-text" th:text="${wishlist}">0</span>
+                                                         <span class="dash__w-name">Yêu Thích</span></div>
+                                                 </li>
+                                             </ul>
+                                         </div>
+                                     </div>
+                                </div>
+                                <!-- End Sidebar -->
+
+                                <!-- Main Content -->
+                                <div class="col-lg-9 col-md-12">
+
+                                    <!-- ===== Header Đơn hàng ===== -->
+                                    <div class="dash__box dash__box--shadow dash__box--radius dash__box--bg-white u-s-m-b-30">
+                                        <div class="dash__pad-2">
+                                            <div class="order-header-section">
+                                                <div class="order-meta-group">
+                                                     <div class="manage-o__text-2 u-c-secondary" style="display: flex; align-items: center; gap: 6px;">
+                                                         <span th:text="'Mã đơn hàng: ' + ${order.maDonHang}"
+                                                               th:data-code="${order.maDonHang}"
+                                                               onclick="copyOrderCodeToClipboard(this.getAttribute('data-code'), this)"
+                                                               th:title="'Click để sao chép: ' + ${order.maDonHang}"
+                                                               style="cursor: pointer; font-weight: 700;">Mã đơn hàng: DHSVN...</span>
+                                                         <button type="button"
+                                                                 class="btn-copy-code"
+                                                                 th:data-code="${order.maDonHang}"
+                                                                 onclick="copyOrderCodeToClipboard(this.getAttribute('data-code'), this)"
+                                                                 title="Sao chép mã đơn hàng"
+                                                                 style="background: none; border: none; padding: 2px 4px; cursor: pointer; color: #888; font-size: 14px; display: inline-flex; align-items: center; justify-content: center; border-radius: 4px; transition: all 0.2s;">
+                                                             <i class="far fa-copy"></i>
+                                                         </button>
+                                                     </div>
+                                                    <div class="manage-o__text u-c-silver" th:text="'Đặt ngày ' + ${#temporals.format(order.ngayDat, 'dd/MM/yyyy HH:mm:ss')}">Đặt ngày 26 Oct 2016 09:08:37</div>
+                                                    <div style="margin-top: 6px;">
+                                                         <a th:href="@{/user/order/invoice/{id}(id=${order.id})}" target="_blank" class="btn btn-sm" style="padding: 6px 12px; font-size: 12px; border-radius: 6px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; text-decoration: none; border: 1px solid #e02424; color: #e02424; background: transparent; cursor: pointer;">
+                                                             <i class="fas fa-print"></i> Xem &amp; In hóa đơn
+                                                         </a>
+                                                     </div>
+                                                </div>
+                                                <div class="order-status-group">
+                                                    <div>
+                                                        <span class="manage-o__text-2 u-c-silver">Tổng thanh toán:&nbsp;
+                                                            <span class="manage-o__text-2 u-c-secondary" th:text="${#numbers.formatDecimal(order.tongTien, 0, 'COMMA', 0, 'POINT')} + ' VNĐ'">16.000 VNĐ</span>
+                                                        </span>
+                                                    </div>
+                                                    <!-- ===== Badge trạng thái đầy đủ ===== -->
+                                                    <div>
+                                                        <span class="manage-o__badge"
+                                                              th:classappend="${order['trangThaiHoanHang'] == 'REFUNDED' or order['trangThaiHoanHang'] == 'RETURNED' or order['trangThaiHoanHang'] == 'EXCHANGED' ? 'badge--delivered' : (order['trangThaiHoanHang'] == 'REJECTED' ? 'badge--cancelled' : (order['trangThaiHoanHang'] != null ? 'badge--processing' : (order['trangThaiDonHang'] == 'da_giao' or order['trangThaiDonHang'] == 'hoan_thanh' ? 'badge--delivered' : (order['trangThaiDonHang'] == 'da_huy' or order['trangThaiDonHang'] == 'giao_that_bai' ? 'badge--cancelled' : (order['trangThaiDonHang'] == 'cho_thanh_toan' ? 'badge--pending' : 'badge--processing')))))}"
+                                                              th:text="${order['trangThaiHoanHang'] == 'REFUNDED' ? 'Đã Hoàn Tiền' : (order['trangThaiHoanHang'] == 'RETURNED' ? 'Đã Trả Hàng' : (order['trangThaiHoanHang'] == 'EXCHANGED' ? 'Đã Đổi Hàng' : (order['trangThaiHoanHang'] != null ? ('Trả hàng: ' + order['trangThaiHoanHangLabel']) : (order['trangThaiDonHangLabel'] != null ? order['trangThaiDonHangLabel'] : order['trangThaiDonHang']))))}"
+                                                        >Trạng thái</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- ===== Nút Thao tác đơn hàng ===== -->
+                                             <div style="margin-top: 18px; padding-top: 16px; border-top: 1px solid #f0f0f0; display: flex; justify-content: flex-end; gap: 12px; align-items: center; flex-wrap: wrap;">
+                                                 <!-- Nút thanh toán VNPAY/SePay -->
+                                                 <a th:if="${order['trangThaiDonHang'] == 'cho_thanh_toan' and order['paymentMethod'] == 'sepay'}"
+                                                    class="btn btn--e-brand-b-2"
+                                                    th:href="@{/payment/sepay/simulate(maDonHang=${order['maDonHang']})}"
+                                                    style="padding: 10px 20px; font-size: 13px; font-weight: 700; border-radius: 8px; color: white; background-color: #ff4500; border: none; display: inline-flex; align-items: center; gap: 6px; text-decoration: none; margin-bottom: 0;">
+                                                     <i class="fas fa-qrcode"></i> Thanh toán ngay
+                                                 </a>
+
+                                                 <!-- Nút Hủy đơn hàng (Chỉ khi chưa giao) -->
+                                                 <button th:if="${order['trangThaiDonHang'] == 'cho_thanh_toan' or order['trangThaiDonHang'] == 'cho_xac_nhan' or order['trangThaiDonHang'] == 'da_xac_nhan'}"
+                                                         id="btn-huy-don"
+                                                         th:data-order-id="${order.id}"
+                                                         th:data-order-code="'#' + ${order.id}"
+                                                         onclick="moModalHuyDon(this)"
+                                                         title="Hủy đơn hàng này"
+                                                         style="margin-bottom: 0;">
+                                                     <i class="fas fa-times-circle"></i> Hủy đơn hàng
+                                                 </button>
+
+                                                 <!-- Nút Yêu cầu Đổi / Trả hàng (Khi đã giao và chưa yêu cầu hoặc bị từ chối) -->
+                                                  <button th:if="${(order['trangThaiDonHang'] == 'da_giao' or order['trangThaiDonHang'] == 'hoan_thanh') and (order['trangThaiHoanHang'] == null or order['trangThaiHoanHang'] == 'REJECTED')}"
+                                                          id="btn-yeu-cau-tra-hang"
+                                                          onclick="moModalTraHang()"
+                                                          style="padding: 10px 20px; font-size: 13px; font-weight: 700; border-radius: 8px; color: #d9534f; background-color: #fff0f0; border: 1px solid #f5c6cb; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; margin-bottom: 0;">
+                                                     <i class="fas fa-exchange-alt"></i> Yêu cầu Đổi / Trả hàng
+                                                  </button>
+                                              </div>
+
+                                              <!-- Banner Trạng thái Đổi / Trả hàng (State Machine 8 bước) -->
+                                              <div th:if="${order['trangThaiHoanHang'] != null}" style="margin-top: 14px;">
+                                                  <!-- Step 1: PENDING_APPROVAL -->
+                                                  <div th:if="${order['trangThaiHoanHang'] == 'PENDING_APPROVAL' or order['trangThaiHoanHang'] == 'PENDING_RETURN'}"
+                                                       style="padding: 14px 18px; background: #fff8e1; border-left: 4px solid #ffb300; border-radius: 8px; font-size: 13px; color: #8c6d00; line-height: 1.6;">
+                                                      <div style="font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                                                          <i class="fas fa-clock" style="font-size: 16px;"></i> 
+                                                          <span>Chờ shop duyệt yêu cầu</span>
+                                                      </div>
+                                                      <div style="margin-top: 6px; font-size: 12px; color: #6d5400;">
+                                                          <strong th:text="'Hình thức: ' + (${order['loaiYeuCauDoiTra'] == 'DOI' ? 'Đổi sản phẩm mới' : 'Trả hàng & Hoàn tiền'})"></strong> | 
+                                                          <span th:text="'Lý do đã gửi: ' + (${order['lyDoHoanTien'] != null ? order['lyDoHoanTien'] : 'Không có'})"></span>
+                                                      </div>
+                                                  </div>
+
+                                                 <!-- Step 2: REJECTED -->
+                                                 <div th:if="${order['trangThaiHoanHang'] == 'REJECTED'}"
+                                                      style="padding: 14px 18px; background: #fff5f5; border-left: 4px solid #e53935; border-radius: 8px; font-size: 13px; color: #c62828; line-height: 1.6;">
+                                                     <div style="font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                                                         <i class="fas fa-times-circle" style="font-size: 16px;"></i> Shop đã từ chối yêu cầu trả hàng của bạn.
+                                                     </div>
+                                                 </div>
+
+                                                 <!-- Step 3: WAITING_FOR_PICKUP -->
+                                                 <div th:if="${order['trangThaiHoanHang'] == 'WAITING_FOR_PICKUP'}"
+                                                      style="padding: 14px 18px; background: #e3f2fd; border-left: 4px solid #198754; border-radius: 8px; font-size: 13px; color: #1565c0; line-height: 1.6;">
+                                                     <div style="font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                                                         <i class="fas fa-truck-loading" style="font-size: 16px;"></i> Shop đã duyệt yêu cầu! Shipper GHN đang đến lấy hàng trả.
+                                                     </div>
+                                                     <div th:if="${order['ghnReturnOrderCode'] != null and !#strings.isEmpty(order['ghnReturnOrderCode'])}" 
+                                                          style="margin-top: 6px; font-weight: 600; color: #0d47a1;">
+                                                         <i class="fas fa-barcode"></i> Mã vận đơn thu hồi GHN: <span th:text="${order['ghnReturnOrderCode']}"></span>
+                                                     </div>
+                                                 </div>
+
+                                                 <!-- Step 5 & 6: PICKED_UP / RETURNING / DELIVERED_TO_SHOP -->
+                                                 <div th:if="${order['trangThaiHoanHang'] == 'PICKED_UP' or order['trangThaiHoanHang'] == 'RETURNING' or order['trangThaiHoanHang'] == 'DELIVERED_TO_SHOP'}"
+                                                      style="padding: 14px 18px; background: #e8f5e9; border-left: 4px solid #43a047; border-radius: 8px; font-size: 13px; color: #2e7d32; line-height: 1.6;">
+                                                     <div style="font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                                                         <i class="fas fa-shipping-fast" style="font-size: 16px;"></i> 
+                                                         <span th:text="${order['trangThaiHoanHang'] == 'DELIVERED_TO_SHOP' ? 'Kiện hàng đã giao thành công tới Shop. Shop đang kiểm tra hàng.' : 'Shipper GHN đã lấy hàng và đang chuyển về Shop.'}"></span>
+                                                     </div>
+                                                     <div th:if="${order['ghnReturnOrderCode'] != null}" style="margin-top: 6px; font-size: 12px; color: #1b5e20;">
+                                                         Mã vận đơn GHN: <strong th:text="${order['ghnReturnOrderCode']}"></strong>
+                                                     </div>
+                                                 </div>
+
+                                                 <!-- Step 7: REFUNDED (Đã Hoàn Tiền Cho Khách) -->
+                                                 <div th:if="${order['trangThaiHoanHang'] == 'REFUNDED'}"
+                                                      style="padding: 16px 20px; background: #f0fdf4; border: 1px solid #bbf7d0; border-left: 4px solid #16a34a; border-radius: 8px; font-size: 13px; color: #166534; line-height: 1.6;">
+                                                     <div style="font-weight: 700; font-size: 14px; display: flex; align-items: center; gap: 8px; color: #15803d;">
+                                                         <i class="fas fa-check-circle" style="font-size: 18px; color: #16a34a;"></i>
+                                                         <span>Thông báo: Đơn hàng đã được hoàn tiền thành công</span>
+                                                     </div>
+                                                     <div style="margin-top: 6px; color: #166534;">
+                                                         <span th:text="${order['phuongThucHoanTien'] == 'TIEN_MAT' ? 'Shop đã hoàn tất thủ tục hoàn tiền mặt cho đơn hàng này. Quý khách vui lòng kiểm tra tiền mặt đã nhận trực tiếp từ Shop.' : 'Shop đã hoàn tất thủ tục hoàn tiền cho đơn hàng này. Quý khách vui lòng kiểm tra số dư tài khoản ngân hàng hoặc phương thức thanh toán đã nhận tiền hoàn.'}">Shop đã hoàn tất thủ tục hoàn tiền cho đơn hàng này. Quý khách vui lòng kiểm tra số dư tài khoản ngân hàng hoặc phương thức thanh toán đã nhận tiền hoàn.</span>
+                                                     </div>
+                                                     <div style="margin-top: 12px; padding-top: 12px; border-top: 1px dashed #86efac; font-size: 13px; color: #14532d;">
+                                                         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px;">
+                                                             <div><strong>Số tiền hoàn:</strong> <span style="font-size: 15px; font-weight: 700; color: #dc2626;" th:text="${#numbers.formatDecimal(order['soTienHoan'] != null ? order['soTienHoan'] : order['tongTien'], 0, 'COMMA', 0, 'POINT')} + ' VNĐ'"></span></div>
+                                                             <div><strong>Phương thức hoàn:</strong> <span th:text="${order['phuongThucHoanTien'] == 'TIEN_MAT' ? 'Tiền mặt' : (order['phuongThucHoanTien'] == 'CHUYEN_KHOAN' ? 'Chuyển khoản ngân hàng' : (order['phuongThucHoanTien'] != null and !#strings.isEmpty(order['phuongThucHoanTien']) ? order['phuongThucHoanTien'] : 'Chuyển khoản ngân hàng'))}"></span></div>
+                                                             <div th:if="${order['maGiaoDichHoanTien'] != null and !#strings.isEmpty(order['maGiaoDichHoanTien'])}"><strong>Mã giao dịch hoàn:</strong> <code style="background: #dcfce7; padding: 2px 6px; border-radius: 4px; color: #166534; font-weight: 600;" th:text="${order['maGiaoDichHoanTien']}"></code></div>
+                                                             <div th:if="${order['thoiGianHoanTien'] != null and !#strings.isEmpty(order['thoiGianHoanTien'])}"><strong>Thời gian hoàn:</strong> <span th:text="${order['thoiGianHoanTien']}"></span></div>
+                                                         </div>
+                                                         <div th:if="${order['ghiChuHoanTien'] != null and !#strings.isEmpty(order['ghiChuHoanTien'])}" style="margin-top: 8px;">
+                                                             <strong>Ghi chú từ Shop:</strong> <span th:text="${order['ghiChuHoanTien']}"></span>
+                                                         </div>
+                                                         <div th:if="${order['anhChungTuHoanTien'] != null and !#strings.isEmpty(order['anhChungTuHoanTien'])}" style="margin-top: 10px;">
+                                                             <a th:href="${order['anhChungTuHoanTien']}" target="_blank" class="btn btn-sm" style="font-size: 12px; padding: 6px 14px; border-radius: 6px; background-color: #16a34a; color: #ffffff; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; font-weight: 600;">
+                                                                 <i class="fas fa-file-invoice-dollar"></i> <span th:text="${order['phuongThucHoanTien'] == 'TIEN_MAT' ? 'Xem biên nhận hoàn tiền mặt' : 'Xem chứng từ chuyển khoản hoàn tiền'}">Xem chứng từ hoàn tiền</span>
+                                                             </a>
+                                                         </div>
+                                                     </div>
+                                                 </div>
+
+                                                 <!-- Step 8: RETURNED / EXCHANGE -->
+                                                 <div th:if="${order['trangThaiHoanHang'] == 'RETURNED' or order['trangThaiHoanHang'] == 'EXCHANGE_STOCK_ALLOCATED' or order['trangThaiHoanHang'] == 'EXCHANGE_SHIPPING' or order['trangThaiHoanHang'] == 'EXCHANGED'}"
+                                                      style="padding: 14px 18px; background: #f4fbf7; border-left: 4px solid #198754; border-radius: 8px; font-size: 13px; color: #198754; line-height: 1.6;">
+                                                     <div style="font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                                                         <i class="fas fa-check-double" style="font-size: 16px;"></i>
+                                                         <span th:text="${order['trangThaiHoanHang'] == 'EXCHANGED' ? 'Đã hoàn tất đổi hàng thành công!' : (order['trangThaiHoanHang'] == 'EXCHANGE_SHIPPING' ? 'Sản phẩm thay thế đang trên đường giao tới bạn!' : (order['trangThaiHoanHang'] == 'EXCHANGE_STOCK_ALLOCATED' ? 'Shop đã chuẩn bị sản phẩm thay thế và đang tạo đơn giao hàng.' : (order['loaiYeuCauDoiTra'] == 'DOI' ? 'Shop đã kiểm tra kiện hàng và chuẩn bị sản phẩm đổi.' : 'Shop đã kiểm tra kiện hàng và nhập kho thành công. Đang tiến hành xử lý.')))}"></span>
+                                                     </div>
+                                                 </div>
+                                             </div>
+
+                                              <!-- Thông báo vận chuyển (chỉ khi đang giao / giao lại và chưa có yêu cầu trả hàng) -->
+                                              <div th:if="${(order['trangThaiDonHang'] == 'dang_giao' or order['trangThaiDonHang'] == 'giao_that_bai') and order['trangThaiHoanHang'] == null}"
+                                                  style="margin-top: 14px; padding: 10px 14px; background: #f8f9fa; border-left: 4px solid #90a4ae; border-radius: 4px; font-size: 13px; color: #546e7a;">
+                                                 <i class="fas fa-info-circle" style="margin-right: 6px;"></i>
+                                                 <span th:text="${order['trangThaiDonHang'] == 'giao_that_bai' ? 'Giao hàng không thành công (Khách hẹn giao lại hoặc sai địa chỉ). Đơn vị vận chuyển sẽ thử giao lại.' : 'Đơn hàng đang được vận chuyển, không thể hủy đơn.'}">Đơn hàng đang được vận chuyển, không thể hủy đơn.</span>
+                                              </div>
+
+                                            <!-- Thông báo đơn đã bị hủy -->
+                                            <div th:if="${order['trangThaiDonHang'] == 'da_huy'}"
+                                                 style="margin-top: 14px; padding: 12px 16px; background: #fff5f5; border-left: 4px solid #e53935; border-radius: 6px; font-size: 13px; color: #c62828; line-height: 1.6;">
+                                                 <div>
+                                                     <i class="fas fa-ban" style="margin-right: 6px;"></i>
+                                                     <strong>Trạng thái:</strong> Đơn hàng đã bị hủy.
+                                                 </div>
+                                                 <div style="margin-top: 8px; padding-top: 8px; border-top: 1px dashed rgba(229, 57, 53, 0.2); color: #7f1d1d;">
+                                                     <i class="fas fa-comment-dots" style="margin-right: 6px;"></i>
+                                                     <strong>Lý do hủy đơn hàng:</strong> 
+                                                     <span th:with="rawNote=${order['ghiChu']}"
+                                                            th:text="${rawNote != null and rawNote.contains('Lý do hủy:') and !#strings.isEmpty(rawNote.substring(rawNote.lastIndexOf('Lý do hủy:') + 10).trim()) 
+                                                                      ? rawNote.substring(rawNote.lastIndexOf('Lý do hủy:') + 10).trim() 
+                                                                      : 'Không cung cấp lý do'}"></span>
+                                                 </div>
+
+                                                 <!-- Trạng thái chờ hoàn tiền -->
+                                                 <div th:if="${order['trangThaiThanhToan'] == 'CHO_HOAN_TIEN' or order['refundStatus'] == 'PENDING'}"
+                                                      style="margin-top: 8px; padding: 10px 12px; background: #fff8e1; border: 1px solid #ffe082; border-radius: 6px; color: #b78103; font-size: 12px;">
+                                                     <i class="fas fa-hourglass-half" style="margin-right: 6px;"></i>
+                                                     <strong>Thông tin hoàn tiền:</strong> Đơn hàng đã được ghi nhận hủy. Shop đang tiến hành thủ tục hoàn tiền cho bạn.
+                                                 </div>
+
+                                                 <!-- Đã hoàn tiền thành công -->
+                                                 <div th:if="${order['trangThaiThanhToan'] == 'REFUNDED' or order['trangThaiThanhToan'] == 'DA_HOAN_TIEN' or (order['anhChungTuHoanTien'] != null and !#strings.isEmpty(order['anhChungTuHoanTien']))}"
+                                                      style="margin-top: 8px; padding: 12px 14px; background: #f4fbf7; border: 1px solid #c3e6cb; border-radius: 6px; color: #155724;">
+                                                     <div style="font-weight: 700; display: flex; align-items: center; gap: 6px; margin-bottom: 8px;">
+                                                         <i class="fas fa-check-circle" style="color: #198754;"></i>
+                                                         <span>Shop đã hoàn tiền thành công cho đơn hàng này!</span>
+                                                     </div>
+                                                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; font-size: 12px;">
+                                                         <div><strong>Số tiền hoàn:</strong> <span style="font-size: 13px; font-weight: 700; color: #d9534f;" th:text="${#numbers.formatDecimal(order['soTienHoan'] != null ? order['soTienHoan'] : order['tongTien'], 0, 'COMMA', 0, 'POINT')} + 'đ'"></span></div>
+                                                         <div th:if="${order['phuongThucHoanTien'] != null and !#strings.isEmpty(order['phuongThucHoanTien'])}"><strong>Phương thức:</strong> <span th:text="${order['phuongThucHoanTien'] == 'CHUYEN_KHOAN' ? 'Chuyển khoản ngân hàng' : (order['phuongThucHoanTien'] == 'TIEN_MAT' ? 'Tiền mặt' : order['phuongThucHoanTien'])}"></span></div>
+                                                         <div th:if="${order['maGiaoDichHoanTien'] != null and !#strings.isEmpty(order['maGiaoDichHoanTien'])}"><strong>Mã giao dịch:</strong> <code th:text="${order['maGiaoDichHoanTien']}"></code></div>
+                                                         <div th:if="${order['thoiGianHoanTien'] != null and !#strings.isEmpty(order['thoiGianHoanTien'])}"><strong>Thời gian:</strong> <span th:text="${order['thoiGianHoanTien']}"></span></div>
+                                                     </div>
+                                                     <div th:if="${order['ghiChuHoanTien'] != null and !#strings.isEmpty(order['ghiChuHoanTien'])}" style="margin-top: 6px; font-size: 12px;">
+                                                         <strong>Ghi chú từ Shop:</strong> <span th:text="${order['ghiChuHoanTien']}"></span>
+                                                     </div>
+                                                     <div th:if="${order['anhChungTuHoanTien'] != null and !#strings.isEmpty(order['anhChungTuHoanTien'])}" style="margin-top: 8px;">
+                                                         <a th:href="${order['anhChungTuHoanTien']}" target="_blank" class="btn btn-sm btn-outline-success" style="font-size: 11px; padding: 4px 10px; border-radius: 4px; border: 1px solid #198754; color: #198754; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+                                                             <i class="fas fa-file-invoice-dollar"></i> <span th:text="${order['phuongThucHoanTien'] == 'TIEN_MAT' ? 'Xem biên nhận hoàn tiền mặt' : 'Xem chứng từ chuyển khoản'}">Xem chứng từ chuyển khoản</span>
+                                                         </a>
+                                                     </div>
+                                                 </div>
+                                             </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- ===== Tiến trình đơn hàng (Timeline động) ===== -->
+                                    <div class="dash__box dash__box--shadow dash__box--radius dash__box--bg-white u-s-m-b-30">
+                                        <div class="dash__pad-2">
+                                            <div class="manage-o">
+                                                <div class="manage-o__header u-s-m-b-30">
+                                                    <div class="manage-o__icon">
+                                                        <i class="fas fa-box u-s-m-r-5"></i>
+                                                        <span class="manage-o__text">Tiến trình đơn hàng</span>
+                                                    </div>
+                                                </div>
+                                                <div class="dash-l-r" style="margin-bottom: 16px;">
+                                                      <div class="manage-o__text u-c-secondary" th:text="'Dự kiến giao: ' + ${#temporals.format(order['ngayGiao'], 'dd/MM/yyyy')}">Dự kiến giao: 26 Oct 2016</div>
+                                                      <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 6px;">
+                                                          <div class="manage-o__icon">
+                                                              <i class="fas fa-truck u-s-m-r-5"></i>
+                                                              <span class="manage-o__text" th:text="${order['phuongThucVanChuyen']}">Standard</span>
+                                                          </div>
+                                                          <div th:if="${order['ghnOrderCode'] != null and !#strings.isEmpty(order['ghnOrderCode'])}" 
+                                                               style="font-size: 13px; color: #2ec155; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; margin-top: 4px;">
+                                                              <i class="fas fa-barcode"></i>
+                                                              <span th:text="'Mã vận đơn GHN: ' + ${order['ghnOrderCode']}">Mã vận đơn GHN: LP290C8B</span>
+                                                              <span th:if="${order['ghnStatusLabel'] != null and !#strings.isEmpty(order['ghnStatusLabel'])}" 
+                                                                    style="background: #e8f5e9; color: #2e7d32; font-size: 11px; padding: 2px 8px; border-radius: 12px; font-weight: 600;"
+                                                                    th:text="${order['ghnStatusLabel']}">Đang lấy hàng</span>
+                                                          </div>
+                                                          <div th:if="${order['ghnReturnOrderCode'] != null and !#strings.isEmpty(order['ghnReturnOrderCode'])}" 
+                                                               style="font-size: 13px; color: #0288d1; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; margin-top: 4px;">
+                                                              <i class="fas fa-undo-alt"></i>
+                                                              <span th:text="'Mã GHN Thu Hồi: ' + ${order['ghnReturnOrderCode']}">Mã GHN Thu Hồi: LP290C8B</span>
+                                                              <span th:if="${order['trangThaiHoanHangLabel'] != null and !#strings.isEmpty(order['trangThaiHoanHangLabel'])}" 
+                                                                    style="background: #e1f5fe; color: #0288d1; font-size: 11px; padding: 2px 8px; border-radius: 12px; font-weight: 600;"
+                                                                    th:text="${order['trangThaiHoanHangLabel']}">Hàng đã giao về đến shop</span>
+                                                          </div>
+                                                      </div>
+                                                  </div>
+
+                                                <!-- Timeline - hiển thị theo trạng thái -->
+                                                 <!-- Trường hợp 1: ĐÃ HỦY (Chỉ khi KHÔNG PHẢI đơn hoàn trả hàng) -->
+                                                 <div th:if="${order['trangThaiHoanHang'] == null and order['trangThaiDonHang'] == 'da_huy'}" class="timeline-stepper">
+                                                     
+                                                     <div class="timeline-stepper-step finish">
+                                                         <div class="timeline-stepper-icon-circle">
+                                                             <i class="fas fa-file-invoice"></i>
+                                                         </div>
+                                                         <span class="timeline-stepper-label">Đơn Hàng Đã Đặt</span>
+                                                         <span class="timeline-stepper-time" th:text="${order.ngayDat != null ? #temporals.format(order.ngayDat, 'HH:mm dd-MM-yyyy') : ''}"></span>
+                                                     </div>
+                                                     
+                                                     <div class="timeline-stepper-step finish" style="--step-color: #e53935;">
+                                                         <div class="timeline-stepper-icon-circle" style="border-color: #e53935; background-color: #e53935; color: #fff;">
+                                                             <i class="fas fa-times-circle"></i>
+                                                         </div>
+                                                         <span class="timeline-stepper-label" style="color: #e53935;">Đơn Hàng Đã Hủy</span>
+                                                         <span class="timeline-stepper-time" style="color: #e53935;" th:text="${order['ngayHuy'] != null ? #temporals.format(order['ngayHuy'], 'HH:mm dd-MM-yyyy') : ''}"></span>
+                                                     </div>
+                                                     
+                                                     <div class="timeline-stepper-step">
+                                                         <div class="timeline-stepper-icon-circle">
+                                                             <i class="fas fa-check-double"></i>
+                                                         </div>
+                                                         <span class="timeline-stepper-label">Hoàn Tất</span>
+                                                         <span class="timeline-stepper-time"></span>
+                                                     </div>
+                                                 </div>
+
+                                                 <!-- Trường hợp 2: BÌNH THƯỜNG (Chỉ khi KHÔNG PHẢI đơn hoàn trả hàng) -->
+                                                 <div th:if="${order['trangThaiHoanHang'] == null and order['trangThaiDonHang'] != 'da_huy'}" class="timeline-stepper">
+                                                    
+                                                    <!-- Bước 1: Đơn Hàng Đã Đặt -->
+                                                    <div class="timeline-stepper-step finish">
+                                                        <div class="timeline-stepper-icon-circle">
+                                                            <i class="fas fa-file-invoice"></i>
+                                                        </div>
+                                                        <span class="timeline-stepper-label">Đơn Hàng Đã Đặt</span>
+                                                        <span class="timeline-stepper-time" th:text="${order.ngayDat != null ? #temporals.format(order.ngayDat, 'HH:mm dd-MM-yyyy') : ''}"></span>
+                                                    </div>
+                                                    
+                                                    <!-- Bước 2: Đã Xác Nhận / Thanh Toán -->
+                                                     <div th:class="'timeline-stepper-step ' + 
+                                                          (${order['trangThaiDonHang'] == 'da_xac_nhan' or order['trangThaiDonHang'] == 'dang_chuan_bi_hang' or order['trangThaiDonHang'] == 'san_sang_giao' or order['trangThaiDonHang'] == 'da_tao_van_don_ghn' or order['trangThaiDonHang'] == 'da_ban_giao_ghn' or order['trangThaiDonHang'] == 'dang_lay_hang' or order['trangThaiDonHang'] == 'dang_giao' or order['trangThaiDonHang'] == 'giao_that_bai' or order['trangThaiDonHang'] == 'da_giao' or order['trangThaiDonHang'] == 'hoan_thanh' or order['trangThaiThanhToan'] == 'DA_THANH_TOAN' or order['trangThaiThanhToan'] == 'CHO_HOAN_TIEN' or order['status'] == 'paid' ? 'finish' : ''})">
+                                                        <div class="timeline-stepper-icon-circle">
+                                                            <i class="fas fa-money-bill-wave"></i>
+                                                        </div>
+                                                        <span class="timeline-stepper-label" th:text="${(order.trangThaiThanhToan == 'DA_THANH_TOAN' or order.trangThaiThanhToan == 'CHO_HOAN_TIEN' or order.status == 'paid') ? 'Đơn Hàng Đã Thanh Toán (' + #numbers.formatDecimal(order.tongTien, 0, 'COMMA', 0, 'POINT') + 'đ)' : 'Đã Xác Nhận'}">Đã xác nhận</span>
+                                                        <span class="timeline-stepper-time" th:text="${(order['trangThaiThanhToan'] == 'DA_THANH_TOAN' or order['trangThaiThanhToan'] == 'CHO_HOAN_TIEN' or order['status'] == 'paid') ? (order['ngayThanhToan'] != null ? #temporals.format(order['ngayThanhToan'], 'HH:mm dd-MM-yyyy') : '') : (order['ngayXacNhan'] != null ? #temporals.format(order['ngayXacNhan'], 'HH:mm dd-MM-yyyy') : '')}"></span>
+                                                    </div>
+                                                    
+                                                    <!-- Bước 3: Đang Chuẩn Bị / Lấy Hàng / Bàn Giao GHN -->
+                                                     <div th:class="'timeline-stepper-step ' + 
+                                                          (${order['trangThaiDonHang'] == 'dang_chuan_bi_hang' or order['trangThaiDonHang'] == 'san_sang_giao' or order['trangThaiDonHang'] == 'da_tao_van_don_ghn' or order['trangThaiDonHang'] == 'da_ban_giao_ghn' or order['trangThaiDonHang'] == 'dang_lay_hang' or order['trangThaiDonHang'] == 'dang_giao' or order['trangThaiDonHang'] == 'giao_that_bai' or order['trangThaiDonHang'] == 'da_giao' or order['trangThaiDonHang'] == 'hoan_thanh' ? 'finish' : ''})">
+                                                        <div class="timeline-stepper-icon-circle">
+                                                            <i class="fas fa-box-open"></i>
+                                                        </div>
+                                                        <span class="timeline-stepper-label" th:text="${order['trangThaiDonHang'] == 'da_ban_giao_ghn' ? 'Đã Lấy Hàng' : (order['trangThaiDonHang'] == 'da_tao_van_don_ghn' ? 'Đã Tạo Vận Đơn' : (order['trangThaiDonHang'] == 'san_sang_giao' ? 'Sẵn Sàng Giao' : (order['trangThaiDonHang'] == 'dang_chuan_bi_hang' ? 'Đang Chuẩn Bị Hàng' : 'Đang Lấy Hàng')))}">Đang Lấy Hàng</span>
+                                                        <span class="timeline-stepper-time" th:text="${order['ngayLayHang'] != null ? #temporals.format(order['ngayLayHang'], 'HH:mm dd-MM-yyyy') : ''}"></span>
+                                                    </div>
+                                                    
+                                                    <!-- Bước 4: Đang Giao / Giao Thất Bại -->
+                                                     <div th:class="'timeline-stepper-step ' + 
+                                                          (${order['trangThaiDonHang'] == 'dang_giao' or order['trangThaiDonHang'] == 'giao_that_bai' or order['trangThaiDonHang'] == 'da_giao' or order['trangThaiDonHang'] == 'hoan_thanh' ? (order['trangThaiDonHang'] == 'giao_that_bai' ? 'finish active' : 'finish') : ''})">
+                                                        <div class="timeline-stepper-icon-circle" th:style="${order['trangThaiDonHang'] == 'giao_that_bai' ? 'border-color: #e53935; background-color: #e53935; color: #fff;' : ''}">
+                                                            <i th:class="${order['trangThaiDonHang'] == 'giao_that_bai' ? 'fas fa-exclamation-triangle' : 'fas fa-truck'}"></i>
+                                                        </div>
+                                                        <span class="timeline-stepper-label" th:style="${order['trangThaiDonHang'] == 'giao_that_bai' ? 'color: #e53935;' : ''}" th:text="${order['trangThaiDonHang'] == 'giao_that_bai' ? 'Giao Thất Bại (Giao lại)' : 'Đang Giao'}">Đang Giao</span>
+                                                        <span class="timeline-stepper-time" th:text="${order['ngayGiaoDVVC'] != null ? #temporals.format(order['ngayGiaoDVVC'], 'HH:mm dd-MM-yyyy') : ''}"></span>
+                                                    </div>
+                                                    
+                                                    <!-- Bước 5: Đã giao thành công -->
+                                                     <div th:class="'timeline-stepper-step ' + 
+                                                          (${order['trangThaiDonHang'] == 'da_giao' or order['trangThaiDonHang'] == 'hoan_thanh' ? 'finish' : ''})">
+                                                        <div class="timeline-stepper-icon-circle">
+                                                            <i class="fas fa-inbox"></i>
+                                                        </div>
+                                                        <span class="timeline-stepper-label">Đã Giao Thành Công</span>
+                                                        <span class="timeline-stepper-time" th:text="${order['ngayGiaoThanhCong'] != null ? #temporals.format(order['ngayGiaoThanhCong'], 'HH:mm dd-MM-yyyy') : ''}"></span>
+                                                    </div>
+                                                    
+                                                    <!-- Bước 6: Đánh Giá -->
+                                                     <div th:class="'timeline-stepper-step ' + 
+                                                          (${order['trangThaiDonHang'] == 'da_giao' or order['trangThaiDonHang'] == 'hoan_thanh' ? 'finish active' : ''})">
+                                                        <div class="timeline-stepper-icon-circle">
+                                                            <i class="fas fa-star"></i>
+                                                        </div>
+                                                        <span class="timeline-stepper-label">Đánh Giá</span>
+                                                        <span class="timeline-stepper-time"></span>
+                                                    </div>
+                                                </div>
+
+                                                 <!-- Trường hợp: ĐỔI TRẢ & HOÀN TIỀN (Stepper 5 bước) -->
+                                                 <div th:if="${order['trangThaiHoanHang'] != null}" class="timeline-stepper timeline-stepper--return">
+                                                     
+                                                     <!-- Bước 1: Gửi Yêu Cầu -->
+                                                     <div class="timeline-stepper-step finish">
+                                                         <div class="timeline-stepper-icon-circle">
+                                                             <i th:class="${order['loaiYeuCauDoiTra'] == 'DOI' ? 'fas fa-sync-alt' : 'fas fa-undo'}"></i>
+                                                         </div>
+                                                         <span class="timeline-stepper-label" th:text="${order['loaiYeuCauDoiTra'] == 'DOI' ? 'Gửi Yêu Cầu Đổi Hàng' : 'Gửi Yêu Cầu Trả Hàng'}">Gửi Yêu Cầu</span>
+                                                         <span class="timeline-stepper-time"></span>
+                                                     </div>
+
+                                                     <!-- Bước 2: Shop Duyệt / Thu Hồi -->
+                                                     <div th:class="'timeline-stepper-step ' + (${order['trangThaiHoanHang'] == 'WAITING_FOR_PICKUP' or order['trangThaiHoanHang'] == 'PICKED_UP' or order['trangThaiHoanHang'] == 'RETURNING' or order['trangThaiHoanHang'] == 'DELIVERED_TO_SHOP' or order['trangThaiHoanHang'] == 'RETURNED' or order['trangThaiHoanHang'] == 'PENDING_RETURN' or order['trangThaiHoanHang'] == 'EXCHANGE_STOCK_ALLOCATED' or order['trangThaiHoanHang'] == 'EXCHANGE_SHIPPING' or order['trangThaiHoanHang'] == 'EXCHANGED' or order['trangThaiHoanHang'] == 'REFUNDED' ? 'finish' : (order['trangThaiHoanHang'] == 'REJECTED' ? 'finish' : '')})">
+                                                         <div class="timeline-stepper-icon-circle" th:style="${order['trangThaiHoanHang'] == 'REJECTED' ? 'border-color: #e53935; background-color: #e53935; color: #fff;' : ''}">
+                                                             <i th:class="${order['trangThaiHoanHang'] == 'REJECTED' ? 'fas fa-times-circle' : 'fas fa-user-check'}"></i>
+                                                         </div>
+                                                         <span class="timeline-stepper-label" th:style="${order['trangThaiHoanHang'] == 'REJECTED' ? 'color: #e53935;' : ''}" th:text="${order['trangThaiHoanHang'] == 'REJECTED' ? 'Shop Từ Chối' : 'Shop Duyệt / Thu Hồi'}">Shop Duyệt</span>
+                                                         <span class="timeline-stepper-time"></span>
+                                                     </div>
+
+                                                     <!-- Bước 3: Đang Vận Chuyển Trả -->
+                                                     <div th:class="'timeline-stepper-step ' + (${order['trangThaiHoanHang'] == 'PICKED_UP' or order['trangThaiHoanHang'] == 'RETURNING' or order['trangThaiHoanHang'] == 'DELIVERED_TO_SHOP' or order['trangThaiHoanHang'] == 'RETURNED' or order['trangThaiHoanHang'] == 'PENDING_RETURN' or order['trangThaiHoanHang'] == 'EXCHANGE_STOCK_ALLOCATED' or order['trangThaiHoanHang'] == 'EXCHANGE_SHIPPING' or order['trangThaiHoanHang'] == 'EXCHANGED' or order['trangThaiHoanHang'] == 'REFUNDED' ? 'finish' : ''})">
+                                                         <div class="timeline-stepper-icon-circle">
+                                                             <i class="fas fa-truck-loading"></i>
+                                                         </div>
+                                                         <span class="timeline-stepper-label">Đang Trả Về Shop</span>
+                                                         <span class="timeline-stepper-time"></span>
+                                                     </div>
+
+                                                     <!-- Bước 4: Shop Nhận & Kiểm Kho -->
+                                                     <div th:class="'timeline-stepper-step ' + (${order['trangThaiHoanHang'] == 'RETURNED' or order['trangThaiHoanHang'] == 'PENDING_RETURN' or order['trangThaiHoanHang'] == 'EXCHANGE_STOCK_ALLOCATED' or order['trangThaiHoanHang'] == 'EXCHANGE_SHIPPING' or order['trangThaiHoanHang'] == 'EXCHANGED' or order['trangThaiHoanHang'] == 'REFUNDED' ? 'finish' : ''})">
+                                                         <div class="timeline-stepper-icon-circle">
+                                                             <i class="fas fa-boxes"></i>
+                                                         </div>
+                                                         <span class="timeline-stepper-label">Shop Nhận &amp; Kiểm Kho</span>
+                                                         <span class="timeline-stepper-time"></span>
+                                                     </div>
+
+                                                     <!-- Bước 5: Hoàn Tất Đổi / Trả -->
+                                                     <div th:class="'timeline-stepper-step ' + (${order['trangThaiHoanHang'] == 'REFUNDED' or order['trangThaiHoanHang'] == 'EXCHANGED' ? 'finish active' : (order['trangThaiHoanHang'] == 'EXCHANGE_SHIPPING' or order['trangThaiHoanHang'] == 'EXCHANGE_STOCK_ALLOCATED' ? 'finish' : '')})">
+                                                         <div class="timeline-stepper-icon-circle">
+                                                             <i th:class="${order['loaiYeuCauDoiTra'] == 'DOI' ? 'fas fa-sync-alt' : 'fas fa-hand-holding-usd'}"></i>
+                                                         </div>
+                                                         <span class="timeline-stepper-label" th:text="${order['loaiYeuCauDoiTra'] == 'DOI' ? (order['trangThaiHoanHang'] == 'EXCHANGED' ? 'Đổi Hàng Thành Công' : (order['trangThaiHoanHang'] == 'EXCHANGE_SHIPPING' ? 'Đang Giao Hàng Mới' : 'Chuẩn Bị Hàng Đổi')) : 'Hoàn Tiền Thành Công'}">Hoàn Tiền Thành Công</span>
+                                                         <span class="timeline-stepper-time" th:text="${order['thoiGianHoanTien'] != null ? order['thoiGianHoanTien'] : ''}"></span>
+                                                     </div>
+                                                 </div>
+
+                                                <!-- Thông báo nhận hàng và nút đánh giá -->
+                                                <div th:if="${(order['trangThaiDonHang'] == 'da_giao' or order['trangThaiDonHang'] == 'hoan_thanh') and order['trangThaiHoanHang'] == null}" 
+                                                     style="margin-top: 15px; margin-bottom: 15px; padding: 15px 20px; background-color: #f4fbf7; border: 1px solid #c2ebd6; border-left: 4px solid #198754; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+                                                    <div style="display: flex; align-items: center; color: #198754; font-size: 14px; font-weight: 500;">
+                                                        <i class="fas fa-check-circle" style="color: #198754; font-size: 20px; margin-right: 10px;"></i>
+                                                        <span>Bạn đã nhận được hàng, vui lòng để lại đánh giá cho shop nhé</span>
+                                                    </div>
+                                                    <div>
+                                                        <a th:href="@{'/san-pham/' + ${orderItems[0].sanPhamChiTiet.sanPham.id} + '#pd-rev'}" 
+                                                           class="btn btn--e-brand-shadow" 
+                                                           style="padding: 8px 16px; font-size: 13px; text-decoration: none; border-radius: 4px; display: inline-block; color: white;">
+                                                            Đánh giá ngay
+                                                        </a>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Danh sách sản phẩm trong đơn hàng -->
+                                                <div class="manage-o__description">
+                                                    <div class="manage-o__description-item"
+                                                         th:each="item : ${orderItems}"
+                                                         style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f0f0f0; padding: 15px 0;">
+                                                         <div class="description__container" style="display: flex; align-items: center;">
+                                                             <div class="description__img-wrap" style="width: 80px; height: 80px; margin-right: 15px; border-radius: 6px; overflow: hidden; border: 1px solid #eee;">
+                                                                 <img class="u-img-fluid"
+                                                                      th:src="@{${item.sanPhamChiTiet.hinhAnhUrl}}"
+                                                                      onerror="this.onerror=null; this.src='/images/placeholder.png';"
+                                                                      alt="Ảnh sản phẩm"
+                                                                      style="width: 100%; height: 100%; object-fit: cover;">
+                                                             </div>
+                                                             <div>
+                                                                 <div class="description-title"
+                                                                      th:text="${item.tenSanPhamSnapshot != null ? item.tenSanPhamSnapshot : item.sanPhamChiTiet.sanPham.tenSanPham}"
+                                                                      style="font-weight: 700; color: #333; margin-bottom: 4px;"></div>
+                                                                 <div style="font-size: 12px; color: #888;" th:if="${item.thuocTinhSnapshot != null and item.thuocTinhSnapshot != 'Mặc định' and !#strings.isEmpty(item.thuocTinhSnapshot)}"><span th:text="${#strings.replace(item.thuocTinhSnapshot, 'Mức cảng:', 'Sức căng khuyến nghị:')}"></span></div>
+                                                                 <div th:if="${item.tenDotGiamGia != null and item.phanTramGiam > 0}" style="margin-top: 4px;">
+                                                                     <span class="badge" style="font-size: 10px; background-color: #e53935; color: white; padding: 2px 6px; border-radius: 4px;"
+                                                                           th:text="${item.tenDotGiamGia} + ' (-' + ${item.phanTramGiam} + '%)'">Khuyến mãi</span>
+                                                                 </div>
+                                                             </div>
+                                                         </div>
+                                                         <div class="description__info-wrap" style="display: flex; gap: 30px; align-items: center;">
+                                                             <div class="info-detail-col">
+                                                                 <span>Đơn giá</span>
+                                                                 <span class="info-detail-val">
+                                                                     <span th:if="${item.giaNiemYet != null and item.giaNiemYet > item.donGia}" 
+                                                                           th:text="${#numbers.formatDecimal(item.giaNiemYet, 0, 'COMMA', 0, 'POINT')} + ' đ'"
+                                                                           style="text-decoration: line-through; font-size: 11px; color: #999; margin-bottom: 2px; display: block;"></span>
+                                                                     <span th:text="${#numbers.formatDecimal(item.donGia, 0, 'COMMA', 0, 'POINT')} + ' đ'">16.000 đ</span>
+                                                                 </span>
+                                                             </div>
+                                                             <div class="info-detail-col">
+                                                                 <span>Số lượng</span>
+                                                                 <span class="info-detail-val text-center" th:text="${item.soLuong}">1</span>
+                                                             </div>
+                                                             <div class="info-detail-col">
+                                                                 <span>Thành tiền</span>
+                                                                 <span class="info-detail-val price"
+                                                                       th:text="${#numbers.formatDecimal(item.donGia * item.soLuong, 0, 'COMMA', 0, 'POINT')} + ' đ'">16.000 đ</span>
+                                                             </div>
+                                                            <div th:if="${order['trangThaiDonHang'] == 'da_giao' or order['trangThaiDonHang'] == 'hoan_thanh'}">
+                                                                <a th:href="@{'/san-pham/' + ${item.sanPhamChiTiet.sanPham.id} + '#pd-rev'}" 
+                                                                   class="btn btn--e-brand-shadow" 
+                                                                   style="padding: 8px 16px; font-size: 12px; text-decoration: none; border-radius: 6px; display: inline-block; color: white; background-color: #ff4500;">
+                                                                    Đánh giá
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- ===== Địa chỉ & Tóm tắt ===== -->
+                                    <div class="row">
+                                        <div class="col-lg-6">
+                                            <div class="dash__box dash__box--bg-white dash__box--shadow u-s-m-b-30">
+                                                <div class="dash__pad-3">
+                                                    <h2 class="dash__h2 u-s-m-b-8">Địa chỉ giao hàng</h2>
+                                                    <h2 class="dash__h2 u-s-m-b-8" th:text="${order.diaChiGiao.hoTen}">John Doe</h2>
+                                                    <span class="dash__text-2" th:text="${order.diaChiGiao.diaChiDayDu}">4247 Ashford Drive</span>
+                                                    <br>
+                                                    <span class="dash__text-2" th:text="${order.diaChiGiao.soDienThoai}">(+0) 900901904</span>
+                                                </div>
+                                            </div>
+                                            <div class="dash__box dash__box--bg-white dash__box--shadow dash__box--w">
+                                                <div class="dash__pad-3">
+                                                    <h2 class="dash__h2 u-s-m-b-8">Địa chỉ thanh toán</h2>
+                                                    <h2 class="dash__h2 u-s-m-b-8" th:text="${order.diaChiThanhToan.hoTen}">John Doe</h2>
+                                                    <span class="dash__text-2" th:text="${order.diaChiThanhToan.diaChiDayDu}">4247 Ashford Drive</span>
+                                                    <br>
+                                                    <span class="dash__text-2" th:text="${order.diaChiThanhToan.soDienThoai}">(+0) 900901904</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-6">
+                                            <div class="dash__box dash__box--bg-white dash__box--shadow u-h-100">
+                                                <div class="dash__pad-3">
+                                                    <h2 class="dash__h2 u-s-m-b-8">Tóm tắt đơn hàng</h2>
+                                                    <div class="dash-l-r u-s-m-b-8">
+                                                        <div class="manage-o__text-2 u-c-secondary">Tạm tính</div>
+                                                        <div class="manage-o__text-2 u-c-secondary"
+                                                             th:text="${#numbers.formatDecimal(order.tongTien - order.phiVanChuyen + order.soTienGiamVoucher, 0, 'COMMA', 0, 'POINT')} + ' đ'">16.000 đ</div>
+                                                    </div>
+                                                    <div class="dash-l-r u-s-m-b-8" th:if="${order.soTienGiamVoucher > 0}">
+                                                        <div class="manage-o__text-2 text-success" th:text="'Voucher giảm (' + ${order.maVoucherApDung} + ')'">Voucher giảm</div>
+                                                        <div class="manage-o__text-2 text-success"
+                                                             th:text="'-' + ${#numbers.formatDecimal(order.soTienGiamVoucher, 0, 'COMMA', 0, 'POINT')} + ' đ'">-0 đ</div>
+                                                    </div>
+                                                    <div class="dash-l-r u-s-m-b-8">
+                                                        <div class="manage-o__text-2 u-c-secondary">Phí vận chuyển</div>
+                                                        <div class="manage-o__text-2 u-c-secondary"
+                                                             th:text="${#numbers.formatDecimal(order.phiVanChuyen, 0, 'COMMA', 0, 'POINT')} + ' đ'">30.000 đ</div>
+                                                    </div>
+                                                    <div class="dash-l-r u-s-m-b-8" style="border-top: 1px solid #f0f0f0; padding-top: 10px;">
+                                                        <div class="manage-o__text-2 u-c-secondary" style="font-weight: 700;">Tổng cộng</div>
+                                                        <div class="manage-o__text-2" style="font-weight: 700; color: #e53935 !important;"
+                                                             th:text="${#numbers.formatDecimal(order.tongTien, 0, 'COMMA', 0, 'POINT')} + ' đ'">46.000 đ</div>
+                                                    </div>
+                                                    <div class="mt-3 pt-3 border-top" style="font-size: 13px; line-height: 1.6;">
+                                                        <div class="fw-bold text-dark mb-2"><i class="fas fa-credit-card me-1 text-danger"></i>Thông tin thanh toán</div>
+                                                        <div><strong>Mã đơn hàng:</strong> <span th:text="${order.maDonHang}">DHSVN...</span></div>
+                                                        <div th:if="${order.maGiaoDich != null and !#strings.isEmpty(order.maGiaoDich)}">
+                                                            <strong>Mã giao dịch thanh toán:</strong> <span th:text="${order.maGiaoDich}">SIM_...</span>
+                                                        </div>
+                                                        <div th:if="${order.transactionId != null and !#strings.isEmpty(order.transactionId)}">
+                                                            <strong>Transaction ID:</strong> <span th:text="${order.transactionId}">SIM_...</span>
+                                                        </div>
+                                                        <div><strong>Phương thức thanh toán:</strong> <span th:text="${order.phuongThucThanhToan}">COD</span></div>
+                                                        <div th:if="${order['phuongThucHoanTien'] != null and !#strings.isEmpty(order['phuongThucHoanTien'])}">
+                                                            <strong>Phương thức hoàn tiền:</strong> 
+                                                            <span class="badge" th:classappend="${order['phuongThucHoanTien'] == 'TIEN_MAT' ? 'bg-success text-white' : 'bg-primary text-white'}" th:text="${order['phuongThucHoanTien'] == 'TIEN_MAT' ? 'Tiền mặt' : (order['phuongThucHoanTien'] == 'CHUYEN_KHOAN' ? 'Chuyển khoản ngân hàng' : order['phuongThucHoanTien'])}">Tiền mặt</span>
+                                                        </div>
+                                                        <div>
+                                                            <strong>Trạng thái thanh toán:</strong> 
+                                                            <span class="badge" th:classappend="${order.trangThaiThanhToan == 'DA_THANH_TOAN' ? 'bg-success' : (order.trangThaiThanhToan == 'CHO_HOAN_TIEN' ? 'bg-warning text-dark' : (order.trangThaiThanhToan == 'DA_HOAN_TIEN' or order.trangThaiThanhToan == 'REFUNDED' ? 'bg-info text-white' : (order.trangThaiThanhToan == 'HUY' or order.trangThaiThanhToan == 'CANCELLED' ? 'bg-danger' : 'bg-warning text-dark')))}" th:text="${order.trangThaiThanhToan == 'DA_THANH_TOAN' ? 'Đã thanh toán' : (order.trangThaiThanhToan == 'CHO_HOAN_TIEN' ? 'Chờ hoàn tiền' : (order.trangThaiThanhToan == 'DA_HOAN_TIEN' or order.trangThaiThanhToan == 'REFUNDED' ? 'Đã hoàn tiền' : (order.trangThaiThanhToan == 'HUY' or order.trangThaiThanhToan == 'CANCELLED' ? 'Đã hủy' : 'Chờ thanh toán')))}">Chờ thanh toán</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- End Địa chỉ & Tóm tắt -->
+
+                                </div>
+                                <!-- End Main Content -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!--====== End - Section 2 ======-->
+        </div>
+        <!--====== End - App Content ======-->
+
+        <!--====== Main Footer ======-->
+        <footer>
+            <div th:replace="~{layout/footer :: footer}"></div>
+        </footer>
+    </div>
+    <!--====== End - Main App ======-->
+
+
+    <!-- =============================================
+         MODAL XÁC NHẬN HỦY ĐƠN
+    ============================================= -->
+    <div class="cancel-modal-overlay" id="cancelModalOverlay" onclick="dongModalHuyDon(event)">
+        <div class="cancel-modal" onclick="event.stopPropagation()">
+            <span class="cancel-modal__icon">🗑️</span>
+            <div class="cancel-modal__title">Xác nhận hủy đơn hàng</div>
+            <div class="cancel-modal__desc" id="cancelModalDesc">
+                Bạn có chắc chắn muốn hủy đơn hàng <strong id="cancelOrderCode"></strong> không?<br>
+                <span style="color: #e53935; font-size: 13px;">Thao tác này không thể khôi phục lại.</span>
+            </div>
+
+            <!-- Thêm ô chọn lý do hủy -->
+            <div style="text-align: left; margin: 18px 0; font-family: inherit;">
+                <label for="cancelReasonSelect" style="display: block; font-size: 13px; font-weight: 600; color: #444; margin-bottom: 8px;">
+                    Vui lòng chọn lý do hủy đơn:
+                </label>
+                <select id="cancelReasonSelect" onchange="toggleCancelReasonTextarea()" style="width: 100%; height: 40px; padding: 0 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; color: #333; outline: none; background-color: #fff; transition: border-color 0.2s;">
+                    <option value="Muốn đổi sản phẩm/màu sắc/kích thước khác">Muốn đổi sản phẩm/màu sắc/kích thước khác</option>
+                    <option value="Thay đổi địa chỉ nhận hàng/thông tin liên hệ">Thay đổi địa chỉ nhận hàng/thông tin liên hệ</option>
+                    <option value="Không còn nhu cầu mua nữa">Không còn nhu cầu mua nữa</option>
+                    <option value="Tìm thấy cửa hàng khác rẻ hơn">Tìm thấy cửa hàng khác rẻ hơn</option>
+                    <option value="Khác">Khác (Tự nhập lý do)...</option>
+                </select>
+                <textarea id="customCancelReason" placeholder="Vui lòng nhập lý do hủy chi tiết tại đây..." style="display: none; width: 100%; min-height: 80px; margin-top: 10px; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; font-family: inherit; resize: vertical; outline: none; transition: border-color 0.2s; box-sizing: border-box;"></textarea>
+                <div id="cancelReasonError" style="display: none; color: #e53935; font-size: 12px; margin-top: 4px; font-weight: 600;">
+                    ⚠️ Vui lòng điền lý do hủy đơn của bạn.
+                </div>
+            </div>
+
+            <div class="cancel-modal__actions">
+                <button class="btn-modal-cancel" onclick="dongModalHuyDon(null)">
+                    Quay lại
+                </button>
+                <button class="btn-modal-confirm" id="btnConfirmHuy" onclick="xacNhanHuyDon()">
+                    <span id="btnConfirmText">Xác nhận hủy</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!--====== Google Analytics ======-->
+    <script>
+        window.ga = function() { ga.q.push(arguments) };
+        ga.q = []; ga.l = +new Date;
+        ga('create', 'UA-XXXXX-Y', 'auto');
+        ga('send', 'pageview')
+    </script>
+    <script src="https://www.google-analytics.com/analytics.js" async defer></script>
+
+    <!--====== Vendor Js ======-->
+    <script th:src="@{/js/vendor.js}"></script>
+
+    <!--====== Plugin jQuery Shopnav ======-->
+    <script th:src="@{/js/jquery.shopnav.js}"></script>
+
+    <!--====== Ứng dụng ======-->
+    <script th:src="@{/js/app.js}"></script>
+
+    <!-- =============================================
+         CANCEL ORDER JAVASCRIPT
+    ============================================= -->
+    <script>
+    (function () {
+        'use strict';
+
+        let _pendingOrderId = null;
+
+        // ============ Mở modal xác nhận hủy ============
+        window.moModalHuyDon = function (btn) {
+            _pendingOrderId = btn.getAttribute('data-order-id');
+            const code = btn.getAttribute('data-order-code') || ('#' + _pendingOrderId);
+            document.getElementById('cancelOrderCode').textContent = code;
+            document.getElementById('cancelModalOverlay').classList.add('active');
+        };
+
+        // ============ Đóng modal ============
+        window.dongModalHuyDon = function (event) {
+            // Nếu click vào overlay (không phải modal nội dung)
+            if (event && event.target !== document.getElementById('cancelModalOverlay')) return;
+            _closeModal();
+        };
+
+        function _closeModal() {
+            document.getElementById('cancelModalOverlay').classList.remove('active');
+            _pendingOrderId = null;
+            
+            // Reset input values
+            const select = document.getElementById('cancelReasonSelect');
+            if (select) select.value = select.options[0].value;
+            const textarea = document.getElementById('customCancelReason');
+            if (textarea) {
+                textarea.value = '';
+                textarea.style.display = 'none';
+            }
+            const errDiv = document.getElementById('cancelReasonError');
+            if (errDiv) errDiv.style.display = 'none';
+        }
+
+        window.toggleCancelReasonTextarea = function () {
+            const select = document.getElementById('cancelReasonSelect');
+            const textarea = document.getElementById('customCancelReason');
+            const errDiv = document.getElementById('cancelReasonError');
+            if (errDiv) errDiv.style.display = 'none';
+            if (select && textarea) {
+                if (select.value === 'Khác') {
+                    textarea.style.display = 'block';
+                } else {
+                    textarea.style.display = 'none';
+                }
+            }
+        };
+
+        // ============ Xác nhận hủy đơn (AJAX) ============
+        window.xacNhanHuyDon = function () {
+            if (!_pendingOrderId) return;
+
+            const select = document.getElementById('cancelReasonSelect');
+            const textarea = document.getElementById('customCancelReason');
+            const errDiv = document.getElementById('cancelReasonError');
+            if (errDiv) errDiv.style.display = 'none';
+
+            let lyDoHuy = select.value;
+            if (lyDoHuy === 'Khác') {
+                lyDoHuy = textarea.value.trim();
+                if (!lyDoHuy) {
+                    if (errDiv) errDiv.style.display = 'block';
+                    return;
+                }
+            }
+
+            const btnConfirm = document.getElementById('btnConfirmHuy');
+            const btnText = document.getElementById('btnConfirmText');
+
+            // Trạng thái loading
+            btnConfirm.disabled = true;
+            btnText.textContent = 'Đang xử lý...';
+
+            const orderId = _pendingOrderId;
+
+            // Lấy CSRF token (nếu Spring Security bật CSRF)
+            const csrfToken = document.querySelector('meta[name="_csrf"]');
+            const csrfHeader = document.querySelector('meta[name="_csrf_header"]');
+            const headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
+            if (csrfToken && csrfHeader) {
+                headers[csrfHeader.content] = csrfToken.content;
+            }
+
+            const bodyParams = new URLSearchParams();
+            bodyParams.append('lyDoHuy', lyDoHuy);
+
+            fetch('/user/manage-order/cancel/' + orderId, {
+                method: 'POST',
+                headers: headers,
+                body: bodyParams.toString()
+            })
+            .then(function (res) {
+                return res.json();
+            })
+            .then(function (data) {
+                if (data.success) {
+                    showToast(data.message || 'Hủy đơn hàng thành công!', 'success');
+                    _closeModal();
+                    // Ẩn nút hủy và hiển thị thông báo đã hủy
+                    const btnHuy = document.getElementById('btn-huy-don');
+                    if (btnHuy) {
+                        btnHuy.closest('div').style.display = 'none';
+                    }
+                    // Reload trang sau 2.2 giây để cập nhật UI đầy đủ
+                    setTimeout(function () {
+                        window.location.reload();
+                    }, 2200);
+                } else {
+                    showToast(data.message || 'Không thể hủy đơn hàng.', 'error');
+                    btnConfirm.disabled = false;
+                    btnText.textContent = 'Xác nhận hủy';
+                }
+            })
+            .catch(function (err) {
+                console.error('[HuyDon] Lỗi:', err);
+                showToast('Có lỗi kết nối. Vui lòng thử lại.', 'error');
+                btnConfirm.disabled = false;
+                btnText.textContent = 'Xác nhận hủy';
+            });
+        };
+
+        // ============ Xác nhận đã nhận được hàng (AJAX) ============
+        window.xacNhanNhanHang = async function (orderId) {
+            if (!(await SmashNotify.confirm({
+                title: 'Xác nhận đã nhận hàng?',
+                message: 'Bạn có chắc chắn đã nhận được hàng đầy đủ và đúng quy cách không?'
+            }))) {
+                return;
+            }
+
+            const csrfToken = document.querySelector('meta[name="_csrf"]');
+            const csrfHeader = document.querySelector('meta[name="_csrf_header"]');
+            const headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
+            if (csrfToken && csrfHeader) {
+                headers[csrfHeader.content] = csrfToken.content;
+            }
+
+            fetch('/user/manage-order/confirm-received/' + orderId, {
+                method: 'POST',
+                headers: headers
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    showToast(data.message, 'success');
+                    setTimeout(() => window.location.reload(), 1800);
+                } else {
+                    showToast(data.message, 'error');
+                }
+            })
+            .catch(err => {
+                console.error('[XacNhanNhanHang] Lỗi:', err);
+                showToast('Có lỗi xảy ra khi xác nhận nhận hàng.', 'error');
+            });
+        };
+
+        // ============ Modal Yêu cầu Đổi / Trả hàng ============
+        window.toggleLoaiYeuCauStyle = function() {
+            const selected = document.querySelector('input[name="loaiYeuCauRadio"]:checked');
+            const labelDoi = document.getElementById('labelLoaiDoi');
+            const labelTra = document.getElementById('labelLoaiTra');
+            if (!selected || !labelDoi || !labelTra) return;
+            if (selected.value === 'DOI') {
+                labelDoi.style.borderColor = '#0d6efd';
+                labelDoi.style.background = '#f0f7ff';
+                labelTra.style.borderColor = '#e0e0e0';
+                labelTra.style.background = '#fafafa';
+            } else {
+                labelTra.style.borderColor = '#d9534f';
+                labelTra.style.background = '#fff5f5';
+                labelDoi.style.borderColor = '#e0e0e0';
+                labelDoi.style.background = '#fafafa';
+            }
+        };
+
+        window.moModalTraHang = function () {
+            let modal = document.getElementById('modalTraHang');
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = 'modalTraHang';
+                modal.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:9999;';
+                modal.innerHTML = `
+                    <div style="background:#fff; width:90%; max-width:520px; padding:24px; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,0.2); max-height:90vh; overflow-y:auto;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                            <h4 style="margin:0; color:#d9534f; font-weight:700; font-size:17px;"><i class="fas fa-exchange-alt me-2"></i>Yêu cầu Đổi / Trả hàng</h4>
+                            <button type="button" onclick="dongModalTraHang()" style="background:none; border:none; font-size:22px; color:#888; cursor:pointer; line-height:1;">&times;</button>
+                        </div>
+                        <p style="font-size:13px; color:#666; margin-bottom:16px;">Vui lòng chọn hình thức bạn mong muốn, lý do và đính kèm video mở hộp/kiểm tra hàng:</p>
+                        
+                        <!-- 1. Chọn hình thức ĐỔI HÀNG hay TRẢ HÀNG -->
+                        <div style="margin-bottom:16px;">
+                            <label style="font-size:12px; font-weight:700; color:#333; display:block; margin-bottom:8px;">1. Chọn hình thức hỗ trợ <span style="color:#d9534f;">*</span>:</label>
+                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                                <label style="border:2px solid #0d6efd; background:#f0f7ff; padding:10px 12px; border-radius:8px; cursor:pointer; display:flex; align-items:flex-start; gap:8px;" id="labelLoaiDoi">
+                                    <input type="radio" name="loaiYeuCauRadio" value="DOI" checked onchange="toggleLoaiYeuCauStyle()" style="margin-top:3px;">
+                                    <div>
+                                        <strong style="font-size:13px; color:#0d6efd; display:block;"><i class="fas fa-sync-alt me-1"></i>Đổi sản phẩm mới</strong>
+                                        <small style="font-size:11px; color:#555; display:block; line-height:1.3; margin-top:2px;">Đổi sản phẩm mới, đổi size hoặc đổi mẫu</small>
+                                    </div>
+                                </label>
+                                <label style="border:2px solid #e0e0e0; background:#fafafa; padding:10px 12px; border-radius:8px; cursor:pointer; display:flex; align-items:flex-start; gap:8px;" id="labelLoaiTra">
+                                    <input type="radio" name="loaiYeuCauRadio" value="TRA" onchange="toggleLoaiYeuCauStyle()" style="margin-top:3px;">
+                                    <div>
+                                        <strong style="font-size:13px; color:#d9534f; display:block;"><i class="fas fa-hand-holding-usd me-1"></i>Trả hàng &amp; Hoàn tiền</strong>
+                                        <small style="font-size:11px; color:#555; display:block; line-height:1.3; margin-top:2px;">Trả hàng về Shop và nhận lại tiền đã thanh toán</small>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- 2. Chọn lý do -->
+                        <div style="margin-bottom:14px;">
+                            <label style="font-size:12px; font-weight:700; color:#333; display:block; margin-bottom:4px;">2. Lý do yêu cầu <span style="color:#d9534f;">*</span>:</label>
+                            <select id="returnReasonSelect" style="width:100%; padding:9px; border-radius:6px; border:1px solid #ccc; font-size:13px;">
+                                <option value="Sản phẩm bị lỗi / hỏng hóc từ nhà sản xuất">Sản phẩm bị lỗi / hỏng hóc từ nhà sản xuất</option>
+                                <option value="Shop giao sai mẫu / sai kích thước / sai màu sắc">Shop giao sai mẫu / sai kích thước / sai màu sắc</option>
+                                <option value="Muốn đổi sang kích thước hoặc phân loại khác">Muốn đổi sang kích thước hoặc phân loại khác</option>
+                                <option value="Sản phẩm khác xa so với hình ảnh/mô tả">Sản phẩm khác xa so với hình ảnh/mô tả</option>
+                                <option value="Hàng bị móp méo / nứt vỡ trong quá trình vận chuyển">Hàng bị móp méo / nứt vỡ trong quá trình vận chuyển</option>
+                                <option value="Khác">Lý do khác...</option>
+                            </select>
+                        </div>
+                        
+                        <!-- 3. Mô tả chi tiết -->
+                        <div style="margin-bottom:14px;">
+                            <label style="font-size:12px; font-weight:700; color:#333; display:block; margin-bottom:4px;">3. Chi tiết ghi chú thêm cho Shop:</label>
+                            <textarea id="returnReasonDetail" rows="3" placeholder="Nhập chi tiết mô tả lỗi, kích thước/màu sắc cần đổi hoặc thông tin thêm..." style="width:100%; padding:8px; border-radius:6px; border:1px solid #ccc; font-size:13px; box-sizing:border-box; font-family:inherit; resize:vertical;"></textarea>
+                        </div>
+
+                        <!-- 4. Khu vực tải video bằng chứng -->
+                        <div style="margin-bottom:16px;">
+                            <label style="font-size:12px; font-weight:700; color:#333; display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                                <span><i class="fas fa-video me-1 text-danger"></i> 4. Video bằng chứng <span style="color:#d9534f;">*</span>:</span>
+                                <span style="font-size:11px; color:#888; font-weight:normal;">Tối đa 50MB (MP4, WEBM, MOV)</span>
+                            </label>
+                            <input type="file" id="returnEvidenceVideo" accept="video/mp4,video/webm,video/quicktime" onchange="previewReturnVideo(event)" style="width:100%; padding:6px 8px; border-radius:6px; border:1px solid #ccc; font-size:12px; background:#fdfdfd; box-sizing:border-box;">
+                            <div id="videoErrorMsg" style="display:none; color:#d9534f; font-size:12px; margin-top:4px; font-weight:600;"></div>
+                            <video id="returnVideoPreview" controls style="display:none; width:100%; max-height:220px; margin-top:10px; border-radius:6px; background:#000; outline:none;"></video>
+                        </div>
+
+                        <div style="display:flex; justify-content:flex-end; gap:10px; border-top:1px solid #eee; padding-top:14px;">
+                            <button type="button" onclick="dongModalTraHang()" style="padding:8px 16px; border-radius:6px; border:1px solid #ccc; background:#f5f5f5; cursor:pointer; font-weight:600;">Hủy</button>
+                            <button type="button" id="btnSubmitReturn" onclick="guiYeuCauTraHang()" style="padding:8px 22px; border-radius:6px; border:none; background:#d9534f; color:#fff; font-weight:700; cursor:pointer;">Gửi Yêu Cầu</button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+            }
+            modal.style.display = 'flex';
+        };
+
+        window.dongModalTraHang = function () {
+            const modal = document.getElementById('modalTraHang');
+            if (modal) modal.style.display = 'none';
+            const videoPreview = document.getElementById('returnVideoPreview');
+            if (videoPreview) {
+                videoPreview.pause();
+                videoPreview.src = '';
+                videoPreview.style.display = 'none';
+            }
+            const fileInput = document.getElementById('returnEvidenceVideo');
+            if (fileInput) fileInput.value = '';
+            const errorDiv = document.getElementById('videoErrorMsg');
+            if (errorDiv) { errorDiv.style.display = 'none'; errorDiv.textContent = ''; }
+        };
+
+        window.previewReturnVideo = function (event) {
+            const fileInput = event.target;
+            const videoPreview = document.getElementById('returnVideoPreview');
+            const errorDiv = document.getElementById('videoErrorMsg');
+            if (errorDiv) { errorDiv.style.display = 'none'; errorDiv.textContent = ''; }
+
+            if (fileInput.files && fileInput.files[0]) {
+                const file = fileInput.files[0];
+                const maxSizeBytes = 50 * 1024 * 1024; // 50MB
+
+                // Check file size
+                if (file.size > maxSizeBytes) {
+                    if (errorDiv) {
+                        errorDiv.textContent = 'Video không được vượt quá 50MB.';
+                        errorDiv.style.display = 'block';
+                    }
+                    fileInput.value = '';
+                    if (videoPreview) {
+                        videoPreview.pause();
+                        videoPreview.src = '';
+                        videoPreview.style.display = 'none';
+                    }
+                    return;
+                }
+
+                // Check file type/extension
+                const fileName = file.name || '';
+                const ext = fileName.includes('.') ? fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase() : '';
+                const validExts = ['mp4', 'webm', 'mov'];
+                const validMimes = ['video/mp4', 'video/webm', 'video/quicktime'];
+                if (!validExts.includes(ext) && !validMimes.includes(file.type.toLowerCase())) {
+                    if (errorDiv) {
+                        errorDiv.textContent = 'Video bằng chứng chỉ hỗ trợ MP4, WEBM hoặc MOV.';
+                        errorDiv.style.display = 'block';
+                    }
+                    fileInput.value = '';
+                    if (videoPreview) {
+                        videoPreview.pause();
+                        videoPreview.src = '';
+                        videoPreview.style.display = 'none';
+                    }
+                    return;
+                }
+
+                if (videoPreview) {
+                    videoPreview.src = URL.createObjectURL(file);
+                    videoPreview.style.display = 'block';
+                }
+            } else {
+                if (videoPreview) {
+                    videoPreview.pause();
+                    videoPreview.src = '';
+                    videoPreview.style.display = 'none';
+                }
+            }
+        };
+
+        window.guiYeuCauTraHang = function () {
+            const loaiYeuCauRadio = document.querySelector('input[name="loaiYeuCauRadio"]:checked');
+            const loaiYeuCau = loaiYeuCauRadio ? loaiYeuCauRadio.value : 'TRA';
+            const select = document.getElementById('returnReasonSelect');
+            const textarea = document.getElementById('returnReasonDetail');
+            const fileInput = document.getElementById('returnEvidenceVideo');
+            const btnSubmit = document.getElementById('btnSubmitReturn');
+            const errorDiv = document.getElementById('videoErrorMsg');
+            if (errorDiv) { errorDiv.style.display = 'none'; errorDiv.textContent = ''; }
+
+            // Validation 1: Video is mandatory
+            if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+                if (errorDiv) {
+                    errorDiv.textContent = 'Vui lòng đính kèm video bằng chứng.';
+                    errorDiv.style.display = 'block';
+                }
+                showToast('Vui lòng đính kèm video bằng chứng.', 'error');
+                return;
+            }
+
+            const videoFile = fileInput.files[0];
+
+            // Validation 2: Max 50MB
+            if (videoFile.size > 50 * 1024 * 1024) {
+                if (errorDiv) {
+                    errorDiv.textContent = 'Video không được vượt quá 50MB.';
+                    errorDiv.style.display = 'block';
+                }
+                showToast('Video không được vượt quá 50MB.', 'error');
+                return;
+            }
+
+            // Validation 3: Format
+            const fileName = videoFile.name || '';
+            const ext = fileName.includes('.') ? fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase() : '';
+            const validExts = ['mp4', 'webm', 'mov'];
+            const validMimes = ['video/mp4', 'video/webm', 'video/quicktime'];
+            if (!validExts.includes(ext) && !validMimes.includes(videoFile.type.toLowerCase())) {
+                if (errorDiv) {
+                    errorDiv.textContent = 'Video bằng chứng chỉ hỗ trợ MP4, WEBM hoặc MOV.';
+                    errorDiv.style.display = 'block';
+                }
+                showToast('Video bằng chứng chỉ hỗ trợ MP4, WEBM hoặc MOV.', 'error');
+                return;
+            }
+
+            let loaiLabel = (loaiYeuCau === 'DOI') ? 'Đổi hàng' : 'Trả hàng hoàn tiền';
+            let lyDo = select ? select.value : ('Yêu cầu ' + loaiLabel);
+            if (textarea && textarea.value.trim() !== '') {
+                lyDo += ' - ' + textarea.value.trim();
+            }
+
+            btnSubmit.disabled = true;
+            btnSubmit.textContent = 'Đang tải lên...';
+
+            const csrfToken = document.querySelector('meta[name="_csrf"]');
+            const csrfHeader = document.querySelector('meta[name="_csrf_header"]');
+            const headers = {};
+            if (csrfToken && csrfHeader) {
+                headers[csrfHeader.content] = csrfToken.content;
+            }
+
+            const orderId = document.getElementById('btn-yeu-cau-tra-hang') ? document.getElementById('btn-yeu-cau-tra-hang').getAttribute('data-order-id') || '[[${order.id}]]' : '[[${order.id}]]';
+            
+            const formData = new FormData();
+            formData.append('loaiYeuCau', loaiYeuCau);
+            formData.append('lyDo', lyDo);
+            formData.append('files', videoFile);
+
+            fetch('/user/manage-order/request-return/' + orderId, {
+                method: 'POST',
+                headers: headers,
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    showToast(data.message, 'success');
+                    dongModalTraHang();
+                    setTimeout(() => window.location.reload(), 2000);
+                } else {
+                    showToast(data.message, 'error');
+                    btnSubmit.disabled = false;
+                    btnSubmit.textContent = 'Gửi Yêu Cầu';
+                }
+            })
+            .catch(err => {
+                console.error('[YeuCauTraHang] Lỗi:', err);
+                showToast('Có lỗi xảy ra khi gửi yêu cầu.', 'error');
+                btnSubmit.disabled = false;
+                btnSubmit.textContent = 'Gửi Yêu Cầu';
+            });
+        };
+
+        window.copyOrderCodeToClipboard = function(text, el) {
+            if (!text) return;
+            navigator.clipboard.writeText(text).then(function() {
+                const icon = el ? (el.querySelector ? (el.querySelector('i') || el) : el) : null;
+                const oldClass = icon ? icon.className : '';
+                if (icon) icon.className = 'fas fa-check text-success';
+                
+                showToast('Đã sao chép mã đơn hàng: ' + text, 'success');
+                
+                if (icon && oldClass) {
+                    setTimeout(function() {
+                        icon.className = oldClass;
+                    }, 1500);
+                }
+            }).catch(function(err) {
+                console.error('Lỗi khi sao chép:', err);
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                document.body.appendChild(textArea);
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    showToast('Đã sao chép mã đơn hàng: ' + text, 'success');
+                } catch(e) {}
+                document.body.removeChild(textArea);
+            });
+        };
+
+        // ============ Đóng modal bằng phím ESC ============
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') {
+                _closeModal();
+                if (window.dongModalTraHang) window.dongModalTraHang();
+                const modalGuest = document.getElementById('guestSuccessModal');
+                if (modalGuest) modalGuest.classList.remove('active');
+            }
+        });
+
+        // ============ Payment / Order Success Handler ============
+        const urlParams = new URLSearchParams(window.location.search);
+        const isFirstGuestOrder = /*[[${isFirstGuestOrder}]]*/ false;
+        
+        if (urlParams.get('payment') === 'success' || urlParams.get('order') === 'success') {
+            if (isFirstGuestOrder) {
+                const modal = document.getElementById('guestSuccessModal');
+                if (modal) modal.classList.add('active');
+            } else {
+                showToast('Đặt hàng thành công! Đơn hàng của bạn đang được xử lý.', 'success');
+            }
+            // Clean URL parameters without reloading
+            const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+            window.history.replaceState({ path: cleanUrl }, '', cleanUrl);
+        }
+
+        const btnCloseGuestModal = document.getElementById('btnCloseGuestModal');
+        if (btnCloseGuestModal) {
+            btnCloseGuestModal.addEventListener('click', function() {
+                const modal = document.getElementById('guestSuccessModal');
+                if (modal) modal.classList.remove('active');
+            });
+        }
+    })();
+    </script>
+
+    <!-- Guest Order Success Modal -->
+    <div class="guest-success-modal-overlay" id="guestSuccessModal">
+        <div class="guest-success-modal">
+            <div class="guest-success-modal__header">
+                <i class="fas fa-check-circle"></i>
+                <span>Đặt hàng thành công!</span>
+            </div>
+            <div class="guest-success-modal__body">
+                <p style="font-size: 14px; color: #1e293b; font-weight: 600; margin-bottom: 12px;">
+                    Tài khoản Guest của bạn đã được khởi tạo. Vui lòng kiểm tra email để nhận mật khẩu tạm thời.
+                </p>
+                <p style="font-size: 13px; color: #64748b; line-height: 1.6; margin-bottom: 20px;">
+                    Email bao gồm mật khẩu tạm để đăng nhập và activation link để thiết lập mật khẩu chính thức.
+                </p>
+                <button class="guest-success-modal__btn" id="btnCloseGuestModal">
+                    ĐÃ HIỂU
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!--====== Khi không hỗ trợ JavaScript ======-->
+    <noscript>
+        <div class="app-setting">
+            <div class="container">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="app-setting__wrap">
+                            <h1 class="app-setting__h1">Trình duyệt của bạn đã tắt JavaScript.</h1>
+                            <span class="app-setting__text">Vui lòng bật JavaScript trong cài đặt trình duyệt hoặc nâng cấp lên trình duyệt có hỗ trợ JavaScript.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </noscript>
+</body>
+</html>

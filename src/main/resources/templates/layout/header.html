@@ -1,0 +1,472 @@
+        <header class="header--style-1">
+            <link rel="stylesheet" th:href="@{/css/support-navigation.css(v=2)}">
+            <script defer th:src="@{/js/support-navigation.js(v=1)}"></script>
+            <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+            <script th:src="@{/js/notifications.js(v='1.0.0')}"></script>
+            <div th:if="${globalNotificationMessage != null}"
+                 data-smash-server-notification
+                 th:data-type="${globalNotificationType}"
+                 th:data-title="${globalNotificationTitle}"
+                 th:data-message="${globalNotificationMessage}"
+                 hidden></div>
+            <meta name="_csrf" th:content="${_csrf != null ? _csrf.token : ''}" />
+            <meta name="_csrf_header" th:content="${_csrf != null ? _csrf.headerName : 'X-CSRF-TOKEN'}" />
+            <div id="csrf-token-holder" 
+                 th:data-csrf-token="${_csrf != null ? _csrf.token : ''}" 
+                 th:data-csrf-header="${_csrf != null ? _csrf.headerName : ''}" 
+                 style="display:none;"></div>
+            <style>
+                .gl-inline {
+                    align-items: flex-start !important;
+                }
+
+                .has-dropdown > .mini-cart,
+                .floating-cart-dropdown {
+                    max-height: 460px !important;
+                    width: 380px !important;
+                    display: flex !important;
+                    flex-direction: column !important;
+                    padding: 16px !important;
+                    box-sizing: border-box !important;
+                }
+
+                .mini-product-container {
+                    flex: 0 1 auto;
+                    overflow-y: auto !important;
+                    min-height: 0 !important;
+                    max-height: 220px !important;
+                    padding-right: 4px !important;
+                }
+
+                .card-mini-product {
+                    padding: 10px 12px !important;
+                    margin-bottom: 10px !important;
+                    border-radius: 6px !important;
+                }
+
+                .mini-product-stat {
+                    flex: 0 0 auto !important;
+                    background: #fff !important;
+                    padding-top: 10px !important;
+                    border-top: 1px solid #f0f0f0 !important;
+                }
+
+                .mini-action {
+                    display: flex !important;
+                    flex-direction: column !important;
+                    gap: 8px !important;
+                    width: 100% !important;
+                    margin: 0 auto !important;
+                }
+
+                .mini-action > * {
+                    width: 100% !important;
+                    box-sizing: border-box !important;
+                }
+
+                .mini-cart .js-mini-cart-checkout-btn,
+                .mini-cart .mini-link,
+                .mini-cart .btn--e-brand-b-2,
+                .mini-cart .btn--e-transparent-secondary-b-2 {
+                    display: flex !important;
+                    align-items: center !important;
+                    justify-content: center !important;
+                    width: 100% !important;
+                    min-height: 40px !important;
+                    padding: 10px 16px !important;
+                    box-sizing: border-box !important;
+                    font-family: inherit !important;
+                    font-size: 13px !important;
+                    font-weight: 700 !important;
+                    line-height: 1.2 !important;
+                    text-align: center !important;
+                    cursor: pointer !important;
+                    border-radius: 6px !important;
+                    margin-bottom: 0 !important;
+                }
+
+                .js-mini-cart-checkout-btn {
+                    appearance: none;
+                    -webkit-appearance: none;
+                    border: 0 !important;
+                    background-color: #ff4500 !important;
+                    color: #ffffff !important;
+                }
+
+                .js-mini-cart-checkout-btn:hover {
+                    background-color: #e03d00 !important;
+                }
+
+                .floating-cart-dropdown {
+                    max-width: calc(100vw - 60px);
+                    max-height: min(460px, calc(100vh - 285px)) !important;
+                    max-height: min(460px, calc(100dvh - 285px)) !important;
+                    overflow-y: auto;
+                }
+
+                .floating-cart-dropdown .mini-product-container {
+                    flex-shrink: 0;
+                }
+
+                @media (max-width: 1024px) {
+                    .has-dropdown > .mini-cart {
+                        width: 100% !important;
+                        max-height: none !important;
+                    }
+                }
+            </style>
+
+            <!--====== Điều hướng 1 ======-->
+            <nav class="primary-nav primary-nav-wrapper--border">
+                <div class="container">
+
+                    <!--====== Điều hướng chính ======-->
+                    <div class="primary-nav">
+
+                        <!--====== Logo chính ======-->
+
+                        <a class="main-logo" th:href="@{/}">
+                            <img th:src="@{/images/logo/logo-2.png}" alt="SMASH-VN Logo" style="max-height: 60px; width: auto; object-fit: contain;"></a>
+                        <!--====== Kết thúc - Logo chính ======-->
+
+
+                        <!--====== Mẫu tìm kiếm ======-->
+                        <form class="main-form" th:action="@{/shop}" method="get" autocomplete="off">
+
+                            <label for="main-search" class="sr-only">Tìm kiếm sản phẩm</label>
+
+                            <input class="input-text input-text--border-radius input-text--style-1" type="text" id="main-search" name="q" placeholder="Tìm vợt, giày, phụ kiện..." autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="search-autocomplete" aria-describedby="search-status" th:value="${keyword}">
+                            <!-- Autocomplete Dropdown -->
+                            <div id="search-autocomplete" class="search-autocomplete-dropdown" role="listbox" aria-label="Gợi ý tìm kiếm"></div>
+                            <span id="search-status" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></span>
+
+                            <button class="btn btn--icon fas fa-search main-search-button" type="submit" aria-label="Tìm kiếm"></button></form>
+                        <!--====== Kết thúc - Mẫu tìm kiếm ======-->
+
+
+                        <!--====== Plugin Dropdown chính ======-->
+                        <div class="menu-init" id="navigation">
+
+                            <button class="btn btn--icon toggle-button toggle-button--secondary fas fa-cogs" type="button"></button>
+
+                            <!--====== Menu ======-->
+                            <div class="ah-lg-mode">
+
+                                <span class="ah-close">✕ Close</span>
+
+                                <!--====== Danh sách ======-->
+                                <ul class="ah-list ah-list--design1 ah-list--link-color-secondary">
+                                    <li class="has-dropdown" data-tooltip="tooltip" data-placement="left" title="Tài khoản">
+									    <a>
+									        <span style="position: relative; display: inline-block;">
+									            <i class="far fa-user-circle"></i>
+									            <span th:if="${session.idNguoiDung != null and session.isGuestView != true and session.activeRole != 'QL' and session.activeRole != 'NV' and unreadNotificationCount > 0}" style="position: absolute; top: 0px; right: -2px; width: 8px; height: 8px; background-color: #ff0000; border-radius: 50%; display: inline-block; border: 1.5px solid white; z-index: 10;"></span>
+									        </span>
+									    </a>
+									    <span class="js-menu-toggle"></span>
+									    <ul style="width:220px">
+									        
+									        <th:block th:if="${session.idNguoiDung != null}">
+									            <li th:if="${session.activeRole == 'QL'}">
+									                <a th:href="@{/admin/all}"><i class="fas fa-user-shield u-s-m-r-6"></i>
+									                    <span th:text="${session.tenHienThi != null ? session.tenHienThi : 'Quản lý'}">Quản lý</span></a>
+									            </li>
+									            <li th:if="${session.activeRole == 'NV'}">
+									                <a th:href="@{/admin/don-hang}"><i class="fas fa-user-tie u-s-m-r-6"></i>
+									                    <span th:text="${session.tenHienThi != null ? session.tenHienThi : 'Nhân viên'}">Nhân viên</span></a>
+									            </li>
+									            <li th:if="${session.activeRole != 'QL' and session.activeRole != 'NV' and session.isGuestView != true}">
+									                <a th:href="@{/user/dashboard}"><i class="fas fa-user-circle u-s-m-r-6"></i>
+									                    <span>Tài khoản</span></a>
+									            </li>
+									            <li th:if="${session.activeRole != 'QL' and session.activeRole != 'NV' and session.isGuestView != true}">
+									                <a th:href="@{/user/notifications}" style="display: flex; align-items: center;">
+									                    <span style="position: relative; display: inline-flex; align-items: center;">
+									                        <i class="fas fa-bell u-s-m-r-6"></i>
+									                        <span th:if="${unreadNotificationCount > 0}" style="position: absolute; top: -2px; right: 2px; width: 8px; height: 8px; background-color: #ff0000; border-radius: 50%; display: inline-block; border: 1.5px solid white;"></span>
+									                    </span>
+									                    <span>Thông báo</span>
+									                </a>
+									            </li>
+									            <li th:if="${session.isGuestView == true}">
+									                <a th:href="@{/user/track-order}"><i class="fas fa-user-circle u-s-m-r-6"></i>
+									                    <span>Tài khoản</span></a>
+									            </li>
+									            <li th:if="${session.isGuestView == true}">
+									                <a th:href="@{/user/thiet-lap-mat-khau}"><i class="fas fa-key u-s-m-r-6"></i>
+									                    <span>Thiết lập mật khẩu</span></a>
+									            </li>
+
+									            <li>
+									                <a th:href="@{/user/dang-xuat}"><i class="fas fa-lock-open u-s-m-r-6"></i>
+									                    <span>Đăng xuất</span></a>
+									            </li>
+									        </th:block>
+									
+									        <th:block th:unless="${session.idNguoiDung != null}">
+									            <li>
+									                <a th:href="@{/user/dang-ky}"><i class="fas fa-user-plus u-s-m-r-6"></i>
+									                    <span>Đăng ký</span></a>
+									            </li>
+									            <li>
+									                <a th:href="@{/user/dang-nhap}"><i class="fas fa-lock u-s-m-r-6"></i>
+									                    <span>Đăng nhập</span></a>
+									            </li>
+									        </th:block>
+									
+									    </ul>
+									</li>
+                                    
+                                    <li data-tooltip="tooltip" data-placement="left" title="Liên hệ: 0835420088">
+
+                                        <a href="tel:0835420088" aria-label="Gọi SMASH VN: 0835420088"><i class="fas fa-phone-volume" aria-hidden="true"></i></a></li>
+                                    <li data-tooltip="tooltip" data-placement="left" title="Email: luonghiep334@gmail.com">
+
+                                        <a href="mailto:luonghiep334@gmail.com" aria-label="Gửi email đến luonghiep334@gmail.com"><i class="far fa-envelope" aria-hidden="true"></i></a></li>
+                                </ul>
+                                <!--====== Kết thúc - Danh sách ======-->
+                            </div>
+                            <!--====== Kết thúc - Menu ======-->
+                        </div>
+                        <!--====== Kết thúc - Plugin Dropdown chính ======-->
+                    </div>
+                    <!--====== Kết thúc - Điều hướng chính ======-->
+                </div>
+            </nav>
+            <!--====== Kết thúc - Điều hướng 1 ======-->
+
+
+            <!--====== Điều hướng 2 ======-->
+            <nav class="secondary-nav-wrapper">
+                <div class="container">
+
+                    <!--====== Điều hướng phụ ======-->
+                    <div class="secondary-nav">
+
+                        <!--====== Menu Danh Mục (Icon 3 gạch) ======-->
+                        <div class="menu-init" id="navigation1">
+
+                            <button class="btn btn--icon toggle-mega-text toggle-button" type="button"><i class="fas fa-bars"></i></button>
+
+                            <!--====== Menu ======-->
+                            <div class="ah-lg-mode">
+
+                                <span class="ah-close">✕ Close</span>
+
+                                <!--====== Danh sách ======-->
+                                <ul class="ah-list">
+                                    <li class="has-dropdown">
+
+                                        <span class="mega-text" title="Danh mục sản phẩm"><i class="fas fa-bars"></i></span>
+
+                                         <span class="js-menu-toggle"></span>
+                                         <div class="mega-menu">
+                                             <div class="mega-menu-wrap">
+                                                 <div class="mega-menu-list">
+                                                     <ul>
+                                                         <li th:each="cat, iter : ${globalCategories}" th:classappend="${iter.first} ? 'js-active'">
+                                                             <a th:href="@{/shop(categoryId=${cat.id})}">
+                                                                 <i th:class="${cat.tenDanhMuc.contains('Vợt') || cat.tenDanhMuc.contains('vợt')} ? 'fa-solid fa-table-tennis-paddle-ball' : (${cat.tenDanhMuc.contains('Giày') || cat.tenDanhMuc.contains('giày')} ? 'fas fa-shoe-prints u-s-m-r-6' : 'fas fa-toolbox u-s-m-r-6')"></i>
+                                                                 <span th:text="${cat.tenDanhMuc}">Danh mục sản phẩm</span>
+                                                             </a>
+                                                             <span class="js-menu-toggle" th:classappend="${iter.first} ? ' js-toggle-mark' : ''"></span>
+                                                         </li>
+                                                     </ul>
+                                                 </div>
+
+                                                 <div th:each="cat, iter : ${globalCategories}" class="mega-menu-content" th:classappend="${iter.first} ? ' js-active' : ''">
+                                                     <div class="row">
+                                                         <div class="col-lg-6 col-md-12">
+                                                             <ul>
+                                                                 <li class="mega-list-title"><a href="#">Thương Hiệu</a></li>
+                                                                 <li th:each="brand : ${globalBrands}">
+                                                                     <a th:href="@{/shop(categoryId=${cat.id},brandId=${brand.id})}" th:text="${cat.tenDanhMuc + ' ' + brand.tenThuongHieu}">Vợt Yonex</a>
+                                                                 </li>
+                                                             </ul>
+                                                         </div>
+                                                         <div class="col-lg-6 col-md-12">
+                                                             <ul>
+                                                                 <li class="mega-list-title"><a href="#">Mức Giá</a></li>
+                                                                 <li th:if="${cat.tenDanhMuc.contains('Vợt') || cat.tenDanhMuc.contains('vợt')}">
+                                                                     <a th:href="@{/shop(categoryId=${cat.id},maxPrice=1000000)}">Dưới 1 Triệu</a>
+                                                                 </li>
+                                                                 <li th:if="${cat.tenDanhMuc.contains('Vợt') || cat.tenDanhMuc.contains('vợt')}">
+                                                                     <a th:href="@{/shop(categoryId=${cat.id},minPrice=1000000,maxPrice=2000000)}">1 - 2 Triệu</a>
+                                                                 </li>
+                                                                 <li th:if="${cat.tenDanhMuc.contains('Vợt') || cat.tenDanhMuc.contains('vợt')}">
+                                                                     <a th:href="@{/shop(categoryId=${cat.id},minPrice=2000000)}">Trên 2 Triệu</a>
+                                                                 </li>
+
+                                                                 <li th:if="${cat.tenDanhMuc.contains('Giày') || cat.tenDanhMuc.contains('giày')}">
+                                                                     <a th:href="@{/shop(categoryId=${cat.id},maxPrice=1500000)}">Dưới 1.5 Triệu</a>
+                                                                 </li>
+                                                                 <li th:if="${cat.tenDanhMuc.contains('Giày') || cat.tenDanhMuc.contains('giày')}">
+                                                                     <a th:href="@{/shop(categoryId=${cat.id},minPrice=1500000)}">Trên 1.5 Triệu</a>
+                                                                 </li>
+
+                                                                 <li th:if="${!cat.tenDanhMuc.contains('Vợt') && !cat.tenDanhMuc.contains('vợt') && !cat.tenDanhMuc.contains('Giày') && !cat.tenDanhMuc.contains('giày')}">
+                                                                     <a th:href="@{/shop(categoryId=${cat.id})}">Tất cả</a>
+                                                                 </li>
+                                                             </ul>
+                                                         </div>
+                                                     </div>
+                                                     <div class="row u-s-m-t-20">
+                                                         <div class="col-lg-12 mega-image">
+                                                             <div class="mega-banner">
+                                                                 <a class="u-d-block" th:href="@{/shop(categoryId=${cat.id})}">
+                                                                     <img class="u-img-fluid u-d-block" th:src="${cat.tenDanhMuc.contains('Vợt') || cat.tenDanhMuc.contains('vợt')} ? @{/images/banners/banner-mega-0.jpg} : (${cat.tenDanhMuc.contains('Giày') || cat.tenDanhMuc.contains('giày')} ? @{/images/banners/banner-mega-1.jpg} : @{/images/banners/banner-mega-2.jpg})" alt="Banner danh mục sản phẩm">
+                                                                 </a>
+                                                             </div>
+                                                         </div>
+                                                     </div>
+                                                 </div>
+                                             </div>
+                                         </div>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        <!--====== Kết thúc - Plugin Dropdown chính ======-->
+
+
+                        <!--====== Main menu bottom ======-->
+                        <div class="menu-init" id="navigation2">
+
+                            <button class="btn btn--icon toggle-button toggle-button--secondary fas fa-bars" type="button" aria-label="Mở menu điều hướng"></button>
+
+                            <!--====== Menu ======-->
+                            <div class="ah-lg-mode">
+
+                                <span class="ah-close">✕ Close</span>
+
+                                <!--====== Danh sách ======-->
+                                <ul class="ah-list ah-list--design2 ah-list--link-color-secondary">
+                                    <li>
+                                        <a th:href="@{/}">Trang chủ</a></li>
+                                    <li>
+                                        <a th:href="@{/shop}">Sản phẩm</a></li>
+                                    <li>
+                                        <a th:href="@{/about}">Giới thiệu</a></li>
+                                    <li>
+                                        <a th:href="@{/blog}">Tin tức / Blogs</a></li>
+                                    <li class="support-nav" data-support-nav>
+                                        <button type="button" class="support-nav-trigger" aria-expanded="false" aria-controls="support-nav-links">
+                                            Hướng dẫn <i class="fas fa-angle-down" aria-hidden="true"></i>
+                                        </button>
+                                        <ul id="support-nav-links" class="support-nav-menu" hidden>
+                                            <li><a th:href="@{/huong-dan-mua-hang}">Hướng dẫn mua hàng</a></li>
+                                            <li><a th:href="@{/huong-dan-thanh-toan}">Hướng dẫn thanh toán</a></li>
+                                        </ul>
+                                        <noscript><a th:href="@{/huong-dan-mua-hang}">Hướng dẫn mua hàng</a><a th:href="@{/huong-dan-thanh-toan}">Hướng dẫn thanh toán</a></noscript>
+                                    </li>
+                                </ul>
+                                <!--====== Kết thúc - Danh sách ======-->
+                            </div>
+                            <!--====== Kết thúc - Menu ======-->
+                        </div>
+                        <!--====== Kết thúc - Main menu bottom ======-->
+
+
+                        <!--====== Plugin Right menu bottom ======-->
+                        <div class="menu-init" id="navigation3">
+
+                            <button class="btn btn--icon toggle-button toggle-button--secondary fas fa-shopping-bag toggle-button-shop" type="button"></button>
+
+                            <span class="total-item-round">2</span>
+
+                            <!--====== Menu ======-->
+                            <div class="ah-lg-mode">
+
+                                <span class="ah-close">✕ Close</span>
+
+                                <!--====== Danh sách ======-->
+                                <ul class="ah-list ah-list--design1 ah-list--link-color-secondary">
+                                    <li>
+
+                                        <a th:href="@{/}"><i class="fas fa-home u-c-brand"></i></a></li>
+                                    <li>
+
+                                        <a th:href="@{/wishlist}"><i class="far fa-heart"></i></a></li>
+                                    <li class="has-dropdown">
+									    <a class="mini-cart-shop-link" th:href="@{/gio-hang}">
+									        <i class="fas fa-shopping-bag"></i>
+									        <span class="total-item-round" id="cart-icon-count">0</span>
+									    </a>
+									
+									    <span class="js-menu-toggle"></span>
+									    <div class="mini-cart">
+									        <div class="mini-product-container gl-scroll u-s-m-b-15" id="mini-cart-items">
+									            </div>
+									
+									        <div class="mini-product-stat">
+									            <div class="mini-total">
+									                <span class="subtotal-text">TỔNG CỘNG</span>
+									                <span class="subtotal-value" id="mini-cart-total">0 đ</span>
+									            </div>
+									            <div class="mini-action">
+									                <button type="button" class="mini-link btn--e-brand-b-2 js-mini-cart-checkout-btn">THANH TOÁN</button>
+									                <a class="mini-link btn--e-transparent-secondary-b-2" th:href="@{/gio-hang}">XEM GIỎ HÀNG</a>
+									            </div>
+									        </div>
+									    </div>
+									</li>
+                                </ul>
+                                <!--====== Kết thúc - Danh sách ======-->
+                            </div>
+                            <!--====== Kết thúc -  ======-->
+                        </div>
+                        <!--====== Kết thúc - Left Menu Bottom ======-->
+                    </div>
+                    <!--====== End - Secondary Nav ======-->
+                </div>
+            </nav>
+            <div id="floating-cart" class="floating-cart">
+    
+			    <a th:href="@{/gio-hang}" class="floating-cart__btn">
+			        <i class="fas fa-shopping-bag"></i>
+			        <span class="floating-cart__badge" id="floating-cart-count">0</span>
+			    </a>
+			    
+			    <div class="floating-cart-dropdown">
+			        <div class="mini-product-container gl-scroll u-s-m-b-15" id="floating-mini-cart-items">
+			            </div>
+			        <div class="mini-product-stat">
+			            <div class="mini-total">
+			                <span class="subtotal-text">TỔNG CỘNG</span>
+			                <span class="subtotal-value" id="floating-mini-cart-total">0 đ</span>
+			            </div>
+			            <div class="mini-action">
+			                <button type="button" class="mini-link btn--e-brand-b-2 js-mini-cart-checkout-btn">THANH TOÁN</button>
+			                <a class="mini-link btn--e-transparent-secondary-b-2" th:href="@{/gio-hang}">XEM GIỎ HÀNG</a>
+			            </div>
+			        </div>
+			    </div>
+			
+			</div>
+
+<script th:src="@{/js/customer-search.js(v='20260930-2')}" defer></script>
+<style>
+/* Style for product card image frames in grid/list and index pages */
+.product-m__thumb,
+.product-o__wrap {
+    background-color: #ffffff !important;
+    border-radius: 12px !important;
+    overflow: hidden !important;
+    border: 1px solid #f1f5f9 !important;
+}
+
+.product-m__thumb .aspect,
+.product-o__wrap .aspect {
+    background-color: #ffffff !important;
+}
+
+.product-m__thumb .aspect__img,
+.product-o__wrap .aspect__img {
+    object-fit: contain !important;
+    padding: 12px !important;
+    background-color: #ffffff !important;
+}
+</style>
+        </header>
+        
+

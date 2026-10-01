@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="content" class="support-layout">
+    <nav class="support-toc" aria-label="Mục lục hướng dẫn thanh toán">
+        <h2 class="blog-w__h">Trong hướng dẫn này</h2>
+        <ol>
+            <li><a href="#kiem-tra-tong-tien">Kiểm tra tổng tiền</a></li>
+            <li><a href="#cod">Thanh toán COD</a></li>
+            <li><a href="#chuyen-khoan">Chuyển khoản qua QR</a></li>
+            <li><a href="#ket-qua-thanh-toan">Xem kết quả</a></li>
+        </ol>
+        <a href="#su-co-thanh-toan">Xử lý tình huống thường gặp</a>
+        <a th:href="@{/chinh-sach#doi-tra-hoan-tien}">Chính sách hoàn tiền</a>
+    </nav>
+    <article class="support-article">
+        <div class="support-note"><strong>Hai cách thanh toán tại website:</strong> COD và chuyển khoản ngân hàng qua QR/VietQR. Hãy dùng thông tin thanh toán hiển thị cho chính đơn hàng của bạn.</div>
+        <section class="support-step" id="kiem-tra-tong-tien">
+            <h2>1. Kiểm tra thông tin và tổng tiền</h2>
+            <p>Ở trang thanh toán, kiểm tra sản phẩm, phân loại, số lượng và người nhận. Chọn địa chỉ và vận chuyển trước khi xem lại tổng cộng.</p>
+            <div class="support-formula">Tổng cộng = tiền sản phẩm − khoản giảm được áp dụng + phí vận chuyển</div>
+            <p>Phí giao hàng thay đổi theo địa chỉ và đơn vị vận chuyển. Số tiền để thanh toán là <strong>TỔNG CỘNG</strong> sau khi hệ thống tính phí và kiểm tra mã giảm giá; không chỉ là giá sản phẩm.</p>
+        </section>
+        <section class="support-step" id="cod">
+            <h2>2. Thanh toán khi nhận hàng — COD</h2>
+            <ol>
+                <li>Chọn thẻ <strong>COD · Thanh toán khi nhận hàng</strong>.</li>
+                <li>Kiểm tra lại thông tin rồi bấm <strong>ĐẶT HÀNG NGAY</strong>.</li>
+                <li>Lưu mã đơn, theo dõi tiến trình và thanh toán số tiền của đơn khi nhận hàng.</li>
+            </ol>
+            <p>Đặt đơn COD thành công không có nghĩa đã thanh toán. Trạng thái thanh toán được cập nhật khi shop/hệ thống ghi nhận việc thu tiền.</p>
+        </section>
+        <section class="support-step" id="chuyen-khoan">
+            <h2>3. Chuyển khoản ngân hàng qua QR/VietQR</h2>
+            <ol>
+                <li>Chọn <strong>Chuyển khoản Ngân hàng</strong> và bấm <strong>ĐẶT HÀNG NGAY</strong>. Website mở cửa sổ QR cho đơn vừa tạo.</li>
+                <li>Mở ứng dụng ngân hàng để quét QR; nếu dùng cùng điện thoại, sử dụng tính năng quét từ ảnh khi ứng dụng ngân hàng có hỗ trợ.</li>
+                <li>Đối chiếu ngân hàng, số tài khoản trên website và tên người thụ hưởng hiển thị trong ứng dụng ngân hàng. Nếu thông tin không rõ hoặc không khớp, liên hệ shop để kiểm tra trước khi chuyển.</li>
+                <li>Kiểm tra đúng <strong>tổng tiền</strong> và <strong>Nội dung CK</strong> được tạo cho đơn. Giữ nguyên nội dung chuyển khoản để hệ thống nhận diện giao dịch.</li>
+                <li>Xác nhận trong ứng dụng ngân hàng, lưu chứng từ và quay lại website để xem kết quả.</li>
+            </ol>
+            <p>Thông tin tài khoản nhận tiền lấy từ cấu hình thanh toán và hiển thị tại cửa sổ QR. Trang hướng dẫn không công bố một số tài khoản cố định để tránh dùng thông tin cũ hoặc nhầm đơn.</p>
+        </section>
+        <section class="support-step" id="ket-qua-thanh-toan">
+            <h2>4. Xem trạng thái thanh toán thành công</h2>
+            <p>Cửa sổ QR kiểm tra kết quả và thông báo khi hệ thống ghi nhận thanh toán. Sau đó, mở chi tiết đơn từ trang kết quả, <a th:href="@{/user/my-order}">Đơn hàng của tôi</a> hoặc <a th:href="@{/user/track-order}">Theo dõi đơn hàng</a>.</p>
+            <p>Kiểm tra mục trạng thái thanh toán <strong>Đã thanh toán</strong> của đúng mã đơn. Thông báo chuyển khoản thành công trong ứng dụng ngân hàng và trạng thái ghi nhận trên website là hai thông tin cần đối chiếu.</p>
+        </section>
+        <section id="su-co-thanh-toan" class="support-faq">
+            <h2>Khi thanh toán gặp vấn đề</h2>
+            <details open><summary>QR hoặc phiên thanh toán hết hạn</summary><p>Ngừng dùng QR cũ. Website có thể thông báo hết thời gian chờ và đưa bạn về giỏ; đơn chưa thanh toán có thể bị hủy khi hết hạn. <strong>Tra cứu đơn và kiểm tra giao dịch ngân hàng trước khi đặt lại</strong>.</p><p>Nếu chưa chuyển tiền và đơn đã hủy, chọn lại hàng từ giỏ để tạo lần đặt mới. Nếu đã chuyển tiền hoặc chưa rõ kết quả, liên hệ shop để đối soát thay vì chuyển thêm. Khoản chuyển đến sau khi đơn hết hạn cần shop kiểm tra và xử lý.</p></details>
+            <details><summary>Đã chuyển khoản nhưng đơn vẫn chưa cập nhật</summary><p>Kiểm tra đúng mã đơn, số tiền, tài khoản nhận và nội dung chuyển khoản trong chứng từ. Mở chi tiết đơn để xem trạng thái hiện tại; không chuyển lần thứ hai chỉ vì trang còn chờ.</p><p>Liên hệ shop, cung cấp mã đơn, mã giao dịch, thời điểm, số tiền và chứng từ để kiểm tra. Không có thời gian xác nhận cố định được công bố trong hướng dẫn này.</p></details>
+            <details><summary>Mất kết nối hoặc đóng nhầm trang</summary><p>Kết nối lại và dùng <strong>Kiểm tra kết quả</strong> nếu trang thanh toán hiển thị nút này. Nếu đã đóng trang, mở <a th:href="@{/user/track-order}">Theo dõi đơn hàng</a> bằng mã đơn và email hoặc số điện thoại đặt hàng.</p><p>Việc đóng cửa sổ QR không phải thao tác hủy đơn hay hoàn tiền. Nếu không còn cửa sổ QR để tiếp tục thanh toán, liên hệ shop để kiểm tra đơn và cách xử lý; không mặc định rằng đơn chưa được tạo.</p></details>
+            <details><summary>Cần kiểm tra thanh toán hoặc hoàn tiền</summary><p>Gọi <a href="tel:0835420088">0835420088</a> hoặc gửi thông tin đến <a href="mailto:luonghiep334@gmail.com">luonghiep334@gmail.com</a>. Xem <a th:href="@{/chinh-sach#doi-tra-hoan-tien}">quy trình đổi trả và hoàn tiền</a>; trạng thái chờ hoàn tiền chưa có nghĩa tiền đã được trả về ngân hàng.</p></details>
+        </section>
+    </article>
+</div>
+</body>
+</html>

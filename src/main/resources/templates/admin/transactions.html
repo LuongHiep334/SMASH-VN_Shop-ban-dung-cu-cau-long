@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lịch Sử Giao Dịch SePay - Admin SmashVN</title>
+    
+    <!-- Bootstrap 5.3.0 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Admin Custom CSS -->
+    <link rel="stylesheet" th:href="@{/css/admin-custom.css(v='2.4')}">
+    <script th:src="@{/js/admin-layout-state.js(v='1.0')}"></script>
+    
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body class="admin-body">
+
+    <!-- Sidebar Layout Fragment -->
+    <div th:replace="~{admin/layout/sidebar :: sidebar('giaodich')}"></div>
+
+    <div class="admin-page">
+        <!-- Topbar Layout Fragment -->
+        <div th:replace="~{admin/layout/header :: header}"></div>
+
+        <!-- Main Content -->
+        <main class="admin-content">
+            <div class="container-fluid admin-container">
+
+                <!-- Page Header -->
+                <div class="admin-page-header">
+                    <div>
+                        <h1 class="admin-page-title"><i class="fas fa-file-invoice-dollar text-brand me-2"></i>Lịch Sử Giao Dịch SePay</h1>
+                    </div>
+                    <div class="admin-toolbar">
+                        <span class="admin-status admin-status-info px-3 py-2 fs-6" th:text="${danhSachGiaoDich.size()} + ' Giao dịch'"></span>
+                    </div>
+                </div>
+
+                <!-- Filter Card -->
+                <div class="admin-card mb-4">
+                    <div class="admin-card-header">
+                        <h5 class="admin-card-title"><i class="fas fa-filter text-primary me-2"></i>Bộ Lọc Giao Dịch</h5>
+                    </div>
+                    <div class="admin-card-body">
+                        <form th:action="@{/admin/transactions}" method="GET" class="row g-3">
+                            <div class="col-md-3">
+                                <label class="admin-form-label">Mã Đơn Hàng</label>
+                                <input type="text" name="orderCode" class="admin-form-control form-control" th:value="${orderCode}" placeholder="Ví dụ: DH2026...">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="admin-form-label">Mã Giao Dịch Gateway</label>
+                                <input type="text" name="transactionId" class="admin-form-control form-control" th:value="${transactionId}" placeholder="Mã giao dịch SePay">
+                            </div>
+                            <div class="col-md-2">
+                                <label class="admin-form-label">Trạng Thái</label>
+                                <select name="status" class="form-select admin-form-control">
+                                    <option value="">-- Tất cả --</option>
+                                    <option value="success" th:selected="${status == 'success'}">Thành Công</option>
+                                    <option value="stock_conflict" th:selected="${status == 'stock_conflict'}">Tranh Chấp Kho</option>
+                                    <option value="paid_received_after_cancel" th:selected="${status == 'paid_received_after_cancel'}">Thanh Toán Sau Hủy</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="admin-form-label">Từ Ngày</label>
+                                <input type="date" name="startDate" class="admin-form-control form-control" th:value="${startDate}">
+                            </div>
+                            <div class="col-md-2">
+                                <label class="admin-form-label">Đến Ngày</label>
+                                <input type="date" name="endDate" class="admin-form-control form-control" th:value="${endDate}">
+                            </div>
+                            <div class="col-12 d-flex justify-content-between align-items-center mt-3 flex-wrap gap-2">
+                                <div class="d-flex gap-2">
+                                    <button type="submit" class="admin-btn admin-btn-primary"><i class="fas fa-search me-1"></i>Tìm Kiếm</button>
+                                    <a th:href="@{/admin/transactions}" class="admin-btn admin-btn-secondary"><i class="fas fa-undo me-1"></i>Làm Mới</a>
+                                </div>
+                                <div th:if="${isManager}" class="d-flex gap-2">
+                                    <a th:href="@{/admin/transactions/export/excel(orderCode=${orderCode},transactionId=${transactionId},status=${status},startDate=${startDate},endDate=${endDate})}" 
+                                       class="admin-btn admin-btn-secondary"><i class="fas fa-file-excel text-success me-1"></i>Xuất Excel</a>
+                                    <a th:href="@{/admin/transactions/export/csv(orderCode=${orderCode},transactionId=${transactionId},status=${status},startDate=${startDate},endDate=${endDate})}" 
+                                       class="admin-btn admin-btn-secondary"><i class="fas fa-file-csv text-info me-1"></i>Xuất CSV</a>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Table Card -->
+                <div class="admin-card mb-5">
+                    <div class="admin-card-header">
+                        <h5 class="admin-card-title"><i class="fas fa-list text-primary me-2"></i>Kết Quả Tìm Kiếm</h5>
+                    </div>
+                    <div class="admin-card-body p-0">
+                        <div class="admin-table-wrapper">
+                            <table class="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 60px;" class="text-center text-nowrap">STT</th>
+                                        <th class="text-nowrap">Mã TX</th>
+                                        <th class="text-nowrap">Mã Giao Dịch</th>
+                                        <th class="text-nowrap">Mã Đơn Hàng</th>
+                                        <th class="text-nowrap">Số Tiền Nhận</th>
+                                        <th class="text-nowrap">Ngân Hàng</th>
+                                        <th class="text-nowrap">Trạng Thái</th>
+                                        <th class="text-nowrap">Thời Gian Nhận</th>
+                                        <th class="text-center text-nowrap">Chi Tiết</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="tx, iterStat : ${danhSachGiaoDich}">
+                                        <td class="text-center text-nowrap" th:text="${iterStat.count}">1</td>
+                                        <td class="text-nowrap" th:text="${tx.id}">1</td>
+                                        <td class="fw-bold text-dark text-nowrap" th:text="${tx.transactionId}">TX123</td>
+                                        <td class="text-nowrap">
+                                            <a th:href="@{/admin/don-hang(search=${tx.order != null ? tx.order.maDonHang : ''})}" 
+                                               class="fw-semibold text-primary" 
+                                               th:text="${tx.order != null ? tx.order.maDonHang : 'N/A'}">DH123</a>
+                                        </td>
+                                        <td class="text-danger fw-bold text-nowrap" th:text="${#numbers.formatDecimal(tx.amount, 0, 'COMMA', 0, 'POINT')} + ' đ'">100,000 đ</td>
+                                        <td class="text-nowrap" th:text="${tx.gateway}">Vietcombank</td>
+                                        <td class="text-nowrap">
+                                            <span th:if="${tx.status == 'success'}" class="admin-status admin-status-success">Thành công</span>
+                                            <span th:if="${tx.status == 'stock_conflict'}" class="admin-status admin-status-warning">Tranh chấp kho</span>
+                                            <span th:if="${tx.status == 'paid_received_after_cancel'}" class="admin-status admin-status-danger">Thanh toán sau hủy</span>
+                                            <span th:if="${tx.status == 'amount_mismatch'}" class="admin-status admin-status-danger">Sai lệch số tiền</span>
+                                            <span th:if="${tx.status == 'order_not_found'}" class="admin-status admin-status-neutral">Sai nội dung CK</span>
+                                        </td>
+                                        <td class="text-nowrap small" th:text="${#temporals.format(tx.createdAt, 'dd/MM/yyyy HH:mm:ss')}">26/10/2026 12:00:00</td>
+                                        <td class="text-center text-nowrap">
+                                            <button th:if="${tx.rawPayload != null}" 
+                                                    class="admin-btn admin-btn-sm admin-btn-secondary"
+                                                    th:data-payload="${tx.rawPayload}"
+                                                    onclick="showPayloadModal(this)">
+                                                <i class="fas fa-code me-1"></i> Payload
+                                            </button>
+                                            <span th:unless="${tx.rawPayload != null}" class="text-muted small">Không có</span>
+                                        </td>
+                                    </tr>
+                                    <tr th:if="${danhSachGiaoDich.isEmpty()}">
+                                        <td colspan="9" class="text-center text-muted py-4">Không tìm thấy giao dịch nào khớp với bộ lọc.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Payload Modal -->
+    <div class="modal fade" id="payloadModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content" style="border-radius: 12px; overflow: hidden;">
+                <div class="modal-header bg-dark text-white">
+                    <h5 class="modal-title"><i class="fas fa-code me-2"></i>Raw JSON Callback Payload</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-start">
+                    <pre><code id="payloadContent" class="text-dark" style="white-space: pre-wrap; font-family: Consolas, monospace; font-size: 13px;"></code></pre>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="admin-btn admin-btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showPayloadModal(btn) {
+            var rawJson = btn.getAttribute('data-payload');
+            try {
+                const parsed = JSON.parse(rawJson);
+                document.getElementById('payloadContent').textContent = JSON.stringify(parsed, null, 4);
+            } catch (e) {
+                document.getElementById('payloadContent').textContent = rawJson;
+            }
+            var myModal = new bootstrap.Modal(document.getElementById('payloadModal'));
+            myModal.show();
+        }
+    </script>
+
+    <!-- Bootstrap 5.3.0 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Admin Layout JS -->
+    <script th:src="@{/js/admin-layout.js(v='2.4')}"></script>
+</body>
+</html>
