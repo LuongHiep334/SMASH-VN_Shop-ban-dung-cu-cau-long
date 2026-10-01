@@ -4,10 +4,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.io.File;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -100,10 +98,12 @@ class ProductAttributeDataContractTest {
 
     @BeforeAll
     static void parseSqlScript() throws Exception {
-        File sqlFile = new File("scratch/BadmintonShopDB1_ban_moi_nhat_.sql");
-        assertTrue(sqlFile.exists(), "SQL script scratch/BadmintonShopDB1_ban_moi_nhat_.sql must exist");
-
-        List<String> lines = Files.readAllLines(sqlFile.toPath(), StandardCharsets.UTF_8);
+        List<String> lines;
+        try (var resource = ProductAttributeDataContractTest.class
+                .getResourceAsStream("/fixtures/product-catalog.sql")) {
+            assertNotNull(resource, "Product catalog test fixture must exist on the classpath");
+            lines = new String(resource.readAllBytes(), StandardCharsets.UTF_8).lines().toList();
+        }
 
         String mode = "";
         int spCounter = 0;
