@@ -12,11 +12,6 @@
   <a href="#-tác-giả--liên-hệ"><img src="https://img.shields.io/badge/License-Academic%20Demo-blue?style=for-the-badge" alt="License" /></a>
 </p>
 
-<p align="center">
-  <a href="https://discord.gg/tinhxuannn"><img src="https://img.shields.io/badge/Discord-%237289DA.svg?style=flat-square&logo=discord&logoColor=white" alt="Discord" /></a>
-  <a href="https://facebook.com/TinhXuannn"><img src="https://img.shields.io/badge/Facebook-%231877F2.svg?style=flat-square&logo=Facebook&logoColor=white" alt="Facebook" /></a>
-  <a href="https://instagram.com/TinhXuannn"><img src="https://img.shields.io/badge/Instagram-%23E4405F.svg?style=flat-square&logo=Instagram&logoColor=white" alt="Instagram" /></a>
-</p>
 
 ---
 
